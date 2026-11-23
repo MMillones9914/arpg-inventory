@@ -4,7 +4,7 @@ Plan de hitos del módulo. Cada hito cumplido incrementa la versión MINOR (0.x.
 
 Leyenda de estado: 🔲 To do · 🔄 In progress · ✅ Done
 
-## M0 — Bootstrap (0.0.1) ✅
+## M0 — Bootstrap & tooling (0.0.1) ✅
 - [x] Documentación base (AGENT.md, CHANGELOG.md, README.md, milestones.md)
 - [x] Scaffold del módulo (module.json, package.json, .gitignore)
 - [x] Estructura de carpetas scripts/templates/styles/lang
@@ -13,40 +13,61 @@ Leyenda de estado: 🔲 To do · 🔄 In progress · ✅ Done
 - [x] Integración mínima con dnd5e (hook de carga)
 - [x] Repo público + CI release workflow
 
-## M1 — Grid core (0.1.0) 🔲
-- [ ] Modelo de cuadrícula por actor
-- [ ] Dimensiones de ítem (w×h), rotación
-- [ ] Ocupación de celdas y colisión
-- [ ] Persistencia en flags del actor
+## M1 — Data model & persistence (0.1.0) ✅
+- [x] Modelo de capacidad por actor (cols, rows, maxWeight, mode)
+- [x] Modelo de item (grid w×h, rotatable; stack current/max)
+- [x] Persistencia en flags versionada + migración
+- [x] Settings globales de capacidad
+- [x] Hooks de sincronización (createActor/createItem/deleteItem)
+- [x] Tests unitarios (Vitest)
 
-## M2 — Render & DnD (0.2.0) 🔲
-- [ ] UI de inventario (ApplicationV2 + HBS)
-- [ ] Drag & drop con snap a grid
-- [ ] Validación de colisión en tiempo real
-- [ ] Tooltips básicos
+## M2 — Grid engine (0.2.0) 🔲
+- [ ] Algoritmo de ocupación de celdas
+- [ ] Colisión y validación de colocación
+- [ ] Rotación 90° y snap a grid
+- [ ] Stack-aware placement y split
 
-## M3 — Persistencia & sync (0.3.0) 🔲
-- [ ] Guardado robusto, diff updates
-- [ ] Sincronización multi-cliente
-- [ ] Migración de datos v1
+## M3 — Inventory UI (ApplicationV2) (0.3.0) 🔲
+- [ ] Ventana de inventario con HBS
+- [ ] Grid dinámico según capacidad
+- [ ] Render de raridad (borde/glow)
+- [ ] Menú contextual (GM) editar tamaño
+- [ ] Barra de carga (peso)
 
-## M4 — Equipamiento & contenedores (0.4.0) 🔲
+## M4 — Drag & Drop (0.4.0) 🔲
+- [ ] DnD con snap, preview, validación
+- [ ] Rotación con tecla, cancelación
+- [ ] Apilado automático y split
+
+## M5 — Equipment & containers (0.5.0) 🔲
 - [ ] Slots de equipo
-- [ ] Contenedores anidados (ilusión)
-- [ ] Peso / volumen
+- [ ] Contenedores (sub-grid)
+- [ ] Peso/volumen y encumbrance
 
-## M5 — UX avanzada (0.5.0) 🔲
+## M6 — D&D 5e integration (0.6.0) 🔲
+- [ ] Capacidad dinámica desde Fuerza
+- [ ] Tamaños por defecto por tipo
+- [ ] Sync de items, attunement, usos
+- [ ] Permisos (edición solo GM)
+
+## M7 — UX, accessibility & theming (0.7.0) 🔲
 - [ ] Búsqueda y filtros
 - [ ] Atajos de teclado
-- [ ] Temas / estilos
-- [ ] Sonidos
+- [ ] Tooltips ricos
+- [ ] Temas claro/oscuro + alto contraste
+- [ ] Sonidos configurables
 
-## M6 — Integración dnd5e completa (0.6.0) 🔲
-- [ ] Hoja de actor integrada
-- [ ] Tiradas, usos, attunement
-- [ ] Compatibilidad con items mágicos
+## M8 — Multiplayer, permissions & sync (0.8.0) 🔲
+- [ ] Permisos GM/Jugador
+- [ ] Sync sin race conditions
+- [ ] Manejo de conflictos
 
-## M7 — Pulido & release (1.0.0) 🔲
-- [ ] Performance y accesibilidad
+## M9 — Public API & extensibility (0.9.0) 🔲
+- [ ] API pública documentada
+- [ ] Hooks propios
+- [ ] Compatibilidad con otros módulos
+
+## M10 — Polish, performance & release (1.0.0) 🔲
+- [ ] Performance y accesibilidad final
 - [ ] Documentación de usuario
 - [ ] Empaquetado y release

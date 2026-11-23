@@ -8,9 +8,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-- M0 scaffold: Vite + ESM build, module manifest, CI release workflow.
-- Source tree (`src/`), settings, logger, constants, placeholder `InventoryApp`.
-- Lang (`en`), styles, templates, `.gitignore`.
+- (next milestone in progress)
+
+## [0.1.0] - 2026-11-23
+
+### Added
+- M1 data model & persistence: capacity per actor, item grid/stack, versioned flags, migration.
+- Global settings for capacity (mode, cols, rows, maxWeight).
+- Sync hooks for actor/item create/delete.
+- Unit tests (Vitest) for grid model.
+
+### Changed
+- Milestone plan updated to M0–M10.
 
 ## [0.0.1] - 2026-11-23
 

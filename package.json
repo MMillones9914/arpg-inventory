@@ -1,16 +1,19 @@
 {
   "name": "arpg-inventory",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "ARPG Inventory module for Foundry VTT v14 (Diablo/Stoneshard style), integrated with D&D 5e 6.1.0+.",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "clean": "rm -rf dist"
+    "clean": "rm -rf dist",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "devDependencies": {
-    "vite": "^8.3.8"
+    "vite": "^8.3.8",
+    "vitest": "^3.0.0"
   },
   "keywords": [
     "foundry-vtt",
