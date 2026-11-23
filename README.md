@@ -4,7 +4,27 @@ Módulo para Foundry VTT v14 que añade un inventario estilo Diablo / Stoneshard
 
 ## Estado
 
-Versión actual: **0.0.1** (bootstrap documental). En planificación de hitos.
+Versión actual: **0.0.1** (M0 bootstrap). En desarrollo.
+
+## Instalación (Foundry VTT)
+
+Manifest URL:
+```
+https://raw.githubusercontent.com/MMillones9914/arpg-inventory/main/module.json
+```
+Pegar en "Install Module" → "Manifest URL".
+
+## Desarrollo
+
+Requisitos: Node 22+, npm.
+
+```bash
+npm install
+npm run build      # genera dist/module.mjs
+npm run dev        # vite dev server (opcional)
+```
+
+Para probar en Foundry, copiar/symlink el repo en `Data/modules/arpg-inventory` y ejecutar `npm run build`.
 
 ## Documentación
 
@@ -19,4 +39,4 @@ Versión actual: **0.0.1** (bootstrap documental). En planificación de hitos.
 
 ## Licencia
 
-Por definir.
+MIT.

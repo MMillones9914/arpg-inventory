@@ -1,12 +1,9 @@
-# Git ignore
 node_modules/
 dist/
 *.log
 .DS_Store
 Thumbs.db
-# Foundry local data (never commit)
 data/
-# Editor
 .vscode/
 .idea/
 *.swp

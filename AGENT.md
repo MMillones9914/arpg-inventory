@@ -52,6 +52,9 @@ No tomas atajos con APIs privadas ni hackeos frágiles. Si una funcionalidad req
 
 ```
 arpg-inventory-like/
+├── .github/
+│   └── workflows/
+│       └── release.yml
 ├── AGENT.md
 ├── CHANGELOG.md
 ├── README.md
@@ -154,4 +157,4 @@ Pendiente de definición conjunta. Borrador inicial (se formalizará en `docs/mi
 
 ---
 
-_Última actualización: 0.0.1 (bootstrap documental)._
+_Última actualización: 0.0.1 (M0 scaffold implementado, repo público + CI)._

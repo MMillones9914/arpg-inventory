@@ -1,0 +1,10 @@
+.arpg-inventory {
+  padding: 8px;
+  color: var(--color-text, #191813);
+  font-family: var(--font-primary, sans-serif);
+}
+
+.arpg-inventory__grid {
+  display: grid;
+  gap: 2px;
+}

@@ -4,13 +4,14 @@ Plan de hitos del módulo. Cada hito cumplido incrementa la versión MINOR (0.x.
 
 Leyenda de estado: 🔲 To do · 🔄 In progress · ✅ Done
 
-## M0 — Bootstrap (0.0.1) 🔄
+## M0 — Bootstrap (0.0.1) ✅
 - [x] Documentación base (AGENT.md, CHANGELOG.md, README.md, milestones.md)
-- [ ] Scaffold del módulo (module.json, package.json, .gitignore)
-- [ ] Estructura de carpetas scripts/templates/styles/lang
-- [ ] Logger, constantes, settings
-- [ ] App vacía (ApplicationV2) renderizable
-- [ ] Integración mínima con dnd5e (hook de carga)
+- [x] Scaffold del módulo (module.json, package.json, .gitignore)
+- [x] Estructura de carpetas scripts/templates/styles/lang
+- [x] Logger, constantes, settings
+- [x] App vacía (ApplicationV2) renderizable
+- [x] Integración mínima con dnd5e (hook de carga)
+- [x] Repo público + CI release workflow
 
 ## M1 — Grid core (0.1.0) 🔲
 - [ ] Modelo de cuadrícula por actor

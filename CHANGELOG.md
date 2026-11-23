@@ -8,13 +8,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-- Initial project scaffold documentation (`AGENT.md`, `CHANGELOG.md`, `README.md`, `docs/milestones.md`).
-- Defined development agent guidelines, stack (Foundry VTT v14, dnd5e 6.1.0+), conventions and versioning policy.
+- M0 scaffold: Vite + ESM build, module manifest, CI release workflow.
+- Source tree (`src/`), settings, logger, constants, placeholder `InventoryApp`.
+- Lang (`en`), styles, templates, `.gitignore`.
 
 ## [0.0.1] - 2026-11-23
 
 ### Added
-- Bootstrap of the module planning: agent guide and milestone draft.
+- Bootstrap of the module planning and repository (public).
+- Initial scaffold (M0): Vite build, CI, manifest, placeholder app.
 
-[Unreleased]: https://github.com/DMZHENSEROT/arpg-inventory/compare/v0.0.1...HEAD
-[0.0.1]: https://github.com/DMZHENSEROT/arpg-inventory/releases/tag/v0.0.1
+[Unreleased]: https://github.com/MMillones9914/arpg-inventory/compare/v0.0.1...HEAD
+[0.0.1]: https://github.com/MMillones9914/arpg-inventory/releases/tag/v0.0.1
