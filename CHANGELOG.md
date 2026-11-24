@@ -10,6 +10,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - (next milestone in progress)
 
+## [0.4.0] - 2026-11-24
+
+### Added
+- M4 drag & drop: move items with snap/validation, rotation (R), stacking and auto-placement.
+
 ## [0.3.3] - 2026-11-24
 
 ### Removed

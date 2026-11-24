@@ -37,10 +37,11 @@ Leyenda de estado: 🔲 To do · 🔄 In progress · ✅ Done
 - [x] Barra de carga (peso)
 - [x] Botón en ficha de actor para abrir (B)
 
-## M4 — Drag & Drop (0.4.0) 🔲
-- [ ] DnD con snap, preview, validación
-- [ ] Rotación con tecla, cancelación
-- [ ] Apilado automático y split
+## M4 — Drag & Drop (0.4.0) ✅
+- [x] DnD con snap, preview, validación
+- [x] Rotación con tecla, cancelación
+- [x] Apilado automático y split (stack)
+- [x] Auto-colocación inicial de items
 
 ## M5 — Equipment & containers (0.5.0) 🔲
 - [ ] Slots de equipo
