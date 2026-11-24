@@ -2,7 +2,7 @@
   "id": "arpg-inventory",
   "title": "ARPG Inventory",
   "description": "Diablo/Stoneshard-style grid inventory for Foundry VTT v14, integrated with D&D 5e 6.1.0+.",
-  "version": "0.4.5",
+  "version": "0.4.6",
   "compatibility": {
     "minimum": "14",
     "verified": "14"
@@ -28,5 +28,5 @@
   ],
   "url": "https://github.com/MMillones9914/arpg-inventory",
   "manifest": "https://raw.githubusercontent.com/MMillones9914/arpg-inventory/main/module.json",
-  "download": "https://github.com/MMillones9914/arpg-inventory/releases/download/v0.4.5/arpg-inventory.zip"
+  "download": "https://github.com/MMillones9914/arpg-inventory/releases/download/v0.4.6/arpg-inventory.zip"
 }

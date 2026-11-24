@@ -10,6 +10,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - (next milestone in progress)
 
+## [0.4.6] - 2026-11-24
+
+### Fixed
+- Restored base cell styling (visible grid).
+- Drop placement notification when invalid.
+
 ## [0.4.5] - 2026-11-24
 
 ### Fixed

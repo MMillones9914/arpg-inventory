@@ -196,6 +196,7 @@ export class InventoryApp extends foundry.applications.api.ApplicationV2 {
     // Drag & drop handlers on grid
     grid.addEventListener('dragover', (ev) => {
       ev.preventDefault();
+      ev.stopPropagation();
       this._lastMouse = { x: ev.clientX, y: ev.clientY };
       if (!this.dragItemId) return;
       const cell = this._cellFromPoint(grid, ev.clientX, ev.clientY);
@@ -223,6 +224,7 @@ export class InventoryApp extends foundry.applications.api.ApplicationV2 {
 
     grid.addEventListener('drop', async (ev) => {
       ev.preventDefault();
+      ev.stopPropagation();
       if (!this.dragItemId) return;
       const cell = this._cellFromPoint(grid, ev.clientX, ev.clientY);
       if (!cell) return;
@@ -244,6 +246,7 @@ export class InventoryApp extends foundry.applications.api.ApplicationV2 {
       const token = { id: draggedId, grid: gridDims, stack: getItemStack(item), stackKey: item.name };
       const res = placeOrStack(working, token, x, y);
       if (!res) {
+        ui.notifications?.warn('Cannot place item here');
         this._clearDropHighlight(grid);
         return;
       }
