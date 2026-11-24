@@ -236,6 +236,7 @@ export class InventoryApp extends foundry.applications.api.ApplicationV2 {
       if (!item) return;
 
       const currentInv = getActorInventory(this.actor);
+      console.log('[ARPG] drop debug', { draggedId, x, y, placements: currentInv.placements });
       const baseGrid = getItemGrid(item);
       const gridDims = this.dragRotated
         ? { w: baseGrid.h, h: baseGrid.w, rotatable: baseGrid.rotatable }
@@ -245,9 +246,10 @@ export class InventoryApp extends foundry.applications.api.ApplicationV2 {
         ? removeItem(state, draggedId)
         : state;
       const token = { id: draggedId, grid: gridDims, stack: getItemStack(item), stackKey: item.name };
+      const can = canPlace(working, gridDims, x, y);
       const res = placeOrStack(working, token, x, y);
       if (!res) {
-        ui.notifications?.warn('Cannot place item here');
+        ui.notifications?.warn(`Cannot place (canPlace=${can})`);
         this._clearDropHighlight(grid);
         return;
       }
