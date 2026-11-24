@@ -121,6 +121,8 @@ export class InventoryApp extends foundry.applications.api.ApplicationV2 {
     grid.className = 'arpginv-grid';
     grid.style.gridTemplateColumns = `repeat(${capacity.cols}, 34px)`;
     grid.style.gridTemplateRows = `repeat(${capacity.rows}, 34px)`;
+    grid.dataset.cols = capacity.cols;
+    grid.dataset.rows = capacity.rows;
 
     // Empty cells
     for (let y = 0; y < capacity.rows; y++) {
@@ -148,6 +150,14 @@ export class InventoryApp extends foundry.applications.api.ApplicationV2 {
       el.style.gridRow = `${placement.y + 1} / span ${placement.h}`;
       el.title = item.name;
 
+      if (item.img) {
+        const img = document.createElement('img');
+        img.className = 'arpginv-item__img';
+        img.src = item.img;
+        img.alt = item.name;
+        el.appendChild(img);
+      }
+
       const name = document.createElement('span');
       name.className = 'arpginv-item__name';
       name.textContent = item.name;
@@ -162,6 +172,10 @@ export class InventoryApp extends foundry.applications.api.ApplicationV2 {
 
       if (game.user?.isGM) {
         el.addEventListener('contextmenu', (ev) => {
+          ev.preventDefault();
+          this._editItemGrid(item);
+        });
+        el.addEventListener('dblclick', (ev) => {
           ev.preventDefault();
           this._editItemGrid(item);
         });
@@ -189,13 +203,13 @@ export class InventoryApp extends foundry.applications.api.ApplicationV2 {
       ev.preventDefault();
       this._lastMouse = { x: ev.clientX, y: ev.clientY };
       if (!this.dragItemId) return;
-      const cell = document.elementFromPoint(ev.clientX, ev.clientY)?.closest('.arpginv-cell');
+      const cell = this._cellFromPoint(grid, ev.clientX, ev.clientY);
       if (!cell) {
         this._setDropHighlight(grid, false);
         return;
       }
-      const x = +cell.dataset.x;
-      const y = +cell.dataset.y;
+      const x = cell.x;
+      const y = cell.y;
       const item = this.actor.items.get(this.dragItemId);
       if (!item) return;
       const baseGrid = getItemGrid(item);
@@ -214,10 +228,10 @@ export class InventoryApp extends foundry.applications.api.ApplicationV2 {
     grid.addEventListener('drop', async (ev) => {
       ev.preventDefault();
       if (!this.dragItemId) return;
-      const cell = document.elementFromPoint(ev.clientX, ev.clientY)?.closest('.arpginv-cell');
+      const cell = this._cellFromPoint(grid, ev.clientX, ev.clientY);
       if (!cell) return;
-      const x = +cell.dataset.x;
-      const y = +cell.dataset.y;
+      const x = cell.x;
+      const y = cell.y;
       const draggedId = this.dragItemId;
       const item = this.actor.items.get(draggedId);
       if (!item) return;
@@ -268,11 +282,14 @@ export class InventoryApp extends foundry.applications.api.ApplicationV2 {
         if (!this.dragItemId) return;
         if (ev.code === 'KeyR') {
           this.dragRotated = !this.dragRotated;
-          const cell = document.elementFromPoint(
-            (this._lastMouse?.x ?? 0),
-            (this._lastMouse?.y ?? 0)
-          )?.closest('.arpginv-cell');
-          // no-op highlight update; dragover will refresh on next move
+          const grid = this.element?.querySelector('.arpginv-grid');
+          if (grid && this._lastMouse) {
+            grid.dispatchEvent(new MouseEvent('dragover', {
+              clientX: this._lastMouse.x,
+              clientY: this._lastMouse.y,
+              bubbles: true
+            }));
+          }
         }
       };
       document.addEventListener('keydown', this._dragKeyHandler);
@@ -282,6 +299,17 @@ export class InventoryApp extends foundry.applications.api.ApplicationV2 {
     return root;
   }
 
+  _cellFromPoint(grid, clientX, clientY) {
+    const cols = +grid.dataset.cols;
+    const rows = +grid.dataset.rows;
+    const rect = grid.getBoundingClientRect();
+    const stride = 36; // 34px cell + 2px gap
+    const pad = 4;
+    const x = Math.floor((clientX - rect.left - pad) / stride);
+    const y = Math.floor((clientY - rect.top - pad) / stride);
+    if (x < 0 || y < 0 || x >= cols || y >= rows) return null;
+    return { x, y };
+  }
   _setDropHighlight(grid, valid) {
     grid.classList.toggle('drop-valid', valid);
     grid.classList.toggle('drop-invalid', !valid);

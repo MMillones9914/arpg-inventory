@@ -71,10 +71,19 @@
   cursor: context-menu;
 }
 
+.arpginv-item__img {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+  margin-right: 2px;
+  pointer-events: none;
+}
+
 .arpginv-item__name {
   pointer-events: none;
   word-break: break-word;
   line-height: 1.1;
+  font-size: 9px;
 }
 
 .arpginv-item__stack {
