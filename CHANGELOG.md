@@ -10,6 +10,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - (next milestone in progress)
 
+## [0.3.1] - 2026-11-23
+
+### Fixed
+- Keybinding B now targets the controlled token's actor (or user character).
+
 ## [0.3.0] - 2026-11-23
 
 ### Added

@@ -13,7 +13,15 @@ export function registerKeybindings() {
       editable: [{ key: 'KeyB' }],
       onDown: () => {
         try {
-          if (!appInstance) appInstance = new InventoryApp();
+          let actor = null;
+          try {
+            const controlled = canvas?.tokens?.controlled?.[0]?.actor;
+            if (controlled) actor = controlled;
+            else if (game.user?.character) actor = game.user.character;
+          } catch (e) {}
+          if (!appInstance || (actor && appInstance.actor !== actor)) {
+            appInstance = new InventoryApp({ actor });
+          }
           appInstance.render(true);
         } catch (e) {
           warn('Failed to open inventory', e);
