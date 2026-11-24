@@ -10,6 +10,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - (next milestone in progress)
 
+## [0.3.2] - 2026-11-24
+
+### Fixed
+- B key now opens inventory (official keybinding + fallback).
+- Strength mode now uses dnd5e carry capacity (encumbrance.max).
+- Added GM "Edit capacity" dialog.
+
 ## [0.3.1] - 2026-11-23
 
 ### Fixed

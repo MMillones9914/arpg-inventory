@@ -46,4 +46,20 @@ export function registerDnd5eHooks() {
       syncing.delete(actor);
     }
   });
+
+  Hooks.on('updateActor', async (actor, changes, options, userId) => {
+    if (game.user?.id !== userId) return;
+    if (!actor?.isOwner && !game.user?.isGM) return;
+    const touchesStrength = changes?.system?.abilities?.str || changes?.system?.attributes?.encumbrance;
+    if (!touchesStrength) return;
+    if (syncing.has(actor)) return;
+    syncing.add(actor);
+    try {
+      await syncActorItems(actor);
+    } catch (e) {
+      warn('updateActor sync failed', e);
+    } finally {
+      syncing.delete(actor);
+    }
+  });
 }

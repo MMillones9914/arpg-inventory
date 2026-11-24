@@ -23,7 +23,13 @@ export function getActorInventory(actor) {
   if (!actor) return null;
   const raw = actor.getFlag(MODULE_ID, 'inventory');
   const itemIds = (actor.items?.map((i) => i.id) ?? []);
-  return normalizeActorInventory(raw, itemIds, settingsDefaults());
+  const inv = normalizeActorInventory(raw, itemIds, settingsDefaults());
+  // Strength-based capacity: use dnd5e encumbrance maximum when enabled.
+  if (inv.capacity.mode === 'strength') {
+    const max = actor.system?.attributes?.encumbrance?.max;
+    if (Number.isFinite(max) && max > 0) inv.capacity.maxWeight = max;
+  }
+  return inv;
 }
 
 export async function setActorInventory(actor, data) {
