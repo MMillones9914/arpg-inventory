@@ -205,7 +205,7 @@ export class InventoryApp extends foundry.applications.api.ApplicationV2 {
       if (!this.dragItemId) return;
       const cell = this._cellFromPoint(grid, ev.clientX, ev.clientY);
       if (!cell) {
-        this._setDropHighlight(grid, false);
+        this._clearDropHighlight(grid);
         return;
       }
       const x = cell.x;
@@ -222,6 +222,7 @@ export class InventoryApp extends foundry.applications.api.ApplicationV2 {
         : state;
       const token = { id: this.dragItemId, grid: gridDims, stack: getItemStack(item), stackKey: item.name };
       const valid = canPlace(working, gridDims, x, y) || !!placeOrStack(working, token, x, y);
+      this._highlightCells(grid, x, y, gridDims, valid);
       this._setDropHighlight(grid, valid);
     });
 
@@ -317,6 +318,24 @@ export class InventoryApp extends foundry.applications.api.ApplicationV2 {
 
   _clearDropHighlight(grid) {
     grid.classList.remove('drop-valid', 'drop-invalid');
+    this._clearCellHighlight(grid);
+  }
+
+  _clearCellHighlight(grid) {
+    grid.querySelectorAll('.arpginv-cell').forEach((c) => {
+      c.classList.remove('drop-ok', 'drop-bad');
+    });
+  }
+
+  _highlightCells(grid, x, y, dims, valid) {
+    this._clearCellHighlight(grid);
+    const cls = valid ? 'drop-ok' : 'drop-bad';
+    for (let dy = 0; dy < dims.h; dy++) {
+      for (let dx = 0; dx < dims.w; dx++) {
+        const cell = grid.querySelector(`.arpginv-cell[data-x="${x + dx}"][data-y="${y + dy}"]`);
+        if (cell) cell.classList.add(cls);
+      }
+    }
   }
 
   _replaceHTML(element, root) {

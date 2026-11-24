@@ -48,12 +48,14 @@
   border-radius: 4px;
 }
 
-.arpginv-cell {
-  width: 34px;
-  height: 34px;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(0, 0, 0, 0.15);
-  border-radius: 2px;
+.arpginv-cell.drop-ok {
+  background: rgba(76, 175, 80, 0.45);
+  border-color: #4caf50;
+}
+
+.arpginv-cell.drop-bad {
+  background: rgba(244, 67, 54, 0.45);
+  border-color: #f44336;
 }
 
 .arpginv-item {
