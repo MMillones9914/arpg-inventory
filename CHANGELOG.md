@@ -10,6 +10,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - (next milestone in progress)
 
+## [0.4.4] - 2026-11-24
+
+### Fixed
+- Drag highlight now paints target cells directly (inline styles).
+- Item image covers entire item border.
+
 ## [0.4.3] - 2026-11-24
 
 ### Changed

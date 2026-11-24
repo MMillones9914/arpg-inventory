@@ -319,18 +319,26 @@ export class InventoryApp extends foundry.applications.api.ApplicationV2 {
   _clearCellHighlight(grid) {
     grid.querySelectorAll('.arpginv-cell').forEach((c) => {
       c.classList.remove('drop-ok', 'drop-bad');
+      c.style.background = '';
+      c.style.borderColor = '';
+      c.style.boxShadow = '';
     });
   }
 
   _highlightCells(grid, x, y, dims, valid) {
     this._clearCellHighlight(grid);
-    const cls = valid ? 'drop-ok' : 'drop-bad';
-    for (let dy = 0; dy < dims.h; dy++) {
-      for (let dx = 0; dx < dims.w; dx++) {
-        const cell = grid.querySelector(`.arpginv-cell[data-x="${x + dx}"][data-y="${y + dy}"]`);
-        if (cell) cell.classList.add(cls);
+    const bg = valid ? 'rgba(76, 175, 80, 0.65)' : 'rgba(244, 67, 54, 0.65)';
+    const border = valid ? '#4caf50' : '#f44336';
+    grid.querySelectorAll('.arpginv-cell').forEach((cell) => {
+      const cx = +cell.dataset.x;
+      const cy = +cell.dataset.y;
+      if (cx >= x && cx < x + dims.w && cy >= y && cy < y + dims.h) {
+        cell.style.background = bg;
+        cell.style.borderColor = border;
+        cell.style.boxShadow = `inset 0 0 8px ${border}`;
+        cell.classList.add(valid ? 'drop-ok' : 'drop-bad');
       }
-    }
+    });
   }
 
   _replaceHTML(element, root) {
