@@ -296,15 +296,13 @@ export class InventoryApp extends foundry.applications.api.ApplicationV2 {
   }
 
   _cellFromPoint(grid, clientX, clientY) {
-    const cols = +grid.dataset.cols;
-    const rows = +grid.dataset.rows;
-    const rect = grid.getBoundingClientRect();
-    const stride = 36; // 34px cell + 2px gap
-    const pad = 4;
-    const x = Math.floor((clientX - rect.left - pad) / stride);
-    const y = Math.floor((clientY - rect.top - pad) / stride);
-    if (x < 0 || y < 0 || x >= cols || y >= rows) return null;
-    return { x, y };
+    for (const cell of grid.querySelectorAll('.arpginv-cell')) {
+      const r = cell.getBoundingClientRect();
+      if (clientX >= r.left && clientX <= r.right && clientY >= r.top && clientY <= r.bottom) {
+        return { x: +cell.dataset.x, y: +cell.dataset.y };
+      }
+    }
+    return null;
   }
   _setDropHighlight(grid, valid) {
     grid.classList.toggle('drop-valid', valid);
