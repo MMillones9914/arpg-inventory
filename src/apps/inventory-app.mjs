@@ -225,6 +225,7 @@ export class InventoryApp extends foundry.applications.api.ApplicationV2 {
     grid.addEventListener('drop', async (ev) => {
       ev.preventDefault();
       ev.stopPropagation();
+      console.log('[ARPG] drop fired', this.dragItemId);
       if (!this.dragItemId) return;
       const cell = this._cellFromPoint(grid, ev.clientX, ev.clientY);
       if (!cell) return;
@@ -267,6 +268,7 @@ export class InventoryApp extends foundry.applications.api.ApplicationV2 {
         await this.actor.deleteEmbeddedDocuments('Item', [draggedId]);
       } else {
         await setActorInventory(this.actor, newInv);
+        ui.notifications?.info('Item placed');
       }
 
       this.dragItemId = null;

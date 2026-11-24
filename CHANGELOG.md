@@ -10,6 +10,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - (next milestone in progress)
 
+## [0.4.7] - 2026-11-24
+
+### Debug
+- Added drop logging/notifications to diagnose placement.
+
 ## [0.4.6] - 2026-11-24
 
 ### Fixed
