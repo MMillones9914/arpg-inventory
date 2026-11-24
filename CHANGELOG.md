@@ -10,6 +10,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - (next milestone in progress)
 
+## [0.3.0] - 2026-11-23
+
+### Added
+- M3 inventory UI: ApplicationV2 window, dynamic grid, rarity styling, GM edit size dialog, weight bar.
+- Actor sheet button to open inventory (B keybinding).
+
 ## [0.2.0] - 2026-11-23
 
 ### Added

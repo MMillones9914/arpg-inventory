@@ -29,12 +29,13 @@ Leyenda de estado: 🔲 To do · 🔄 In progress · ✅ Done
 - [x] Keybinding B para abrir inventario (placeholder)
 - [x] Tests unitarios del engine (7)
 
-## M3 — Inventory UI (ApplicationV2) (0.3.0) 🔲
-- [ ] Ventana de inventario con HBS
-- [ ] Grid dinámico según capacidad
-- [ ] Render de raridad (borde/glow)
-- [ ] Menú contextual (GM) editar tamaño
-- [ ] Barra de carga (peso)
+## M3 — Inventory UI (ApplicationV2) (0.3.0) ✅
+- [x] Ventana de inventario con HBS/CSS grid
+- [x] Grid dinámico según capacidad
+- [x] Render de raridad (borde/glow)
+- [x] Menú contextual (GM) editar tamaño
+- [x] Barra de carga (peso)
+- [x] Botón en ficha de actor para abrir (B)
 
 ## M4 — Drag & Drop (0.4.0) 🔲
 - [ ] DnD con snap, preview, validación

@@ -4,7 +4,97 @@
   font-family: var(--font-primary, sans-serif);
 }
 
-.arpg-inventory__grid {
+.arpginv-weight {
+  position: relative;
+  height: 18px;
+  background: rgba(0, 0, 0, 0.15);
+  border: 1px solid var(--color-border, #999);
+  border-radius: 4px;
+  margin-bottom: 8px;
+  overflow: hidden;
+}
+
+.arpginv-weight__fill {
+  height: 100%;
+  background: #4caf50;
+  transition: width 0.2s ease;
+}
+
+.arpginv-weight__fill--warn {
+  background: #ff9800;
+}
+
+.arpginv-weight__fill--over {
+  background: #f44336;
+}
+
+.arpginv-weight__label {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: bold;
+  color: #fff;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.6);
+}
+
+.arpginv-grid {
   display: grid;
   gap: 2px;
+  background: rgba(0, 0, 0, 0.08);
+  padding: 4px;
+  border-radius: 4px;
+}
+
+.arpginv-cell {
+  width: 34px;
+  height: 34px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  border-radius: 2px;
+}
+
+.arpginv-item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2px;
+  border-radius: 3px;
+  border: 2px solid transparent;
+  background: rgba(120, 120, 120, 0.25);
+  font-size: 10px;
+  text-align: center;
+  overflow: hidden;
+  position: relative;
+  cursor: context-menu;
+}
+
+.arpginv-item__name {
+  pointer-events: none;
+  word-break: break-word;
+  line-height: 1.1;
+}
+
+.arpginv-item__stack {
+  position: absolute;
+  bottom: 1px;
+  right: 2px;
+  font-size: 9px;
+  font-weight: bold;
+  color: #fff;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.8);
+}
+
+/* Rarity colors (dnd5e scale) */
+.arpginv-rarity--common { border-color: #9e9e9e; }
+.arpginv-rarity--uncommon { border-color: #4caf50; box-shadow: 0 0 4px #4caf50; }
+.arpginv-rarity--rare { border-color: #2196f3; box-shadow: 0 0 4px #2196f3; }
+.arpginv-rarity--very-rare { border-color: #9c27b0; box-shadow: 0 0 4px #9c27b0; }
+.arpginv-rarity--legendary { border-color: #ff9800; box-shadow: 0 0 4px #ff9800; }
+.arpginv-rarity--artifact { border-color: #f44336; box-shadow: 0 0 6px #f44336; }
+
+.arpg-open-btn {
+  margin-left: 6px;
 }
