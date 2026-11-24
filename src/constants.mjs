@@ -1,3 +1,3 @@
 export const MODULE_ID = 'arpg-inventory';
 export const MODULE_TITLE = 'ARPG Inventory';
-export const MODULE_VERSION = '0.3.2';
+export const MODULE_VERSION = '0.3.3';

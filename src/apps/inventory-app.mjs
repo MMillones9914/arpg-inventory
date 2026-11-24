@@ -1,6 +1,6 @@
 import { MODULE_ID } from '../constants.mjs';
-import { getActorInventory, getItemGrid, getItemStack, setItemGrid } from '../data/inventory-service.mjs';
-import { setActorInventory } from '../data/inventory-service.mjs';
+import { getActorInventory, getItemGrid, getItemStack } from '../data/inventory-service.mjs';
+import { setItemGrid } from '../data/inventory-service.mjs';
 
 function rarityClass(item) {
   const raw = (item.system?.rarity ?? item.rarity ?? 'common').toString();
@@ -118,77 +118,12 @@ export class InventoryApp extends foundry.applications.api.ApplicationV2 {
       grid.appendChild(el);
     }
 
-    if (game.user?.isGM) {
-      const toolbar = document.createElement('div');
-      toolbar.className = 'arpginv-toolbar';
-      const capBtn = document.createElement('button');
-      capBtn.type = 'button';
-      capBtn.className = 'arpginv-cap-btn';
-      capBtn.textContent = 'Edit capacity';
-      capBtn.addEventListener('click', () => this._editCapacity(inv));
-      toolbar.appendChild(capBtn);
-      root.appendChild(toolbar);
-    }
-
     root.append(weightBar, grid);
     return root;
   }
 
   _replaceHTML(element, root) {
     root.replaceChildren(element);
-  }
-
-  async _editCapacity(inv) {
-    if (!game.user?.isGM || !this.actor) return;
-    const cap = inv.capacity;
-    const content = `
-      <form class="arpginv-edit-form">
-        <div class="form-group">
-          <label>Mode</label>
-          <select name="mode">
-            <option value="manual" ${cap.mode === 'manual' ? 'selected' : ''}>Manual</option>
-            <option value="strength" ${cap.mode === 'strength' ? 'selected' : ''}>By Strength</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label>Columns</label>
-          <input type="number" name="cols" value="${cap.cols}" min="1" />
-        </div>
-        <div class="form-group">
-          <label>Rows</label>
-          <input type="number" name="rows" value="${cap.rows}" min="1" />
-        </div>
-        <div class="form-group">
-          <label>Max weight</label>
-          <input type="number" name="maxWeight" value="${cap.maxWeight}" min="0" step="0.1" />
-        </div>
-      </form>
-    `;
-
-    const dialog = new foundry.applications.api.DialogV2({
-      window: { title: `Edit capacity: ${this.actor.name}` },
-      content,
-      buttons: [
-        {
-          action: 'save',
-          label: 'Save',
-          default: true,
-          callback: async (event, button, dialogEl) => {
-            const form = dialogEl.querySelector('form');
-            const mode = form.mode.value;
-            const cols = Math.max(1, parseInt(form.cols.value, 10) || 1);
-            const rows = Math.max(1, parseInt(form.rows.value, 10) || 1);
-            const maxWeight = Math.max(0, parseFloat(form.maxWeight.value) || 0);
-            const next = getActorInventory(this.actor);
-            next.capacity = { mode, cols, rows, maxWeight };
-            await setActorInventory(this.actor, next);
-            this.render(true);
-          }
-        },
-        { action: 'cancel', label: 'Cancel' }
-      ]
-    });
-    await dialog.render(true);
   }
 
   async _editItemGrid(item) {
