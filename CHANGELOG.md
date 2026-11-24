@@ -10,6 +10,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - (next milestone in progress)
 
+## [0.2.0] - 2026-11-23
+
+### Added
+- M2 grid engine: occupancy, collision, rotation, snap, stack-aware placement, split.
+- Keybinding `B` to open inventory (placeholder app).
+- Unit tests (7) for grid engine.
+
 ## [0.1.0] - 2026-11-23
 
 ### Added

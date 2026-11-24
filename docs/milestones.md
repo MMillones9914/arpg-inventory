@@ -21,11 +21,13 @@ Leyenda de estado: 🔲 To do · 🔄 In progress · ✅ Done
 - [x] Hooks de sincronización (createActor/createItem/deleteItem)
 - [x] Tests unitarios (Vitest)
 
-## M2 — Grid engine (0.2.0) 🔲
-- [ ] Algoritmo de ocupación de celdas
-- [ ] Colisión y validación de colocación
-- [ ] Rotación 90° y snap a grid
-- [ ] Stack-aware placement y split
+## M2 — Grid engine (0.2.0) ✅
+- [x] Algoritmo de ocupación de celdas
+- [x] Colisión y validación de colocación
+- [x] Rotación 90° y snap a grid
+- [x] Stack-aware placement y split
+- [x] Keybinding B para abrir inventario (placeholder)
+- [x] Tests unitarios del engine (7)
 
 ## M3 — Inventory UI (ApplicationV2) (0.3.0) 🔲
 - [ ] Ventana de inventario con HBS

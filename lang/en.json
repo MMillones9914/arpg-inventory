@@ -26,6 +26,12 @@
     },
     "App": {
       "Title": "ARPG Inventory"
+    },
+    "Keybindings": {
+      "OpenInventory": {
+        "Name": "Open ARPG Inventory",
+        "Hint": "Opens the ARPG inventory window (default: B)."
+      }
     }
   }
 }
