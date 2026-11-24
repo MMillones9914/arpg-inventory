@@ -10,6 +10,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - (next milestone in progress)
 
+## [0.4.3] - 2026-11-24
+
+### Changed
+- Drag highlight now only on target cells (no general border).
+- Items show image only; name appears as tooltip on hover.
+
 ## [0.4.2] - 2026-11-24
 
 ### Improved

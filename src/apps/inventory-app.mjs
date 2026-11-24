@@ -158,11 +158,6 @@ export class InventoryApp extends foundry.applications.api.ApplicationV2 {
         el.appendChild(img);
       }
 
-      const name = document.createElement('span');
-      name.className = 'arpginv-item__name';
-      name.textContent = item.name;
-      el.appendChild(name);
-
       if (stack.current > 1) {
         const badge = document.createElement('span');
         badge.className = 'arpginv-item__stack';
