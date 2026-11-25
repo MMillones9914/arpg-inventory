@@ -204,7 +204,7 @@ export class InventoryApp extends foundry.applications.api.ApplicationV2 {
         this._clearDropHighlight(grid);
         return;
       }
-      const x = cell.x;
+      console.log('[ARPG] dragover', { clientX: ev.clientX, clientY: ev.clientY, cell, firstCellRect: grid.querySelector('.arpginv-cell')?.getBoundingClientRect() });
       const y = cell.y;
       const item = this.actor.items.get(this.dragItemId);
       if (!item) return;
