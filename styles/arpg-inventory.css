@@ -1,5 +1,5 @@
 .arpg-inventory {
-  --arpginv-space: 10px;
+  --arpginv-space: 5px;
   color: var(--color-text, #191813);
   font-family: var(--font-primary, sans-serif);
 }

@@ -82,7 +82,7 @@ export class InventoryApp extends foundry.applications.api.ApplicationV2 {
     id: 'arpg-inventory-inventory',
     classes: ['arpg-inventory'],
     window: { title: 'ARPG Inventory' },
-    position: { width: 740, height: 600 }
+    position: { width: 710, height: 620 }
   };
 
   get title() {
@@ -206,7 +206,7 @@ export class InventoryApp extends foundry.applications.api.ApplicationV2 {
     // Keep pane width tied to the main grid so the weight bar and weapon row
     // stay the same size when switching to smaller container zones.
     const mainCols = Math.max(1, Number(inv.capacity.cols) || 10);
-    inventoryPane.style.width = `${mainCols * CELL_SIZE + (mainCols - 1) * 2 + 22}px`;
+    inventoryPane.style.width = `${mainCols * CELL_SIZE + (mainCols - 1) * 2 + 12}px`;
     const paneTitle = document.createElement('div');
     paneTitle.className = 'arpginv-inventory-pane__title';
     paneTitle.textContent = 'Inventario';

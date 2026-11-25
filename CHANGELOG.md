@@ -10,6 +10,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - (next milestone in progress)
 
+## [0.5.10] - 2026-11-25
+
+### Changed
+- Margen general reducido a **5px** en toda la ventana (raíz, paneles, títulos, barras, pestañas y grid).
+- Ventana ajustada a **710×620**: menos espacio arriba/izquierda y algo más de alto abajo para que no se corte el personaje.
+
 ## [0.5.9] - 2026-11-25
 
 ### Changed

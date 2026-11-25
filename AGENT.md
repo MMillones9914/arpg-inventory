@@ -1,6 +1,6 @@
 # AGENT.md — Guía del agente de desarrollo
 
-> Documento vivo. Define arquitectura, convenciones y reglas de trabajo del módulo **ARPG Inventory** para Foundry VTT v14. Versión del documento: **0.5.9**.
+> Documento vivo. Define arquitectura, convenciones y reglas de trabajo del módulo **ARPG Inventory** para Foundry VTT v14. Versión del documento: **0.5.10**.
 
 ---
 
@@ -80,7 +80,7 @@ tests/{data,engine}/*.test.ts
 - `w`/`h` en un placement son **siempre** las dimensiones efectivas en grid; `rotated` solo es metadata. Nunca se swap de nuevo al leer.
 - Las celdas del grid se posicionan explícitamente (`gridColumn`/`gridRow`); `data-x/y` debe coincidir con la celda visible.
 - Cadenas visibles al usuario: usar `game.i18n.localize` cuando exista clave en `lang/en.json`.
-- Layout de la app: flex horizontal con un único margen general `--arpginv-space` (10px) aplicado a raíz, paneles, títulos, barras, pestañas y grid; se anula el padding propio del `.window-content`. Equipo 9:16 a la izquierda con `actor.img` de fondo, inventario a la derecha con espacios de armas encima del grid. El panel del inventario tiene ancho fijo igual al grid principal; ventana 740×600.
+- Layout de la app: flex horizontal con un único margen general `--arpginv-space` (5px) aplicado a raíz, paneles, títulos, barras, pestañas y grid; se anula el padding propio del `.window-content`. Equipo 9:16 a la izquierda con `actor.img` de fondo, inventario a la derecha con espacios de armas encima del grid. El panel del inventario tiene ancho fijo igual al grid principal; ventana 710×620.
 
 ---
 
@@ -145,4 +145,4 @@ Un item está en **una sola zona**; `removeItemFromInventory` lo saca de todas a
 
 ---
 
-_Última actualización: 0.5.9 (M5 completado; margen general unificado, armas más anchas con imagen completa)._
+_Última actualización: 0.5.10 (M5 completado; margen general de 5px y ventana sin recorte del personaje)._
