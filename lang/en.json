@@ -1,10 +1,6 @@
 {
   "ARPGINV": {
     "Settings": {
-      "Debug": {
-        "Name": "Debug logging",
-        "Hint": "Enable verbose console logging for the ARPG Inventory module."
-      },
       "CapacityMode": {
         "Name": "Default capacity mode",
         "Hint": "How the inventory capacity is determined by default.",

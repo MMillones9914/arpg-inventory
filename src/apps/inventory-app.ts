@@ -1,13 +1,18 @@
 import { MODULE_ID } from '../constants';
 import {
-  clearItemPlacement,
+  EQUIPMENT_SLOTS,
+  findItemLocation,
+  getInventoryZone,
+  normalizePlacement,
+  removeItemFromInventory,
+  zoneUsedCells
+} from '../data/grid-model';
+import {
   getActorInventory,
   getItemGrid,
   getItemStack,
-  setActorInventory,
-  setItemGrid
+  setActorInventory
 } from '../data/inventory-service';
-import { normalizePlacement } from '../data/grid-model';
 import { pointToCell } from '../engine/grid-geometry';
 import {
   createGridState,
@@ -29,20 +34,42 @@ function rarityClass(item: any) {
   return `arpginv-rarity--${slug || 'common'}`;
 }
 
+function itemWeight(item: any) {
+  const weight = item?.system?.weight?.value ?? item?.system?.weight ?? 0;
+  const quantity = item?.system?.quantity ?? 1;
+  return (Number(weight) || 0) * (Number(quantity) || 1);
+}
+
 function actorWeight(actor: any) {
   let total = 0;
-  for (const item of actor?.items ?? []) {
-    const weight = item.system?.weight?.value ?? item.system?.weight ?? 0;
-    const quantity = item.system?.quantity ?? 1;
-    total += (Number(weight) || 0) * (Number(quantity) || 1);
+  for (const item of actor?.items ?? []) total += itemWeight(item);
+  return total;
+}
+
+function zoneWeight(actor: any, zone: any) {
+  let total = 0;
+  for (const id of Object.keys(zone?.placements ?? {})) {
+    const item = actor?.items?.get?.(id);
+    if (item) total += itemWeight(item);
   }
   return total;
 }
 
+function appendImage(parent: HTMLElement, item: any) {
+  if (!item?.img) return;
+  const img = document.createElement('img');
+  img.className = 'arpginv-item__img';
+  img.src = item.img;
+  img.alt = item.name;
+  parent.appendChild(img);
+}
+
 export class InventoryApp extends foundry.applications.api.ApplicationV2 {
   actor: any;
+  activeZone = 'main';
   dragItemId: string | null = null;
   dragRotated = false;
+  dragSource: any = null;
   _lastMouse: { x: number; y: number } | null = null;
   _dragKeyHandler: ((ev: KeyboardEvent) => void) | null = null;
 
@@ -55,7 +82,7 @@ export class InventoryApp extends foundry.applications.api.ApplicationV2 {
     id: 'arpg-inventory-inventory',
     classes: ['arpg-inventory'],
     window: { title: 'ARPG Inventory' },
-    position: { width: 520, height: 420 }
+    position: { width: 560, height: 480 }
   };
 
   get title() {
@@ -73,22 +100,23 @@ export class InventoryApp extends foundry.applications.api.ApplicationV2 {
     };
   }
 
-  _placementOf(inv: any, itemId: string) {
-    const raw = inv?.placements?.[itemId];
+  _normalizePlacement(itemId: string, zone: any) {
+    const raw = zone?.placements?.[itemId];
     if (!raw) return null;
     const item = this.actor?.items?.get?.(itemId);
     return normalizePlacement(
       raw,
       item ? getItemGrid(item) : {},
-      inv.capacity.cols,
-      inv.capacity.rows
+      zone.capacity.cols,
+      zone.capacity.rows
     );
   }
 
-  _buildEngineState(inv: any) {
-    let state = createGridState(inv.capacity.cols, inv.capacity.rows);
-    for (const itemId of Object.keys(inv.placements)) {
-      const p = this._placementOf(inv, itemId);
+  /** Build an engine state for one zone and repair invalid placements in memory. */
+  _buildEngineState(zone: any) {
+    let state = createGridState(zone.capacity.cols, zone.capacity.rows);
+    for (const itemId of Object.keys(zone.placements)) {
+      const p = this._normalizePlacement(itemId, zone);
       if (!p) continue;
       const item = this.actor?.items?.get?.(itemId);
       const token = {
@@ -100,37 +128,37 @@ export class InventoryApp extends foundry.applications.api.ApplicationV2 {
       const placed = placeItem(state, token, p.x, p.y, false);
       if (placed) {
         state = placed;
-        // Keep the stored effective size/rotation, not the engine's default flag.
         state.placements[itemId].rotated = p.rotated;
       } else {
-        // Stale/out-of-bounds/overlapping placement: let auto-place repair it.
-        inv.placements[itemId] = null;
+        zone.placements[itemId] = null;
       }
     }
     return state;
   }
 
-  async _autoPlace(inv: any) {
-    let state = this._buildEngineState(inv);
+  async _autoPlaceAll(inv: any) {
+    const zones = [
+      { id: 'main', zone: inv },
+      ...inv.containers.map((c: any) => ({ id: c.id, zone: c }))
+    ];
+    const states = new Map<string, any>();
+    for (const z of zones) states.set(z.id, this._buildEngineState(z.zone));
+
     let changed = false;
     for (const item of this.actor?.items ?? []) {
-      if (inv.placements[item.id]) continue;
-      inv.placements[item.id] = null;
+      if (findItemLocation(inv, item.id)) continue;
       const grid = this._effectiveGrid(item, false);
       const stack = getItemStack(item);
-      const spot = findFirstAvailable(state, grid, false);
-      if (!spot) continue;
-      const placed = placeItem(
-        state,
-        { id: item.id, grid, stack, stackKey: item.name },
-        spot.x,
-        spot.y,
-        false
-      );
-      if (placed) {
-        inv.placements[item.id] = placed.placements[item.id];
-        state = placed;
+      const token = { id: item.id, grid, stack, stackKey: item.name };
+      for (const z of zones) {
+        const spot = findFirstAvailable(states.get(z.id), grid, false);
+        if (!spot) continue;
+        const placed = placeItem(states.get(z.id), token, spot.x, spot.y, false);
+        if (!placed) continue;
+        z.zone.placements[item.id] = placed.placements[item.id];
+        states.set(z.id, placed);
         changed = true;
+        break;
       }
     }
     if (changed) await setActorInventory(this.actor, inv);
@@ -146,11 +174,16 @@ export class InventoryApp extends foundry.applications.api.ApplicationV2 {
     }
 
     const inv = getActorInventory(this.actor);
-    await this._autoPlace(inv);
-    const capacity = inv.capacity;
+    await this._autoPlaceAll(inv);
+    let zone = getInventoryZone(inv, this.activeZone);
+    if (!zone) {
+      this.activeZone = 'main';
+      zone = inv;
+    }
 
-    // Weight bar
+    // Weight bar (all carried items, strength/manual capacity).
     const weight = actorWeight(this.actor);
+    const capacity = inv.capacity;
     const weightBar = document.createElement('div');
     weightBar.className = 'arpginv-weight';
     const fill = document.createElement('div');
@@ -163,18 +196,93 @@ export class InventoryApp extends foundry.applications.api.ApplicationV2 {
     label.className = 'arpginv-weight__label';
     label.textContent = `${weight.toFixed(1)} / ${capacity.maxWeight}`;
     weightBar.append(fill, label);
+    if (weight > capacity.maxWeight) root.classList.add('arpginv-overweight');
 
-    // Grid. Cells and items are BOTH explicitly positioned so data-x/y always
-    // matches the visible cell (CSS auto-placement used to shift the cells).
+    // Equipment slots.
+    const equipment = document.createElement('div');
+    equipment.className = 'arpginv-equipment';
+    for (const slot of EQUIPMENT_SLOTS) {
+      const slotEl = document.createElement('div');
+      slotEl.className = 'arpginv-slot';
+      slotEl.dataset.slot = slot.id;
+      const itemId = inv.equipment[slot.id];
+      const item = itemId ? this.actor.items.get(itemId) : null;
+      if (item) {
+        slotEl.classList.add('has-item', `arpginv-rarity--${rarityClass(item).replace('arpginv-rarity--', '')}`);
+        slotEl.draggable = true;
+        slotEl.dataset.itemId = item.id;
+        slotEl.title = item.name;
+        appendImage(slotEl, item);
+        slotEl.addEventListener('dragstart', (ev) => {
+          this._beginDrag(ev, item.id, { kind: 'equipment', slot: slot.id });
+        });
+      } else {
+        const labelEl = document.createElement('span');
+        labelEl.className = 'arpginv-slot__label';
+        labelEl.textContent = slot.label;
+        slotEl.appendChild(labelEl);
+      }
+      slotEl.addEventListener('dragover', (ev) => {
+        ev.preventDefault();
+        ev.stopPropagation();
+      });
+      slotEl.addEventListener('drop', async (ev) => {
+        ev.preventDefault();
+        ev.stopPropagation();
+        await this._equipDragged(slot.id);
+      });
+      equipment.appendChild(slotEl);
+    }
+
+    // Zone tabs (main + containers).
+    const tabs = document.createElement('div');
+    tabs.className = 'arpginv-tabs';
+    const zoneDefs = [
+      { id: 'main', name: 'Main', zone: inv },
+      ...inv.containers.map((c: any) => ({ id: c.id, name: c.name, zone: c }))
+    ];
+    for (const def of zoneDefs) {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'arpginv-tab';
+      if (def.id === this.activeZone) btn.classList.add('active');
+      btn.dataset.zone = def.id;
+      btn.textContent = def.name;
+      btn.addEventListener('click', () => {
+        this.activeZone = def.id;
+        this.render(true);
+      });
+      btn.addEventListener('dragover', (ev) => {
+        ev.preventDefault();
+        ev.stopPropagation();
+      });
+      btn.addEventListener('drop', async (ev) => {
+        ev.preventDefault();
+        ev.stopPropagation();
+        await this._moveDraggedToZone(def.id);
+      });
+      tabs.appendChild(btn);
+    }
+
+    // Zone info: volume (cells) + weight.
+    const info = document.createElement('div');
+    info.className = 'arpginv-zone-info';
+    const usedCells = zoneUsedCells(zone);
+    const totalCells = zone.capacity.cols * zone.capacity.rows;
+    const zoneLoad = zoneWeight(this.actor, zone);
+    info.textContent = `Cells ${usedCells}/${totalCells} · Weight ${zoneLoad.toFixed(1)}/${zone.capacity.maxWeight}`;
+
+    // Active-zone grid. Cells are explicitly positioned so data-x/y always
+    // matches the visible cell (CSS auto-placement used to shift them).
     const grid = document.createElement('div');
     grid.className = 'arpginv-grid';
-    grid.style.gridTemplateColumns = `repeat(${capacity.cols}, ${CELL_SIZE}px)`;
-    grid.style.gridTemplateRows = `repeat(${capacity.rows}, ${CELL_SIZE}px)`;
-    grid.dataset.cols = String(capacity.cols);
-    grid.dataset.rows = String(capacity.rows);
+    grid.style.gridTemplateColumns = `repeat(${zone.capacity.cols}, ${CELL_SIZE}px)`;
+    grid.style.gridTemplateRows = `repeat(${zone.capacity.rows}, ${CELL_SIZE}px)`;
+    grid.dataset.cols = String(zone.capacity.cols);
+    grid.dataset.rows = String(zone.capacity.rows);
 
-    for (let y = 0; y < capacity.rows; y++) {
-      for (let x = 0; x < capacity.cols; x++) {
+    for (let y = 0; y < zone.capacity.rows; y++) {
+      for (let x = 0; x < zone.capacity.cols; x++) {
         const cell = document.createElement('div');
         cell.className = 'arpginv-cell';
         cell.dataset.x = String(x);
@@ -185,12 +293,10 @@ export class InventoryApp extends foundry.applications.api.ApplicationV2 {
       }
     }
 
-    // Items
     for (const item of this.actor.items ?? []) {
-      const p = this._placementOf(inv, item.id);
+      const p = this._normalizePlacement(item.id, zone);
       if (!p) continue;
       const stack = getItemStack(item);
-
       const el = document.createElement('div');
       el.className = `arpginv-item ${rarityClass(item)}`;
       el.draggable = true;
@@ -198,48 +304,17 @@ export class InventoryApp extends foundry.applications.api.ApplicationV2 {
       el.style.gridColumn = `${p.x + 1} / span ${p.w}`;
       el.style.gridRow = `${p.y + 1} / span ${p.h}`;
       el.title = item.name;
-
-      if (item.img) {
-        const img = document.createElement('img');
-        img.className = 'arpginv-item__img';
-        img.src = item.img;
-        img.alt = item.name;
-        el.appendChild(img);
-      }
-
+      appendImage(el, item);
       if (stack.current > 1) {
         const badge = document.createElement('span');
         badge.className = 'arpginv-item__stack';
         badge.textContent = `x${stack.current}`;
         el.appendChild(badge);
       }
-
-      if (game.user?.isGM) {
-        el.addEventListener('contextmenu', (ev) => {
-          ev.preventDefault();
-          this._editItemGrid(item);
-        });
-        el.addEventListener('dblclick', (ev) => {
-          ev.preventDefault();
-          this._editItemGrid(item);
-        });
-      }
-
+      const location = findItemLocation(inv, item.id);
       el.addEventListener('dragstart', (ev) => {
-        this.dragItemId = item.id;
-        this.dragRotated = false;
-        ev.dataTransfer?.setData('text/plain', item.id);
-        if (ev.dataTransfer) ev.dataTransfer.effectAllowed = 'move';
-        el.classList.add('dragging');
+        this._beginDrag(ev, item.id, location ?? { kind: 'main', zoneId: 'main' });
       });
-
-      el.addEventListener('dragend', () => {
-        el.classList.remove('dragging');
-        this.dragItemId = null;
-        this.dragRotated = false;
-        this._clearDropHighlight(grid);
-      });
-
       grid.appendChild(el);
     }
 
@@ -250,15 +325,14 @@ export class InventoryApp extends foundry.applications.api.ApplicationV2 {
       this._lastMouse = { x: ev.clientX, y: ev.clientY };
       if (!this.dragItemId) return;
       const cell = this._cellFromPoint(grid, ev.clientX, ev.clientY);
-      if (!cell) {
+      const item = this.actor?.items?.get?.(this.dragItemId);
+      if (!cell || !item) {
         this._clearDropHighlight(grid);
         return;
       }
-      const item = this.actor?.items?.get?.(this.dragItemId);
-      if (!item) return;
       const gridDims = this._effectiveGrid(item, this.dragRotated);
-      const state = this._buildEngineState(inv);
-      const working = inv.placements[this.dragItemId]
+      const state = this._buildEngineState(zone);
+      const working = zone.placements[this.dragItemId]
         ? removeItem(state, this.dragItemId)
         : state;
       const token = {
@@ -275,66 +349,11 @@ export class InventoryApp extends foundry.applications.api.ApplicationV2 {
     grid.addEventListener('drop', async (ev) => {
       ev.preventDefault();
       ev.stopPropagation();
-      if (!this.dragItemId) return;
       const cell = this._cellFromPoint(grid, ev.clientX, ev.clientY);
       if (!cell) return;
-      const draggedId = this.dragItemId;
-      const item = this.actor?.items?.get?.(draggedId);
-      if (!item) return;
-
-      const currentInv = getActorInventory(this.actor);
-      await this._autoPlace(currentInv);
-      const gridDims = this._effectiveGrid(item, this.dragRotated);
-      const state = this._buildEngineState(currentInv);
-      const working = currentInv.placements[draggedId]
-        ? removeItem(state, draggedId)
-        : state;
-      const token = {
-        id: draggedId,
-        grid: gridDims,
-        stack: getItemStack(item),
-        stackKey: item.name
-      };
-      const res = placeOrStack(working, token, cell.x, cell.y);
-      if (!res) {
-        ui.notifications?.warn('Cannot place item here');
-        this._clearDropHighlight(grid);
-        return;
-      }
-
-      const newInv = { ...currentInv, placements: { ...res.state.placements } };
-      if (!res.consumed && newInv.placements[draggedId]) {
-        newInv.placements[draggedId] = normalizePlacement(
-          { ...newInv.placements[draggedId], rotated: this.dragRotated },
-          gridDims,
-          currentInv.capacity.cols,
-          currentInv.capacity.rows
-        );
-      }
-
-      if (res.consumed) {
-        const targetItem = this.actor.items.get(res.targetId);
-        if (targetItem) {
-          const newStack = newInv.placements[res.targetId]?.stack ?? { current: 1, max: 1 };
-          await targetItem.setFlag(MODULE_ID, 'stack', {
-            current: newStack.current,
-            max: newStack.max
-          });
-          await targetItem.update({ 'system.quantity': newStack.current });
-        }
-        await setActorInventory(this.actor, newInv);
-        await this.actor.deleteEmbeddedDocuments('Item', [draggedId]);
-      } else {
-        await setActorInventory(this.actor, newInv);
-      }
-
-      this.dragItemId = null;
-      this.dragRotated = false;
-      this._clearDropHighlight(grid);
-      this.render(true);
+      await this._placeDraggedInZone(this.activeZone, cell.x, cell.y);
     });
 
-    // Rotation during drag (R), only for rotatable items.
     if (!this._dragKeyHandler) {
       this._dragKeyHandler = (ev) => {
         if (!this.dragItemId || ev.code !== 'KeyR') return;
@@ -353,8 +372,121 @@ export class InventoryApp extends foundry.applications.api.ApplicationV2 {
       document.addEventListener('keydown', this._dragKeyHandler);
     }
 
-    root.append(weightBar, grid);
+    root.append(weightBar, equipment, tabs, info, grid);
     return root;
+  }
+
+  _beginDrag(ev: DragEvent, itemId: string, source: any) {
+    this.dragItemId = itemId;
+    this.dragRotated = false;
+    this.dragSource = source;
+    ev.dataTransfer?.setData('text/plain', itemId);
+    if (ev.dataTransfer) ev.dataTransfer.effectAllowed = 'move';
+    const target = ev.currentTarget as HTMLElement | null;
+    target?.classList.add('dragging');
+    target?.addEventListener('dragend', () => this._endDrag(), { once: true });
+  }
+
+  _endDrag() {
+    this.dragItemId = null;
+    this.dragRotated = false;
+    this.dragSource = null;
+    const grid = this.element?.querySelector('.arpginv-grid') as HTMLElement | null;
+    if (grid) this._clearDropHighlight(grid);
+    this.element?.querySelectorAll('.dragging').forEach((el) => el.classList.remove('dragging'));
+  }
+
+  async _placeDraggedInZone(zoneId: string, x: number, y: number) {
+    const draggedId = this.dragItemId;
+    if (!draggedId) return false;
+    const item = this.actor?.items?.get?.(draggedId);
+    if (!item) return false;
+
+    const inv = getActorInventory(this.actor);
+    removeItemFromInventory(inv, draggedId);
+    const zone = getInventoryZone(inv, zoneId);
+    if (!zone) return false;
+
+    const gridDims = this._effectiveGrid(item, this.dragRotated);
+    const state = this._buildEngineState(zone);
+    const token = { id: draggedId, grid: gridDims, stack: getItemStack(item), stackKey: item.name };
+    const res = placeOrStack(state, token, x, y);
+    if (!res) {
+      ui.notifications?.warn('Cannot place item here');
+      return false;
+    }
+
+    const placements = res.state.placements;
+    if (!res.consumed && placements[draggedId]) {
+      placements[draggedId] = normalizePlacement(
+        { ...placements[draggedId], rotated: this.dragRotated },
+        gridDims,
+        zone.capacity.cols,
+        zone.capacity.rows
+      );
+    }
+    if (zoneId === 'main') inv.placements = placements;
+    else zone.placements = placements;
+
+    if (res.consumed) {
+      await this._consumeStackedItem(inv, res.targetId, placements);
+      await setActorInventory(this.actor, inv);
+      await this.actor.deleteEmbeddedDocuments('Item', [draggedId]);
+    } else {
+      await setActorInventory(this.actor, inv);
+    }
+    this._endDrag();
+    this.render(true);
+    return true;
+  }
+
+  async _equipDragged(slotId: string) {
+    const draggedId = this.dragItemId;
+    if (!draggedId || !this.actor?.items?.get?.(draggedId)) return false;
+    const inv = getActorInventory(this.actor);
+    removeItemFromInventory(inv, draggedId);
+    inv.equipment[slotId] = draggedId;
+    await setActorInventory(this.actor, inv);
+    this._endDrag();
+    this.render(true);
+    return true;
+  }
+
+  /** Move the dragged item to the first free cell of a zone (drop on tab). */
+  async _moveDraggedToZone(zoneId: string) {
+    const draggedId = this.dragItemId;
+    if (!draggedId) return false;
+    const item = this.actor?.items?.get?.(draggedId);
+    if (!item) return false;
+
+    const inv = getActorInventory(this.actor);
+    removeItemFromInventory(inv, draggedId);
+    const zone = getInventoryZone(inv, zoneId);
+    if (!zone) return false;
+    const grid = this._effectiveGrid(item, false);
+    const state = this._buildEngineState(zone);
+    const spot = findFirstAvailable(state, grid, false);
+    if (!spot) {
+      ui.notifications?.warn('No free space in this container');
+      return false;
+    }
+    const token = { id: draggedId, grid, stack: getItemStack(item), stackKey: item.name };
+    const placed = placeItem(state, token, spot.x, spot.y, false);
+    if (!placed) return false;
+    if (zoneId === 'main') inv.placements = placed.placements;
+    else zone.placements = placed.placements;
+    await setActorInventory(this.actor, inv);
+    this._endDrag();
+    this.render(true);
+    return true;
+  }
+
+  async _consumeStackedItem(inv: any, targetId: string, placements: any) {
+    const targetItem = this.actor.items.get(targetId);
+    if (!targetItem) return;
+    const stack = placements[targetId]?.stack ?? { current: 1, max: 1 };
+    await targetItem.setFlag(MODULE_ID, 'stack', { current: stack.current, max: stack.max });
+    await targetItem.update({ 'system.quantity': stack.current });
   }
 
   _cellFromPoint(grid: HTMLElement, clientX: number, clientY: number) {
@@ -362,18 +494,14 @@ export class InventoryApp extends foundry.applications.api.ApplicationV2 {
     const rows = Number(grid.dataset.rows) || 0;
     const cells = grid.querySelectorAll<HTMLElement>('.arpginv-cell');
     if (!cells.length) return null;
-
     const first = cells[0].getBoundingClientRect();
     const nextX = cells[1]?.getBoundingClientRect();
     const nextY = cells[cols]?.getBoundingClientRect();
-    const stepX = nextX ? nextX.left - first.left : first.width;
-    const stepY = nextY ? nextY.top - first.top : first.height;
-
     return pointToCell({
       left: first.left,
       top: first.top,
-      stepX,
-      stepY,
+      stepX: nextX ? nextX.left - first.left : first.width,
+      stepY: nextY ? nextY.top - first.top : first.height,
       cols,
       rows
     }, clientX, clientY);
@@ -418,55 +546,12 @@ export class InventoryApp extends foundry.applications.api.ApplicationV2 {
     root.replaceChildren(element);
   }
 
-  async _editItemGrid(item: any) {
-    if (!game.user?.isGM) return;
-    const current = getItemGrid(item);
-    const content = `
-      <form class="arpginv-edit-form">
-        <div class="form-group">
-          <label>Width</label>
-          <input type="number" name="w" value="${current.w}" min="1" />
-        </div>
-        <div class="form-group">
-          <label>Height</label>
-          <input type="number" name="h" value="${current.h}" min="1" />
-        </div>
-        <div class="form-group">
-          <label><input type="checkbox" name="rotatable" ${current.rotatable ? 'checked' : ''} /> Rotatable</label>
-        </div>
-      </form>
-    `;
-
-    const dialog = new foundry.applications.api.DialogV2({
-      window: { title: `Edit grid size: ${item.name}` },
-      content,
-      buttons: [
-        {
-          action: 'save',
-          label: 'Save',
-          default: true,
-          callback: async (_event: any, _button: any, dialogEl: any) => {
-            const form = dialogEl.querySelector('form');
-            const w = Math.max(1, parseInt(form.w.value, 10) || 1);
-            const h = Math.max(1, parseInt(form.h.value, 10) || 1);
-            const rotatable = form.rotatable.checked;
-            await setItemGrid(item, { w, h, rotatable });
-            // A resized item may overlap neighbours: reset and auto-place again.
-            await clearItemPlacement(this.actor, item.id);
-            this.render(true);
-          }
-        },
-        { action: 'cancel', label: 'Cancel' }
-      ]
-    });
-    await dialog.render(true);
-  }
-
   async close(options: any = {}) {
     if (this._dragKeyHandler) {
       document.removeEventListener('keydown', this._dragKeyHandler);
       this._dragKeyHandler = null;
     }
+    this._endDrag();
     return super.close(options);
   }
 }

@@ -1,160 +1,144 @@
 # AGENT.md — Guía del agente de desarrollo
 
-> Documento vivo. Define el rol, stack, convenciones y reglas de trabajo del agente que desarrolla el módulo **ARPG Inventory (Diablo/Stoneshard style)** para Foundry VTT. Se actualiza con cada cambio significativo. Versión del documento: **0.0.1**.
+> Documento vivo. Define arquitectura, convenciones y reglas de trabajo del módulo **ARPG Inventory** para Foundry VTT v14. Versión del documento: **0.5.0**.
 
 ---
 
 ## 1. Rol del agente
 
-Eres el **ingeniero principal** del módulo `arpg-inventory`. Tu responsabilidad es:
+Ingeniero principal del módulo `arpg-inventory`. Responsabilidades:
 
-- Diseñar, implementar y mantener el módulo de inventario estilo Diablo/Stoneshard para Foundry VTT v14.
-- Respetar estrictamente las APIs públicas de Foundry v14 y del sistema D&D 5e 6.1.0+.
-- Documentar **cada cambio** en `CHANGELOG.md` y en este `AGENT.md` cuando afecte arquitectura, convenciones o hitos.
-- Versionar el módulo con SemVer: `0.0.1` (bootstrap) → `0.x.0` (hitos) → `1.0.0` (culminación).
-- Mantener el módulo **profesional, funcional y estable**, priorizando compatibilidad y mantenibilidad.
+- Implementar y mantener un inventario tipo Diablo/Stoneshard para Foundry v14 + dnd5e 6.1.0+.
+- Usar solo APIs públicas de Foundry (`ApplicationV2`, hooks, flags) y eventos HTML5 controlados.
+- Documentar **todo cambio** en `CHANGELOG.md`; actualizar `docs/milestones.md` y este archivo cuando cambie la arquitectura.
+- Seguir SemVer: `0.0.1` bootstrap, `0.x.0` hitos, `1.0.0` culminación.
+- Mantener el código limpio: eliminar placeholders, settings sin uso y constantes muertas.
 
-No tomas atajos con APIs privadas ni hackeos frágiles. Si una funcionalidad requiere API privada, se documenta como riesgo y se busca alternativa pública.
+Idioma con el usuario: **español**. Código/comentarios técnicos: **inglés**.
 
 ---
 
 ## 2. Proyecto
 
-- **Nombre del módulo:** `arpg-inventory` (nombre de paquete a confirmar en `module.json`).
-- **Concepto:** Inventario con cuadrícula (grid) personalizada por ítem, estilo Diablo / Stoneshard. Soporte para rotación de ítems, apilado, peso/volumen, contenedores, equipo, y arrastrar/soltar.
-- **Plataforma:** Foundry Virtual Tabletop **v14** (client-side, ESM).
-- **Sistema de juego:** D&D 5e (**dnd5e 6.1.0+**).
-- **Tipo de paquete:** Módulo (add-on), no sistema. Debe ser compatible con dnd5e sin reemplazarlo.
+- **ID:** `arpg-inventory`.
+- **Plataforma:** Foundry VTT v14 (cliente, ESM).
+- **Sistema:** D&D 5e 6.1.0+.
+- **Repo público:** https://github.com/MMillones9914/arpg-inventory
+- **Manifest:** https://raw.githubusercontent.com/MMillones9914/arpg-inventory/main/module.json
+- **CI:** `.github/workflows/release.yml` compila con Vite, corre Vitest, genera `arpg-inventory.zip` y publica el release al hacer push de `v*`.
 
 ---
 
-## 3. Stack tecnológico (últimas tecnologías Foundry v14)
+## 3. Stack
 
-- **Lenguaje:** JavaScript moderno (ES2022+), **ES Modules** (`"type": "module"` en `package.json` si se usa bundler). Código cliente en `client/`.
-- **Manifest:** `module.json` con `esmodules`, `styles`, `languages`, `packs` (compendios si aplica).
-- **UI:** `ApplicationV2` (`foundry.applications.api.ApplicationV2`), `DocumentSheetV2` para fichas. Handlebars (`.hbs`) para templates. CSS con variables de Foundry.
-- **Drag & Drop:** `foundry.applications.ux.DragDrop` (API pública) y eventos nativos HTML5 como fallback controlado.
-- **Persistencia:** Datos del inventario en el Actor (flags del módulo o embedded items con metadata de grid). Evitar mutar datos del sistema dnd5e de forma no estándar; usar `actor.setFlag` / `item.setFlag` y `update` con diff.
-- **Hooks:** `Hooks.on` / `Hooks.once` para integración con dnd5e (renderActorSheet, createItem, etc.).
-- **Internacionalización:** Archivos `lang/*.json` con claves `ARPGINV.*`.
-- **Build (opcional):** Vite + Foundry module tooling. Mantener salida compatible con carga directa de ESM por Foundry (sin bundler obligatorio en MVP).
-- **Testing:** Manual en instancia Foundry v14 + dnd5e 6.1.0. Automatizado con Playwright cuando se disponga de entorno.
+- **Lenguaje:** TypeScript (ES2022), compilado por Vite a `dist/module.mjs` (ESM).
+- **UI:** `foundry.applications.api.ApplicationV2` con DOM construido en `_renderHTML`; sin templates Handlebars (se eliminó el placeholder).
+- **Drag & Drop:** eventos HTML5 (`dragstart`, `dragover`, `drop`, `dragend`) + helper puro `pointToCell`.
+- **Persistencia:** flags del actor (`arpg-inventory.inventory`), flags de item (`grid`, `stack`).
+- **Tests:** Vitest (`npm test`), `tsc --noEmit`, `npm run build`.
 
 ### Prohibiciones
 
-- No usar APIs privadas (`_`-prefixed) ni internals no documentados como públicos.
-- No modificar el DOM de Foundry fuera de nuestras aplicaciones sin hooks oficiales.
-- No romper la ficha de actor de dnd5e; integrarse mediante hooks y extensiones documentadas.
+- No usar APIs privadas (`_`-prefixed) salvo los hooks de ciclo de vida propios de `ApplicationV2` ya empleados.
+- No modificar el DOM de Foundry fuera de nuestra app salvo el botón inyectado mediante hooks oficiales.
+- No reintroducir menús de edición de objetos en el inventario (pospuesto).
 
 ---
 
-## 4. Estructura del proyecto (propuesta)
+## 4. Estructura actual
 
 ```
-arpg-inventory-like/
-├── .github/
-│   └── workflows/
-│       └── release.yml
-├── AGENT.md
-├── CHANGELOG.md
-├── README.md
-├── module.json
-├── package.json
-├── .gitignore
-├── lang/
-│   └── en.json
-├── styles/
-│   └── arpg-inventory.css
-├── templates/
-│   ├── inventory-app.hbs
-│   └── partials/
-├── scripts/            # entry esmodules declarados en module.json
-│   ├── module.mjs
-│   ├── constants.mjs
-│   ├── settings.mjs
-│   ├── data/
-│   │   └── grid-model.mjs
-│   ├── apps/
-│   │   └── inventory-app.mjs
-│   ├── hooks/
-│   │   └── dnd5e-hooks.mjs
-│   └── utils/
-│       └── logger.mjs
-└── docs/
-    └── milestones.md
+src/
+├── apps/inventory-app.ts          # UI, DnD, equipment slots, zone tabs
+├── constants.ts                   # MODULE_ID / MODULE_TITLE
+├── data/
+│   ├── grid-model.ts              # schema v2, zones, slots, normalización pura
+│   └── inventory-service.ts       # acceso a flags + grid/stack de items
+├── engine/
+│   ├── grid-engine.ts             # occupación, colisión, rotación, stacking
+│   └── grid-geometry.ts           # viewport -> celda (puro, testeable)
+├── hooks/
+│   ├── dnd5e-hooks.ts             # sync de items/actores
+│   └── ui-hooks.ts                # botón "Inventory (B)" en ficha
+├── input/keybindings.ts           # tecla B (oficial + fallback)
+├── module.ts                      # init/ready
+├── settings.ts                    # capacidad por defecto
+├── types/foundry.d.ts             # declarations globales
+└── utils/logger.ts
+styles/arpg-inventory.css
+lang/en.json
+tests/{data,engine}/*.test.ts
 ```
 
-Esta estructura es la base; puede ajustarse por hitos, documentando cambios aquí.
+---
+
+## 5. Convenciones
+
+- camelCase para variables/funciones, PascalCase para clases, SCREAMING_SNAKE para constantes.
+- Un archivo = una responsabilidad. Prefijo CSS `arpginv-`.
+- Todo dato persistido se normaliza al leer (`normalizeActorInventory`, `normalizePlacement`, `normalizeCapacity`).
+- `w`/`h` en un placement son **siempre** las dimensiones efectivas en grid; `rotated` solo es metadata. Nunca se swap de nuevo al leer.
+- Las celdas del grid se posicionan explícitamente (`gridColumn`/`gridRow`); `data-x/y` debe coincidir con la celda visible.
+- Cadenas visibles al usuario: usar `game.i18n.localize` cuando exista clave en `lang/en.json`.
 
 ---
 
-## 5. Convenciones de código
+## 6. Modelo de datos (v2)
 
-- **Naming:** camelCase para variables/funciones, PascalCase para clases, SCREAMING_SNAKE para constantes. Prefijo de módulo en flags/settings: `arpg-inventory`.
-- **Archivos:** `.mjs` para ESM. Un archivo = una responsabilidad principal.
-- **Logs:** Usar un logger propio (`scripts/utils/logger.mjs`) con niveles; silenciar en producción por setting.
-- **Errores:** Capturar y reportar sin romper el flujo de Foundry; nunca `throw` no controlado en hooks.
-- **Estilos:** Clases CSS prefijadas `arpginv-`. Usar variables CSS de Foundry (`--color-*`, `--font-*`).
-- **Accesibilidad:** Roles ARIA, teclado (flechas, Enter, Escape), foco visible.
-- **i18n:** Toda cadena visible al usuario vía `game.i18n.localize`.
+```ts
+Inventory {
+  version: 2
+  capacity: { mode, cols, rows, maxWeight }   // strength usa encumbrance.max
+  placements: { [itemId]: placement | null }  // zona "main"
+  equipment: { [slotId]: itemId | null }
+  containers: [{
+    id, name,
+    capacity: { cols, rows, maxWeight },
+    placements: { [itemId]: placement }
+  }]
+}
+```
 
----
-
-## 6. Versionado y documentación
-
-- **SemVer:** `MAJOR.MINOR.PATCH`.
-  - `0.0.x`: bootstrap, scaffold, infraestructura.
-  - `0.x.0` (x≥1): cumplimiento de un **hito** (milestone). Cada hito incrementa MINOR.
-  - `1.0.0`: culminación del proyecto (feature-complete + estable).
-- **CHANGELOG.md:** Formato Keep a Changelog. Cada release con fecha y lista de Added/Changed/Fixed/Removed.
-- **AGENT.md:** Actualizar secciones afectadas (stack, estructura, convenciones, hitos) cuando cambien.
-- **docs/milestones.md:** Plan de hitos y estado (To do / In progress / Done).
-
-Regla: **ningún cambio de código sin entrada en CHANGELOG.md** (al menos en sección `[Unreleased]`).
+Slots: `head`, `neck`, `body`, `mainhand`, `offhand`, `ring1`, `ring2`, `feet`.
+Contenedores por defecto: `backpack` (6×4, 40) y `quiver` (2×4, 10).
+Un item está en **una sola zona**; `removeItemFromInventory` lo saca de todas antes de moverlo.
 
 ---
 
-## 7. Hitos (a planear)
+## 7. Versionado y documentación
 
-Pendiente de definición conjunta. Borrador inicial (se formalizará en `docs/milestones.md`):
-
-- **M0 — Bootstrap (0.0.1):** Scaffold del módulo, manifest, settings, logger, app vacía, integración básica con dnd5e.
-- **M1 — Grid core (0.1.0):** Modelo de cuadrícula por actor, ocupación de celdas, dimensiones de ítem (w×h), rotación.
-- **M2 — Render & DnD (0.2.0):** UI de inventario con drag & drop, snap a grid, validación de colisión.
-- **M3 — Persistencia & sync (0.3.0):** Guardado en actor flags, sincronización multi-cliente, migración de datos.
-- **M4 — Equipamiento & contenedores (0.4.0):** Slots de equipo, contenedores anidados (ilusión), peso/volumen.
-- **M5 — UX avanzada (0.5.0):** Búsqueda, filtros, tooltips, atajos, sonidos, temas.
-- **M6 — Integración dnd5e completa (0.6.0):** Hoja de actor integrada, tiradas, usos, attunement.
-- **M7 — Pulido & release (1.0.0):** Performance, accesibilidad, docs, empaquetado.
+- `CHANGELOG.md`: Keep a Changelog. Regla: **ningún cambio sin entrada**.
+- `docs/milestones.md`: estado M0–M10.
+- `AGENT.md`: este archivo; se actualiza cuando cambia arquitectura o convenciones.
 
 ---
 
-## 8. Reglas de calidad
+## 8. Hitos
 
-- Compatibilidad declarada en `module.json`: `compatibility.minimum` (v14), `compatibility.verified`.
-- No degradar rendimiento: renderizado incremental, evitar re-renders completos en cada update.
-- Datos migrables: cada cambio de esquema incluye función de migración y versión de datos.
-- Seguridad: validar inputs de usuarios/GMs; no ejecutar código arbitrario desde datos.
-
----
-
-## 9. Flujo de trabajo del agente
-
-1. Leer `AGENT.md`, `CHANGELOG.md`, `docs/milestones.md` antes de cambios.
-2. Planear el hito actual y desglosar en tareas pequeñas.
-3. Implementar en ramas lógicas (aunque no haya git remoto, mantener commits locales si se inicializa git).
-4. Documentar cambios en `CHANGELOG.md` (`[Unreleased]`).
-5. Actualizar `AGENT.md` si cambia arquitectura/convenciones.
-6. Reportar al usuario el estado y próximos pasos.
+| Hito | Versión | Estado |
+|---|---|---|
+| M0 Bootstrap & tooling | 0.0.1 | ✅ |
+| M1 Data model & persistence | 0.1.0 | ✅ |
+| M2 Grid engine | 0.2.0 | ✅ |
+| M3 Inventory UI | 0.3.0 | ✅ |
+| M4 Drag & Drop | 0.4.0 (+fix 0.4.13) | ✅ |
+| M5 Equipment & containers | 0.5.0 | ✅ |
+| M6 D&D 5e integration | 0.6.0 | 🔲 |
+| M7 UX, accessibility & theming | 0.7.0 | 🔲 |
+| M8 Multiplayer & sync | 0.8.0 | 🔲 |
+| M9 Public API & extensibility | 0.9.0 | 🔲 |
+| M10 Polish & release | 1.0.0 | 🔲 |
 
 ---
 
-## 10. Notas
+## 9. Flujo de trabajo
 
-- Fecha de inicio: 2026-11-23.
-- Idioma de trabajo con el usuario: español. Código y comentarios técnicos en inglés (convención Foundry).
-- El usuario decide hitos y prioridades; el agente propone y ejecuta.
+1. Leer `AGENT.md`, `CHANGELOG.md`, `docs/milestones.md`.
+2. Implementar en commits pequeños con tests cuando sea lógica pura.
+3. `npx tsc --noEmit && npm test && npm run build`.
+4. Actualizar documentación.
+5. Commit + push + tag `vX.Y.Z` (CI publica release).
 
 ---
 
-_Última actualización: 0.0.1 (M0 scaffold implementado, repo público + CI)._
+_Última actualización: 0.5.0 (M5 completado; menú de edición de items eliminado y código muerto limpiado)._

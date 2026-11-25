@@ -1,13 +1,9 @@
-const PREFIX ='[ARPG Inventory]';
+const PREFIX = '[ARPG Inventory]';
 
-export function log(...args) {
+export function log(...args: any[]) {
   console.log(PREFIX, ...args);
 }
 
-export function warn(...args) {
+export function warn(...args: any[]) {
   console.warn(PREFIX, ...args);
-}
-
-export function error(...args) {
-  console.error(PREFIX, ...args);
 }

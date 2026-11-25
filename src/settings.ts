@@ -1,16 +1,7 @@
 import { MODULE_ID } from './constants';
 
 export function registerSettings() {
-  game.settings.register(MODULE_ID,'debug', {
-    name:'ARPGINV.Settings.Debug.Name',
-    hint:'ARPGINV.Settings.Debug.Hint',
-    scope:'client',
-    config: true,
-    type: Boolean,
-    default: false
-  });
-
-  game.settings.register(MODULE_ID,'defaultCapacityMode', {
+  game.settings.register(MODULE_ID, 'defaultCapacityMode', {
     name:'ARPGINV.Settings.CapacityMode.Name',
     hint:'ARPGINV.Settings.CapacityMode.Hint',
     scope:'world',

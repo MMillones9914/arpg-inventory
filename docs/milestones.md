@@ -44,10 +44,12 @@ Leyenda de estado: 🔲 To do · 🔄 In progress · ✅ Done
 - [x] Auto-colocación inicial de items
 - [x] Correcciones de colocación/hit-testing y normalización (0.4.13)
 
-## M5 — Equipment & containers (0.5.0) 🔲
-- [ ] Slots de equipo
-- [ ] Contenedores (sub-grid)
-- [ ] Peso/volumen y encumbrance
+## M5 — Equipment & containers (0.5.0) ✅
+- [x] Slots de equipo (8 slots, drag & drop bidireccional)
+- [x] Contenedores (sub-grid): Backpack y Quiver con pestañas
+- [x] Peso/volumen por zona y barra de encumbrance global
+- [x] Esquema v2 con migración desde v1
+- [x] Edición de tamaño de item eliminada del menú del inventario (se pospone)
 
 ## M6 — D&D 5e integration (0.6.0) 🔲
 - [ ] Capacidad dinámica desde Fuerza

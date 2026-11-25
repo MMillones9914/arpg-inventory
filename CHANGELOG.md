@@ -10,6 +10,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - (next milestone in progress)
 
+## [0.5.0] - 2026-11-25
+
+### Added — M5 Equipment & containers
+- Equipment slots (`head`, `neck`, `body`, `mainhand`, `offhand`, `ring1`, `ring2`, `feet`) with drag & drop in both directions.
+- Container sub-grids (`Backpack` 6×4, `Quiver` 2×4) with tabs; items can be dropped onto a tab to auto-place into that container.
+- Per-zone volume indicator (used/total cells) and per-zone weight; global encumbrance bar now flags overweight.
+- Inventory schema v2 with migration from v1 and pruning of stale ids across main grid, containers and equipment.
+- Tests for slot/container lookup, cross-zone removal and volume calculation (19 total).
+
+### Removed
+- GM item-size editing from the inventory context menu/double-click (deferred to a later milestone).
+- Dead code: placeholder Handlebars template, unused `debug` setting/localization, unused version constant/logger helper and unused placement helpers.
+
+### Fixed
+- Dragging an item out of an equipment slot no longer leaves a stale slot reference.
+- Cancelled drags from equipment slots now clear highlight and dragging state.
+
 ## [0.4.13] - 2026-11-25
 
 ### Fixed

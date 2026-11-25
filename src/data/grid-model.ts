@@ -1,7 +1,7 @@
 // Pure data model for the ARPG Inventory.
 // No Foundry globals. Safe to unit-test.
 
-export const INVENTORY_SCHEMA_VERSION = 1;
+export const INVENTORY_SCHEMA_VERSION = 2;
 
 const DEFAULT_CAPACITY = {
   mode: 'manual',
@@ -9,6 +9,18 @@ const DEFAULT_CAPACITY = {
   rows: 6,
   maxWeight: 100
 };
+
+const EQUIPMENT_SLOT_IDS = ['head', 'neck', 'body', 'mainhand', 'offhand', 'ring1', 'ring2', 'feet'] as const;
+
+export const EQUIPMENT_SLOTS = EQUIPMENT_SLOT_IDS.map((id) => ({
+  id,
+  label: id.replace(/([a-z])([A-Z])/g, '$1 $2').replace(/^./, (c) => c.toUpperCase())
+}));
+
+const DEFAULT_CONTAINERS = [
+  { id: 'backpack', name: 'Backpack', capacity: { cols: 6, rows: 4, maxWeight: 40 } },
+  { id: 'quiver', name: 'Quiver', capacity: { cols: 2, rows: 4, maxWeight: 10 } }
+];
 
 const ITEM_GRID_DEFAULTS: Record<string, { w: number; h: number }> = {
   weapon: { w: 2, h: 1 },
@@ -54,16 +66,16 @@ export function defaultCapacity(settings: any = {}) {
   return normalizeCapacity({}, settings);
 }
 
-export function defaultItemGrid(itemType: string = 'default') {
+export function defaultItemGrid(itemType = 'default') {
   const size = ITEM_GRID_DEFAULTS[itemType] ?? ITEM_GRID_DEFAULTS.default;
   return { w: size.w, h: size.h, rotatable: true };
 }
 
-export function defaultItemStackMax(itemType: string = 'default') {
+export function defaultItemStackMax(itemType = 'default') {
   return ITEM_STACK_MAX[itemType] ?? ITEM_STACK_MAX.default;
 }
 
-export function defaultItemStack(itemType: string = 'default', quantity = 1) {
+export function defaultItemStack(itemType = 'default', quantity = 1) {
   return { current: Math.max(1, quantity || 1), max: defaultItemStackMax(itemType) };
 }
 
@@ -100,29 +112,57 @@ export function normalizePlacement(
   return normalized;
 }
 
+function normalizeContainer(raw: any, index: number, settings: any = {}) {
+  const fallback = DEFAULT_CONTAINERS[index] ?? {
+    id: `container-${index + 1}`,
+    name: `Container ${index + 1}`,
+    capacity: { cols: 6, rows: 4, maxWeight: 40 }
+  };
+  const source = raw && typeof raw === 'object' ? raw : {};
+  const containerSettings = {
+    ...settings,
+    defaultCapacityMode: 'manual',
+    defaultCols: fallback.capacity.cols,
+    defaultRows: fallback.capacity.rows,
+    defaultMaxWeight: fallback.capacity.maxWeight
+  };
+  return {
+    id: typeof source.id === 'string' && source.id ? source.id : fallback.id,
+    name: typeof source.name === 'string' && source.name ? source.name : fallback.name,
+    capacity: normalizeCapacity(source.capacity, containerSettings),
+    placements: source.placements && typeof source.placements === 'object' ? { ...source.placements } : {}
+  };
+}
+
+function normalizeEquipment(raw: any) {
+  const equipment: Record<string, string | null> = {};
+  const source = raw && typeof raw === 'object' ? raw : {};
+  for (const slot of EQUIPMENT_SLOTS) {
+    const value = source[slot.id];
+    equipment[slot.id] = typeof value === 'string' && value ? value : null;
+  }
+  return equipment;
+}
+
 export function createEmptyInventory(settings: any = {}) {
   return {
     version: INVENTORY_SCHEMA_VERSION,
     capacity: defaultCapacity(settings),
-    placements: {}
+    placements: {},
+    equipment: normalizeEquipment({}),
+    containers: DEFAULT_CONTAINERS.map((c, i) => normalizeContainer(c, i, settings))
   };
 }
 
 export function migrateInventory(raw: any, settings: any = {}) {
-  if (!raw || typeof raw !== 'object') {
-    return createEmptyInventory(settings);
-  }
+  if (!raw || typeof raw !== 'object') return createEmptyInventory(settings);
 
   const data: any = { ...raw };
   if (!Number.isInteger(data.version)) data.version = 0;
 
-  // v0 -> v1
+  // v0 -> v1: legacy "items" map -> placements.
   if (data.version < 1) {
-    data.version = 1;
-    if (!data.placements || typeof data.placements !== 'object') {
-      data.placements = {};
-    }
-    // legacy "items" map -> placements
+    if (!data.placements || typeof data.placements !== 'object') data.placements = {};
     if (data.items && typeof data.items === 'object') {
       for (const [id, info] of Object.entries(data.items)) {
         if (!(id in data.placements)) {
@@ -135,8 +175,17 @@ export function migrateInventory(raw: any, settings: any = {}) {
     }
   }
 
+  // v1 -> v2: equipment slots + container sub-grids.
+  if (data.version < 2) {
+    data.equipment = data.equipment ?? {};
+    data.containers = data.containers ?? DEFAULT_CONTAINERS;
+  }
+
   data.capacity = normalizeCapacity(data.capacity, settings);
   if (!data.placements || typeof data.placements !== 'object') data.placements = {};
+  data.equipment = normalizeEquipment(data.equipment);
+  const savedContainers = Array.isArray(data.containers) ? data.containers : DEFAULT_CONTAINERS;
+  data.containers = savedContainers.map((c: any, i: number) => normalizeContainer(c, i, settings));
   data.version = INVENTORY_SCHEMA_VERSION;
   return data;
 }
@@ -152,5 +201,67 @@ export function normalizeActorInventory(raw: any, actorItemIds: any = [], settin
     if (!idSet.has(id)) delete inv.placements[id];
   }
 
+  for (const container of inv.containers) {
+    for (const id of Object.keys(container.placements)) {
+      if (!idSet.has(id)) delete container.placements[id];
+    }
+  }
+  for (const slot of EQUIPMENT_SLOTS) {
+    if (inv.equipment[slot.id] && !idSet.has(inv.equipment[slot.id])) {
+      inv.equipment[slot.id] = null;
+    }
+  }
+
   return inv;
+}
+
+export function getInventoryZone(inv: any, zoneId: string) {
+  if (!inv) return null;
+  if (zoneId === 'main') return inv;
+  return inv.containers?.find((c: any) => c.id === zoneId) ?? null;
+}
+
+export function findItemLocation(inv: any, itemId: string) {
+  if (!inv || !itemId) return null;
+  for (const slot of EQUIPMENT_SLOTS) {
+    if (inv.equipment?.[slot.id] === itemId) return { kind: 'equipment', slot: slot.id };
+  }
+  if (inv.placements?.[itemId]) return { kind: 'main', zoneId: 'main' };
+  for (const container of inv.containers ?? []) {
+    if (container.placements?.[itemId]) {
+      return { kind: 'container', zoneId: container.id };
+    }
+  }
+  return null;
+}
+
+/** Remove an item from every zone (in-memory; callers persist explicitly). */
+export function removeItemFromInventory(inv: any, itemId: string) {
+  if (!inv || !itemId) return false;
+  let removed = false;
+  for (const slot of EQUIPMENT_SLOTS) {
+    if (inv.equipment?.[slot.id] === itemId) {
+      inv.equipment[slot.id] = null;
+      removed = true;
+    }
+  }
+  if (itemId in (inv.placements ?? {})) {
+    delete inv.placements[itemId];
+    removed = true;
+  }
+  for (const container of inv.containers ?? []) {
+    if (itemId in (container.placements ?? {})) {
+      delete container.placements[itemId];
+      removed = true;
+    }
+  }
+  return removed;
+}
+
+export function zoneUsedCells(zone: any) {
+  let used = 0;
+  for (const p of Object.values(zone?.placements ?? {})) {
+    if (p) used += (p as any).w * (p as any).h;
+  }
+  return used;
 }

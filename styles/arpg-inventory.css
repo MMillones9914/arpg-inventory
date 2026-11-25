@@ -124,3 +124,68 @@
 .arpginv-item.dragging {
   opacity: 0.5;
 }
+
+/* M5 — equipment, zone tabs and container info */
+.arpginv-equipment {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-bottom: 8px;
+}
+
+.arpginv-slot {
+  position: relative;
+  width: 34px;
+  height: 34px;
+  box-sizing: border-box;
+  border: 1px dashed rgba(0, 0, 0, 0.4);
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.arpginv-slot.has-item {
+  border-style: solid;
+  cursor: grab;
+}
+
+.arpginv-slot__label {
+  font-size: 7px;
+  line-height: 1;
+  text-align: center;
+  opacity: 0.65;
+  pointer-events: none;
+}
+
+.arpginv-tabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 6px;
+}
+
+.arpginv-tab {
+  flex: 0 0 auto;
+  padding: 3px 10px;
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.arpginv-tab.active {
+  font-weight: bold;
+  border-color: #4caf50;
+  box-shadow: inset 0 -2px 0 #4caf50;
+}
+
+.arpginv-zone-info {
+  font-size: 11px;
+  opacity: 0.85;
+  margin-bottom: 6px;
+}
+
+.arpg-inventory.arpginv-overweight .arpginv-weight__label::after {
+  content: '  Overweight';
+  color: #ffcdD2;
+}
