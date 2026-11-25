@@ -10,6 +10,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - (next milestone in progress)
 
+## [0.5.11] - 2026-11-25
+
+### Changed
+- El contenido se ancla arriba a la izquierda: padding interno de `.window-content` forzado a 0 y padding de la raíz solo abajo/derecha (5px).
+- Más separación en los bordes derecho e inferior sin cambiar el tamaño de la ventana.
+
 ## [0.5.10] - 2026-11-25
 
 ### Changed

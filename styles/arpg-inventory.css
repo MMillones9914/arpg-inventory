@@ -4,12 +4,14 @@
   font-family: var(--font-primary, sans-serif);
 }
 
-.window-app.arpg-inventory > .window-content {
-  padding: 0;
+.window-app.arpg-inventory > .window-content,
+.arpg-inventory > .window-content {
+  padding: 0 !important;
+  display: block;
 }
 
 .arpg-inventory__root {
-  padding: var(--arpginv-space);
+  padding: 0 var(--arpginv-space) var(--arpginv-space) 0;
   margin: 0;
 }
 

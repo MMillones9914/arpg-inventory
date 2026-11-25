@@ -60,6 +60,7 @@ Leyenda de estado: 🔲 To do · 🔄 In progress · ✅ Done
 - [x] Espacios de datos junto a cada arma, imagen sin zoom excesivo, barra de peso fija y márgenes profesionales (0.5.8)
 - [x] Margen general unificado, imagen de armas a pantalla completa y slots más anchos (0.5.9)
 - [x] Margen general de 5px y ventana con más alto para no cortar el personaje (0.5.10)
+- [x] Contenido anclado arriba-izquierda con margen solo abajo/derecha (0.5.11)
 
 ## M6 — D&D 5e integration (0.6.0) 🔲
 - [ ] Contenido de los espacios de datos del arma equipada (derecha de principal, izquierda de secundaria)
