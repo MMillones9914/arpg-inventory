@@ -10,6 +10,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - (next milestone in progress)
 
+## [0.5.6] - 2026-11-25
+
+### Changed
+- La barra de armas vuelve a estar **encima del grid** del inventario (antes estaba al costado).
+- Los slots de arma conservan su alargado vertical (150px de alto) pero con más anchura: **72px** (antes 58px).
+- Municiones sigue como cuadro pequeño (44×44) centrado junto a la secundaria.
+- El grid mantiene su tamaño exacto (`max-content`), sin excederse.
+
 ## [0.5.5] - 2026-11-25
 
 ### Changed

@@ -206,8 +206,6 @@ export class InventoryApp extends foundry.applications.api.ApplicationV2 {
     const paneTitle = document.createElement('div');
     paneTitle.className = 'arpginv-inventory-pane__title';
     paneTitle.textContent = 'Inventario';
-    const inventoryContent = document.createElement('div');
-    inventoryContent.className = 'arpginv-inventory-content';
     const weaponBar = document.createElement('div');
     weaponBar.className = 'arpginv-weapon-bar';
     const weaponTitle = document.createElement('span');
@@ -218,7 +216,7 @@ export class InventoryApp extends foundry.applications.api.ApplicationV2 {
     weaponPair.className = 'arpginv-weapon-pair';
 
     // Equipment silhouette: real actor-art image + 10 positioned slots.
-    // Weapon slots live in the separate bar at the side of the inventory grid.
+    // Weapon slots live in the separate bar above the inventory grid.
     const equipment = document.createElement('div');
     equipment.className = 'arpginv-equipment';
     const art = this.actor.img
@@ -417,8 +415,7 @@ export class InventoryApp extends foundry.applications.api.ApplicationV2 {
       document.addEventListener('keydown', this._dragKeyHandler);
     }
 
-    inventoryContent.append(grid, weaponBar);
-    inventoryPane.append(paneTitle, weightBar, tabs, info, inventoryContent);
+    inventoryPane.append(paneTitle, weaponBar, weightBar, tabs, info, grid);
     layout.append(equipment, inventoryPane);
     root.append(layout);
     return root;
