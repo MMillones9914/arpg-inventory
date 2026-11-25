@@ -82,7 +82,7 @@ export class InventoryApp extends foundry.applications.api.ApplicationV2 {
     id: 'arpg-inventory-inventory',
     classes: ['arpg-inventory'],
     window: { title: 'ARPG Inventory' },
-    position: { width: 800, height: 540 }
+    position: { width: 900, height: 640 }
   };
 
   get title() {
@@ -207,14 +207,17 @@ export class InventoryApp extends foundry.applications.api.ApplicationV2 {
     paneTitle.className = 'arpginv-inventory-pane__title';
     paneTitle.textContent = 'Inventario';
 
-    // Equipment silhouette: actor art background + 14 positioned slots.
+    // Equipment silhouette: real actor-art image + 14 positioned slots.
     const equipment = document.createElement('div');
     equipment.className = 'arpginv-equipment';
-    const art = this.actor.img || this.actor.prototypeToken?.texture?.src;
-    if (art) {
-      const portrait = String(art).replace(/"/g, '%22');
-      equipment.style.setProperty('--arpginv-portrait', `url("${portrait}")`);
-    }
+    const art = this.actor.img
+      || this.actor.prototypeToken?.texture?.src
+      || 'icons/svg/mystery-man.svg';
+    const portrait = document.createElement('img');
+    portrait.className = 'arpginv-equipment__portrait';
+    portrait.src = art;
+    portrait.alt = '';
+    equipment.appendChild(portrait);
     const frame = document.createElement('div');
     frame.className = 'arpginv-equipment__frame';
     const bottomRow = document.createElement('div');

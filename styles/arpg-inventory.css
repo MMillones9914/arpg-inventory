@@ -145,27 +145,43 @@
 }
 
 .arpginv-equipment {
-  --arpginv-portrait: none;
   position: relative;
-  flex: 0 0 270px;
-  width: 270px;
-  height: 480px;
+  flex: 0 0 315px;
+  width: 315px;
+  height: 560px;
   aspect-ratio: 9 / 16;
   border: 1px solid rgba(0, 0, 0, 0.5);
   border-radius: 6px;
   overflow: hidden;
   background-color: #1a1a1f;
-  background-image:
-    linear-gradient(rgba(12, 12, 16, 0.35), rgba(12, 12, 16, 0.68)),
-    var(--arpginv-portrait);
-  background-size: cover;
-  background-position: center top;
-  box-shadow: inset 0 0 24px rgba(0, 0, 0, 0.7), 0 1px 3px rgba(0, 0, 0, 0.4);
+  box-shadow: inset 0 0 24px rgba(0, 0, 0, 0.6), 0 1px 3px rgba(0, 0, 0, 0.4);
+}
+
+.arpginv-equipment__portrait {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center top;
+  opacity: 0.62;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.arpginv-equipment::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(rgba(10, 10, 14, 0.12), rgba(10, 10, 14, 0.48));
+  pointer-events: none;
+  z-index: 1;
 }
 
 .arpginv-equipment__frame {
   position: absolute;
   inset: 0;
+  z-index: 2;
 }
 
 .arpginv-equipment__frame::before {
@@ -179,18 +195,23 @@
 
 .arpginv-equipment__bottom {
   position: absolute;
-  bottom: 8px;
+  bottom: 10px;
   left: 50%;
   transform: translateX(-50%);
   display: flex;
-  gap: 4px;
-  z-index: 2;
+  gap: 6px;
+  padding: 5px 8px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 7px;
+  background: rgba(0, 0, 0, 0.55);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
+  z-index: 3;
 }
 
 .arpginv-slot {
   position: absolute;
-  width: 46px;
-  height: 46px;
+  width: 52px;
+  height: 52px;
   box-sizing: border-box;
   border: 1px solid rgba(255, 255, 255, 0.25);
   border-radius: 5px;
@@ -243,17 +264,17 @@
 .arpginv-slot--left { left: 8px; }
 .arpginv-slot--right { right: 8px; }
 
-.arpginv-slot--head { top: 14px; }
-.arpginv-slot--neck { top: 84px; }
-.arpginv-slot--shoulders { top: 154px; }
-.arpginv-slot--body { top: 224px; }
-.arpginv-slot--back { top: 294px; }
-.arpginv-slot--hands { top: 364px; }
+.arpginv-slot--head { top: 16px; }
+.arpginv-slot--neck { top: 100px; }
+.arpginv-slot--shoulders { top: 184px; }
+.arpginv-slot--body { top: 268px; }
+.arpginv-slot--back { top: 352px; }
+.arpginv-slot--hands { top: 436px; }
 
-.arpginv-slot--legs { top: 84px; }
-.arpginv-slot--feet { top: 154px; }
-.arpginv-slot--ring1 { top: 224px; }
-.arpginv-slot--ring2 { top: 294px; }
+.arpginv-slot--legs { top: 100px; }
+.arpginv-slot--feet { top: 184px; }
+.arpginv-slot--ring1 { top: 268px; }
+.arpginv-slot--ring2 { top: 352px; }
 
 .arpginv-tabs {
   display: flex;

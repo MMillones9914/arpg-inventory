@@ -10,6 +10,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - (next milestone in progress)
 
+## [0.5.3] - 2026-11-25
+
+### Fixed
+- La fila de armas (Arma principal, Arma secundaria, Distancia y Municiones) ya no queda cortada: tiene barra propia, slots de 52px y más separación del borde.
+- El arte del actor ahora se renderiza como `<img>` real dentro del panel (antes solo como fondo CSS), con fallback al token y a `mystery-man.svg`.
+- Reducido el velo oscuro para que la imagen del actor sea visible.
+- Ampliada la ventana a 900×640 y el panel 9:16 a 315×560.
+
 ## [0.5.2] - 2026-11-25
 
 ### Changed
