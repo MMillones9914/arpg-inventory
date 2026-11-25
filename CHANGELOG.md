@@ -10,6 +10,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - (next milestone in progress)
 
+## [0.5.12] - 2026-11-25
+
+### Changed
+- Margen superior e izquierdo aumentado a **2px** (antes 0) para que el contenido no quede apegado; abajo y derecha se mantienen en 5px.
+
 ## [0.5.11] - 2026-11-25
 
 ### Changed
