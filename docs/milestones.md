@@ -64,12 +64,12 @@ Leyenda de estado: 🔲 To do · 🔄 In progress · ✅ Done
 - [x] Margen superior/izquierdo de 2px para equilibrar el contenido (0.5.12)
 - [x] Margen superior/izquierdo ampliado a 7px (0.5.13)
 
-## M6 — D&D 5e integration (0.6.0) 🔲
-- [ ] Contenido de los espacios de datos del arma equipada (derecha de principal, izquierda de secundaria)
-- [ ] Capacidad dinámica desde Fuerza
-- [ ] Tamaños por defecto por tipo
-- [ ] Sync de items, attunement, usos
-- [ ] Permisos (edición solo GM)
+## M6 — D&D 5e integration (0.6.0) ✅
+- [x] Contenido de los espacios de datos del arma equipada (derecha de principal, izquierda de secundaria)
+- [x] Capacidad dinámica desde Fuerza (encumbrance.max o STR × 15)
+- [x] Tamaños por defecto por tipo dnd5e
+- [x] Sync de items, attunement, usos (hook `updateItem` + refresh)
+- [x] Permisos (edición solo GM)
 
 ## M7 — UX, accessibility & theming (0.7.0) 🔲
 - [ ] Búsqueda y filtros

@@ -4,6 +4,10 @@ import { InventoryApp } from '../apps/inventory-app';
 
 let appInstance = null;
 
+export function refreshInventoryForActor(actor?: any) {
+  if (appInstance?.rendered && (!actor || appInstance.actor === actor)) appInstance.render();
+}
+
 export function openInventory() {
   try {
     let actor = null;

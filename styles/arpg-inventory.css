@@ -266,7 +266,42 @@
   border: 1px dashed rgba(0, 0, 0, 0.28);
   border-radius: 5px;
   background: rgba(0, 0, 0, 0.03);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  overflow: hidden;
+  padding: 2px;
+  font-size: 9px;
+  line-height: 1.1;
+  text-align: center;
+  word-break: break-word;
   pointer-events: none;
+}
+
+.arpginv-attunement {
+  position: absolute;
+  top: 1px;
+  right: 2px;
+  z-index: 3;
+  padding: 1px 2px;
+  border-radius: 3px;
+  font-size: 8px;
+  font-weight: bold;
+  line-height: 1;
+  color: #fff;
+  background: rgba(0, 0, 0, 0.75);
+  pointer-events: none;
+}
+
+.arpginv-attunement--attuned { background: #4caf50; }
+.arpginv-attunement--required { background: #ff9800; }
+
+.arpginv-readonly {
+  font-size: 10px;
+  color: #b71c1c;
+  margin-bottom: var(--arpginv-space);
 }
 
 .arpginv-weapon-bar .arpginv-slot__code {

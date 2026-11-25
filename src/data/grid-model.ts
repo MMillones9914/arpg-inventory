@@ -34,14 +34,22 @@ const DEFAULT_CONTAINERS = [
 const ITEM_GRID_DEFAULTS: Record<string, { w: number; h: number }> = {
   weapon: { w: 2, h: 1 },
   equipment: { w: 2, h: 2 },
+  armor: { w: 2, h: 3 },
+  shield: { w: 2, h: 2 },
   consumable: { w: 1, h: 1 },
-  tool: { w: 1, h: 1 },
+  tool: { w: 1, h: 2 },
   loot: { w: 1, h: 1 },
+  treasure: { w: 1, h: 1 },
+  ammo: { w: 1, h: 1 },
+  container: { w: 2, h: 2 },
+  backpack: { w: 2, h: 2 },
+  spellcastingFocus: { w: 1, h: 1 },
   default: { w: 1, h: 1 }
 };
 
 const ITEM_STACK_MAX: Record<string, number> = {
   consumable: 10,
+  ammo: 20,
   default: 1
 };
 

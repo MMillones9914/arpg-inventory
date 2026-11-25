@@ -1,6 +1,6 @@
 # AGENT.md — Guía del agente de desarrollo
 
-> Documento vivo. Define arquitectura, convenciones y reglas de trabajo del módulo **ARPG Inventory** para Foundry VTT v14. Versión del documento: **0.5.13**.
+> Documento vivo. Define arquitectura, convenciones y reglas de trabajo del módulo **ARPG Inventory** para Foundry VTT v14. Versión del documento: **0.6.0**.
 
 ---
 
@@ -52,6 +52,7 @@ src/
 ├── apps/inventory-app.ts          # UI, DnD, equipment slots, zone tabs
 ├── constants.ts                   # MODULE_ID / MODULE_TITLE
 ├── data/
+│   ├── dnd5e.ts                   # reglas 5e puras: capacidad, tipos, attunement, usos, permisos
 │   ├── grid-model.ts              # schema v2, zones, slots, normalización pura
 │   └── inventory-service.ts       # acceso a flags + grid/stack de items
 ├── engine/
@@ -67,7 +68,7 @@ src/
 └── utils/logger.ts
 styles/arpg-inventory.css
 lang/en.json
-tests/{data,engine}/*.test.ts
+tests/{data,engine}/*.test.ts   # incluye dnd5e.test.ts
 ```
 
 ---
@@ -80,6 +81,8 @@ tests/{data,engine}/*.test.ts
 - `w`/`h` en un placement son **siempre** las dimensiones efectivas en grid; `rotated` solo es metadata. Nunca se swap de nuevo al leer.
 - Las celdas del grid se posicionan explícitamente (`gridColumn`/`gridRow`); `data-x/y` debe coincidir con la celda visible.
 - Cadenas visibles al usuario: usar `game.i18n.localize` cuando exista clave en `lang/en.json`.
+- Reglas dnd5e y permisos van en `src/data/dnd5e.ts` (puro, testeable); la UI solo consume esos helpers.
+- Mutar flags del inventario está permitido únicamente al GM (`canEditInventory`); otros usuarios ven la app en solo lectura.
 - Layout de la app: flex horizontal; `.window-content` sin padding y raíz con padding 7px arriba/izquierda y 5px abajo/derecha. El resto de separaciones usan `--arpginv-space` (5px). Equipo 9:16 a la izquierda con `actor.img` de fondo, inventario a la derecha con espacios de armas encima del grid; panel con ancho fijo igual al grid principal; ventana 710×620.
 
 ---
@@ -104,6 +107,8 @@ Slots (13):
 - Panel de equipo (silueta vertical, 10): izquierda `head`, `neck`, `shoulders`, `body`, `back`, `hands`; derecha `legs`, `feet`, `ring1`, `ring2`.
 - Espacios de armas encima del grid del inventario (3): `mainhand` y `offhand` alargados verticalmente (112×150) con imagen `cover` que rellena el slot, `ammo` como cuadro pequeño (44×44) centrado junto a la secundaria. Espacios reservados a la derecha de `mainhand` y a la izquierda de `offhand` (contenido pendiente de M6); `ammo` sin espacio. `ranged` fue eliminado.
 
+Capacidad `strength`: `system.attributes.encumbrance.max` o `Fuerza × 15` lb. Tamaños por tipo dnd5e en `ITEM_GRID_DEFAULTS` (armadura 2×3, herramienta 1×2, munición stack 20, etc.).
+
 Contenedores por defecto: `backpack` (6×4, 40) y `quiver` (2×4, 10).
 Un item está en **una sola zona**; `removeItemFromInventory` lo saca de todas antes de moverlo.
 
@@ -127,7 +132,7 @@ Un item está en **una sola zona**; `removeItemFromInventory` lo saca de todas a
 | M3 Inventory UI | 0.3.0 | ✅ |
 | M4 Drag & Drop | 0.4.0 (+fix 0.4.13) | ✅ |
 | M5 Equipment & containers | 0.5.0 | ✅ |
-| M6 D&D 5e integration | 0.6.0 | 🔲 |
+| M6 D&D 5e integration | 0.6.0 | ✅ |
 | M7 UX, accessibility & theming | 0.7.0 | 🔲 |
 | M8 Multiplayer & sync | 0.8.0 | 🔲 |
 | M9 Public API & extensibility | 0.9.0 | 🔲 |
@@ -145,4 +150,4 @@ Un item está en **una sola zona**; `removeItemFromInventory` lo saca de todas a
 
 ---
 
-_Última actualización: 0.5.13 (M5 completado; márgenes 7px/5px)._
+_Última actualización: 0.6.0 (M6 completado; integración dnd5e y edición solo GM)._

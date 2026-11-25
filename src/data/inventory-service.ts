@@ -6,6 +6,7 @@ import {
   defaultItemGrid,
   defaultItemStackMax
 } from './grid-model';
+import { dnd5eItemType, strengthCapacity } from './dnd5e';
 
 function settingsDefaults() {
   try {
@@ -27,7 +28,7 @@ function normalizeZonePlacements(actor: any, zone: any, settings: any) {
     const item = actor.items?.get?.(id);
     zone.placements[id] = normalizePlacement(
       p,
-      item ? getItemGrid(item) : defaultItemGrid(),
+      item ? getItemGrid(item) : defaultItemGrid(dnd5eItemType(item)),
       zone.capacity.cols,
       zone.capacity.rows
     );
@@ -43,10 +44,10 @@ export function getActorInventory(actor: any) {
   const inv = normalizeActorInventory(raw, itemIds, settings);
   inv.capacity = normalizeCapacity(inv.capacity, settings);
 
-  // Strength-based capacity: use dnd5e encumbrance maximum when enabled.
+  // Strength-based capacity: dnd5e encumbrance max, then STR x 15 lb.
   if (inv.capacity.mode === 'strength') {
-    const max = Number(actor.system?.attributes?.encumbrance?.max);
-    if (Number.isFinite(max) && max > 0) inv.capacity.maxWeight = max;
+    const max = strengthCapacity(actor);
+    if (max !== null) inv.capacity.maxWeight = max;
   }
 
   normalizeZonePlacements(actor, inv, settings);
@@ -82,7 +83,7 @@ export function getItemGrid(item: any) {
       rotatable: stored.rotatable !== false
     };
   }
-  return defaultItemGrid(item.type);
+  return defaultItemGrid(dnd5eItemType(item));
 }
 
 export function getItemStack(item: any) {
@@ -96,7 +97,7 @@ export function getItemStack(item: any) {
   const configured = Number(stored?.max);
   const max = Math.max(
     current,
-    Math.floor(Number.isFinite(configured) ? configured : defaultItemStackMax(item.type))
+    Math.floor(Number.isFinite(configured) ? configured : defaultItemStackMax(dnd5eItemType(item)))
   );
   return { current, max };
 }

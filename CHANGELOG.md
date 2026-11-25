@@ -10,6 +10,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - (next milestone in progress)
 
+## [0.6.0] - 2026-11-25
+
+### Added — M6 D&D 5e integration
+- Contenido de los espacios reservados junto a las armas: daño, bonificación de ataque, alcance, usos y estado de attunement del arma equipada (el tooltip incluye nombre, rareza y propiedades).
+- Módulo puro `src/data/dnd5e.ts` con tests: capacidad por Fuerza, mapeo de tipos dnd5e, attunement, usos y permisos de edición.
+- Hook `updateItem` para resincronizar al cambiar cantidad, attunement, usos, tipo, rareza o daño, refrescando la ventana abierta.
+- Indicador compacto de attunement (`A`/`R`) en slots y objetos del grid; tooltips con usos.
+
+### Changed
+- Tamaños por defecto por tipo dnd5e: armadura 2×3, escudo 2×2, herramienta 1×2, contenedores 2×2, foco 1×1 y munición con stack máximo 20.
+- La capacidad por Fuerza usa `system.attributes.encumbrance.max` de dnd5e con fallback `Fuerza × 15`.
+
+### Fixed
+- Edición restringida a GM: auto-colocación, drag & drop, equipar y apilado no se ejecutan para otros usuarios, que ven el inventario en solo lectura.
+
 ## [0.5.13] - 2026-11-25
 
 ### Changed

@@ -13,6 +13,7 @@ import {
   getItemStack,
   setActorInventory
 } from '../data/inventory-service';
+import { attunementState, canEditInventory, usesLabel, weaponSummary } from '../data/dnd5e';
 import { pointToCell } from '../engine/grid-geometry';
 import {
   createGridState,
@@ -64,6 +65,20 @@ function appendImage(parent: HTMLElement, item: any) {
   parent.appendChild(img);
 }
 
+function appendAttunement(parent: HTMLElement, item: any) {
+  const state = attunementState(item);
+  if (state === 'none') return;
+  const badge = document.createElement('span');
+  badge.className = `arpginv-attunement arpginv-attunement--${state}`;
+  badge.textContent = state === 'attuned' ? 'A' : 'R';
+  parent.appendChild(badge);
+}
+
+function itemTooltip(item: any, fallback = '') {
+  const uses = usesLabel(item);
+  return [item?.name || fallback, uses ? `Uses ${uses}` : null].filter(Boolean).join(' · ');
+}
+
 export class InventoryApp extends foundry.applications.api.ApplicationV2 {
   actor: any;
   activeZone = 'main';
@@ -87,6 +102,28 @@ export class InventoryApp extends foundry.applications.api.ApplicationV2 {
 
   get title() {
     return this.actor ? `ARPG Inventory - ${this.actor.name}` : 'ARPG Inventory';
+  }
+
+  get editable() {
+    return canEditInventory(game?.user);
+  }
+
+  /** Fill one of the compact info spaces beside a weapon slot. */
+  _fillWeaponInfo(container: HTMLElement, item: any) {
+    const summary = weaponSummary(item);
+    if (!summary) return;
+    container.classList.add(rarityClass(item));
+    container.title = [summary.name, summary.rarity, summary.properties.join(', ')]
+      .filter(Boolean)
+      .join(' · ');
+    const lines = [summary.damage, summary.attack, summary.range, summary.uses];
+    if (summary.attunement !== 'none') lines.push(summary.attunement === 'attuned' ? 'A' : 'R');
+    for (const value of lines) {
+      if (!value) continue;
+      const line = document.createElement('span');
+      line.textContent = value;
+      container.appendChild(line);
+    }
   }
 
   /** Effective (already swapped) dimensions for an item in the current drag state. */
@@ -137,6 +174,7 @@ export class InventoryApp extends foundry.applications.api.ApplicationV2 {
   }
 
   async _autoPlaceAll(inv: any) {
+    if (!this.editable) return;
     const zones = [
       { id: 'main', zone: inv },
       ...inv.containers.map((c: any) => ({ id: c.id, zone: c }))
@@ -171,6 +209,13 @@ export class InventoryApp extends foundry.applications.api.ApplicationV2 {
     if (!this.actor) {
       root.textContent = 'No actor selected.';
       return root;
+    }
+
+    if (!this.editable) {
+      const notice = document.createElement('div');
+      notice.className = 'arpginv-readonly';
+      notice.textContent = 'Solo lectura: solo el GM puede editar el inventario.';
+      root.appendChild(notice);
     }
 
     const inv = getActorInventory(this.actor);
@@ -248,10 +293,11 @@ export class InventoryApp extends foundry.applications.api.ApplicationV2 {
       const item = itemId ? this.actor.items.get(itemId) : null;
       if (item) {
         slotEl.classList.add('has-item', `arpginv-rarity--${rarityClass(item).replace('arpginv-rarity--', '')}`);
-        slotEl.draggable = true;
+        slotEl.draggable = this.editable;
         slotEl.dataset.itemId = item.id;
-        slotEl.title = item.name;
+        slotEl.title = itemTooltip(item, slot.label);
         appendImage(slotEl, item);
+        appendAttunement(slotEl, item);
         slotEl.addEventListener('dragstart', (ev) => {
           this._beginDrag(ev, item.id, { kind: 'equipment', slot: slot.id });
         });
@@ -278,6 +324,10 @@ export class InventoryApp extends foundry.applications.api.ApplicationV2 {
         frame.appendChild(slotEl);
       }
     }
+    const mainItemId = inv.equipment.mainhand;
+    const offItemId = inv.equipment.offhand;
+    this._fillWeaponInfo(mainInfo, mainItemId ? this.actor.items.get(mainItemId) : null);
+    this._fillWeaponInfo(offInfo, offItemId ? this.actor.items.get(offItemId) : null);
     weaponBar.append(mainInfo, offInfo, weaponPair);
     equipment.appendChild(frame);
 
@@ -346,12 +396,13 @@ export class InventoryApp extends foundry.applications.api.ApplicationV2 {
       const stack = getItemStack(item);
       const el = document.createElement('div');
       el.className = `arpginv-item ${rarityClass(item)}`;
-      el.draggable = true;
+      el.draggable = this.editable;
       el.dataset.itemId = item.id;
       el.style.gridColumn = `${p.x + 1} / span ${p.w}`;
       el.style.gridRow = `${p.y + 1} / span ${p.h}`;
-      el.title = item.name;
+      el.title = itemTooltip(item);
       appendImage(el, item);
+      appendAttunement(el, item);
       if (stack.current > 1) {
         const badge = document.createElement('span');
         badge.className = 'arpginv-item__stack';
@@ -426,6 +477,7 @@ export class InventoryApp extends foundry.applications.api.ApplicationV2 {
   }
 
   _beginDrag(ev: DragEvent, itemId: string, source: any) {
+    if (!this.editable) return;
     this.dragItemId = itemId;
     this.dragRotated = false;
     this.dragSource = source;
@@ -446,6 +498,7 @@ export class InventoryApp extends foundry.applications.api.ApplicationV2 {
   }
 
   async _placeDraggedInZone(zoneId: string, x: number, y: number) {
+    if (!this.editable) return false;
     const draggedId = this.dragItemId;
     if (!draggedId) return false;
     const item = this.actor?.items?.get?.(draggedId);
@@ -490,6 +543,7 @@ export class InventoryApp extends foundry.applications.api.ApplicationV2 {
   }
 
   async _equipDragged(slotId: string) {
+    if (!this.editable) return false;
     const draggedId = this.dragItemId;
     if (!draggedId || !this.actor?.items?.get?.(draggedId)) return false;
     const inv = getActorInventory(this.actor);
@@ -503,6 +557,7 @@ export class InventoryApp extends foundry.applications.api.ApplicationV2 {
 
   /** Move the dragged item to the first free cell of a zone (drop on tab). */
   async _moveDraggedToZone(zoneId: string) {
+    if (!this.editable) return false;
     const draggedId = this.dragItemId;
     if (!draggedId) return false;
     const item = this.actor?.items?.get?.(draggedId);
@@ -531,6 +586,7 @@ export class InventoryApp extends foundry.applications.api.ApplicationV2 {
   }
 
   async _consumeStackedItem(inv: any, targetId: string, placements: any) {
+    if (!this.editable) return;
     const targetItem = this.actor.items.get(targetId);
     if (!targetItem) return;
     const stack = placements[targetId]?.stack ?? { current: 1, max: 1 };
