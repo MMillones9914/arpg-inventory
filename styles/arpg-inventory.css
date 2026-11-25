@@ -125,23 +125,42 @@
   opacity: 0.5;
 }
 
-/* M5 — equipment silhouette, zone tabs and container info */
+/* M5 — side-by-side layout, equipment silhouette, zone tabs */
+.arpginv-layout {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+}
+
+.arpginv-inventory-pane {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.arpginv-inventory-pane__title {
+  font-size: 12px;
+  font-weight: bold;
+  letter-spacing: 0.5px;
+  margin-bottom: 6px;
+}
+
 .arpginv-equipment {
   --arpginv-portrait: none;
   position: relative;
-  height: 360px;
-  width: 100%;
-  margin-bottom: 10px;
+  flex: 0 0 270px;
+  width: 270px;
+  height: 480px;
+  aspect-ratio: 9 / 16;
   border: 1px solid rgba(0, 0, 0, 0.5);
   border-radius: 6px;
   overflow: hidden;
   background-color: #1a1a1f;
   background-image:
-    linear-gradient(rgba(12, 12, 16, 0.55), rgba(12, 12, 16, 0.78)),
+    linear-gradient(rgba(12, 12, 16, 0.35), rgba(12, 12, 16, 0.68)),
     var(--arpginv-portrait);
   background-size: cover;
-  background-position: center 18%;
-  box-shadow: inset 0 0 24px rgba(0, 0, 0, 0.8), 0 1px 3px rgba(0, 0, 0, 0.4);
+  background-position: center top;
+  box-shadow: inset 0 0 24px rgba(0, 0, 0, 0.7), 0 1px 3px rgba(0, 0, 0, 0.4);
 }
 
 .arpginv-equipment__frame {
@@ -170,8 +189,8 @@
 
 .arpginv-slot {
   position: absolute;
-  width: 48px;
-  height: 48px;
+  width: 46px;
+  height: 46px;
   box-sizing: border-box;
   border: 1px solid rgba(255, 255, 255, 0.25);
   border-radius: 5px;
@@ -221,20 +240,20 @@
   pointer-events: none;
 }
 
-.arpginv-slot--left { left: 10px; }
-.arpginv-slot--right { right: 10px; }
+.arpginv-slot--left { left: 8px; }
+.arpginv-slot--right { right: 8px; }
 
-.arpginv-slot--head { top: 10px; }
-.arpginv-slot--neck { top: 64px; }
-.arpginv-slot--shoulders { top: 118px; }
-.arpginv-slot--body { top: 172px; }
-.arpginv-slot--back { top: 226px; }
-.arpginv-slot--hands { top: 280px; }
+.arpginv-slot--head { top: 14px; }
+.arpginv-slot--neck { top: 84px; }
+.arpginv-slot--shoulders { top: 154px; }
+.arpginv-slot--body { top: 224px; }
+.arpginv-slot--back { top: 294px; }
+.arpginv-slot--hands { top: 364px; }
 
-.arpginv-slot--legs { top: 118px; }
-.arpginv-slot--feet { top: 172px; }
-.arpginv-slot--ring1 { top: 226px; }
-.arpginv-slot--ring2 { top: 280px; }
+.arpginv-slot--legs { top: 84px; }
+.arpginv-slot--feet { top: 154px; }
+.arpginv-slot--ring1 { top: 224px; }
+.arpginv-slot--ring2 { top: 294px; }
 
 .arpginv-tabs {
   display: flex;

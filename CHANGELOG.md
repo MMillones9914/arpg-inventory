@@ -10,6 +10,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - (next milestone in progress)
 
+## [0.5.2] - 2026-11-25
+
+### Changed
+- Rediseñado el layout a dos columnas: panel de equipo a la izquierda (proporción 9:16) e inventario a la derecha, evitando que el grid quede fuera de la ventana.
+- Ampliada la ventana por defecto a 800×540.
+- El fondo del panel usa el arte del actor (`actor.img`, con fallback al token) con velo más claro para que la imagen sea visible.
+- Reubicados los 14 slots para la nueva altura 9:16.
+
 ## [0.5.1] - 2026-11-25
 
 ### Changed

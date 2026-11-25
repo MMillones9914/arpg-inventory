@@ -82,7 +82,7 @@ export class InventoryApp extends foundry.applications.api.ApplicationV2 {
     id: 'arpg-inventory-inventory',
     classes: ['arpg-inventory'],
     window: { title: 'ARPG Inventory' },
-    position: { width: 560, height: 480 }
+    position: { width: 800, height: 540 }
   };
 
   get title() {
@@ -198,11 +198,21 @@ export class InventoryApp extends foundry.applications.api.ApplicationV2 {
     weightBar.append(fill, label);
     if (weight > capacity.maxWeight) root.classList.add('arpginv-overweight');
 
-    // Equipment silhouette: portrait background + 14 positioned slots.
+    // Side-by-side layout: equipment (left) + inventory (right).
+    const layout = document.createElement('div');
+    layout.className = 'arpginv-layout';
+    const inventoryPane = document.createElement('div');
+    inventoryPane.className = 'arpginv-inventory-pane';
+    const paneTitle = document.createElement('div');
+    paneTitle.className = 'arpginv-inventory-pane__title';
+    paneTitle.textContent = 'Inventario';
+
+    // Equipment silhouette: actor art background + 14 positioned slots.
     const equipment = document.createElement('div');
     equipment.className = 'arpginv-equipment';
-    if (this.actor.img) {
-      const portrait = String(this.actor.img).replace(/"/g, '%22');
+    const art = this.actor.img || this.actor.prototypeToken?.texture?.src;
+    if (art) {
+      const portrait = String(art).replace(/"/g, '%22');
       equipment.style.setProperty('--arpginv-portrait', `url("${portrait}")`);
     }
     const frame = document.createElement('div');
@@ -391,7 +401,9 @@ export class InventoryApp extends foundry.applications.api.ApplicationV2 {
       document.addEventListener('keydown', this._dragKeyHandler);
     }
 
-    root.append(weightBar, equipment, tabs, info, grid);
+    inventoryPane.append(paneTitle, weightBar, tabs, info, grid);
+    layout.append(equipment, inventoryPane);
+    root.append(layout);
     return root;
   }
 

@@ -1,6 +1,6 @@
 # AGENT.md — Guía del agente de desarrollo
 
-> Documento vivo. Define arquitectura, convenciones y reglas de trabajo del módulo **ARPG Inventory** para Foundry VTT v14. Versión del documento: **0.5.1**.
+> Documento vivo. Define arquitectura, convenciones y reglas de trabajo del módulo **ARPG Inventory** para Foundry VTT v14. Versión del documento: **0.5.2**.
 
 ---
 
@@ -80,6 +80,7 @@ tests/{data,engine}/*.test.ts
 - `w`/`h` en un placement son **siempre** las dimensiones efectivas en grid; `rotated` solo es metadata. Nunca se swap de nuevo al leer.
 - Las celdas del grid se posicionan explícitamente (`gridColumn`/`gridRow`); `data-x/y` debe coincidir con la celda visible.
 - Cadenas visibles al usuario: usar `game.i18n.localize` cuando exista clave en `lang/en.json`.
+- Layout de la app: flex horizontal; equipo 9:16 a la izquierda con `actor.img` de fondo, inventario (pestañas + grid) a la derecha.
 
 ---
 
@@ -145,4 +146,4 @@ Un item está en **una sola zona**; `removeItemFromInventory` lo saca de todas a
 
 ---
 
-_Última actualización: 0.5.1 (M5 completado; panel de equipo rediseñado a silueta vertical con 14 slots y código muerto limpiado)._
+_Última actualización: 0.5.2 (M5 completado; layout horizontal equipo 9:16 + inventario a la derecha, fondo con arte del actor)._
