@@ -1,6 +1,6 @@
 # AGENT.md — Guía del agente de desarrollo
 
-> Documento vivo. Define arquitectura, convenciones y reglas de trabajo del módulo **ARPG Inventory** para Foundry VTT v14. Versión del documento: **0.5.0**.
+> Documento vivo. Define arquitectura, convenciones y reglas de trabajo del módulo **ARPG Inventory** para Foundry VTT v14. Versión del documento: **0.5.1**.
 
 ---
 
@@ -99,7 +99,11 @@ Inventory {
 }
 ```
 
-Slots: `head`, `neck`, `body`, `mainhand`, `offhand`, `ring1`, `ring2`, `feet`.
+Slots (14, diseño de silueta vertical):
+- Izquierda: `head`, `neck`, `shoulders`, `body`, `back`, `hands`.
+- Derecha: `legs`, `feet`, `ring1`, `ring2`.
+- Inferior central: `mainhand`, `offhand`, `ranged`, `ammo`.
+
 Contenedores por defecto: `backpack` (6×4, 40) y `quiver` (2×4, 10).
 Un item está en **una sola zona**; `removeItemFromInventory` lo saca de todas antes de moverlo.
 
@@ -141,4 +145,4 @@ Un item está en **una sola zona**; `removeItemFromInventory` lo saca de todas a
 
 ---
 
-_Última actualización: 0.5.0 (M5 completado; menú de edición de items eliminado y código muerto limpiado)._
+_Última actualización: 0.5.1 (M5 completado; panel de equipo rediseñado a silueta vertical con 14 slots y código muerto limpiado)._

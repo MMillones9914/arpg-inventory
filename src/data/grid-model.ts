@@ -10,12 +10,22 @@ const DEFAULT_CAPACITY = {
   maxWeight: 100
 };
 
-const EQUIPMENT_SLOT_IDS = ['head', 'neck', 'body', 'mainhand', 'offhand', 'ring1', 'ring2', 'feet'] as const;
-
-export const EQUIPMENT_SLOTS = EQUIPMENT_SLOT_IDS.map((id) => ({
-  id,
-  label: id.replace(/([a-z])([A-Z])/g, '$1 $2').replace(/^./, (c) => c.toUpperCase())
-}));
+export const EQUIPMENT_SLOTS = [
+  { id: 'head', label: 'Cabeza', code: 'CAB', side: 'left' },
+  { id: 'neck', label: 'Cuello', code: 'CUE', side: 'left' },
+  { id: 'shoulders', label: 'Hombreras', code: 'HOM', side: 'left' },
+  { id: 'body', label: 'Cuerpo', code: 'CRP', side: 'left' },
+  { id: 'back', label: 'Espalda', code: 'ESP', side: 'left' },
+  { id: 'hands', label: 'Manos', code: 'MAN', side: 'left' },
+  { id: 'legs', label: 'Pantalones', code: 'PAN', side: 'right' },
+  { id: 'feet', label: 'Zapatos', code: 'ZAP', side: 'right' },
+  { id: 'ring1', label: 'Anillo 1', code: 'A1', side: 'right' },
+  { id: 'ring2', label: 'Anillo 2', code: 'A2', side: 'right' },
+  { id: 'mainhand', label: 'Arma principal', code: 'AP', side: 'bottom' },
+  { id: 'offhand', label: 'Arma secundaria', code: 'AS', side: 'bottom' },
+  { id: 'ranged', label: 'Distancia', code: 'DIS', side: 'bottom' },
+  { id: 'ammo', label: 'Municiones', code: 'MUN', side: 'bottom' }
+] as const;
 
 const DEFAULT_CONTAINERS = [
   { id: 'backpack', name: 'Backpack', capacity: { cols: 6, rows: 4, maxWeight: 40 } },

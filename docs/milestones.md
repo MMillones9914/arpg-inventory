@@ -50,6 +50,7 @@ Leyenda de estado: 🔲 To do · 🔄 In progress · ✅ Done
 - [x] Peso/volumen por zona y barra de encumbrance global
 - [x] Esquema v2 con migración desde v1
 - [x] Edición de tamaño de item eliminada del menú del inventario (se pospone)
+- [x] Rediseño visual del panel de equipo a silueta vertical con 14 slots (0.5.1)
 
 ## M6 — D&D 5e integration (0.6.0) 🔲
 - [ ] Capacidad dinámica desde Fuerza

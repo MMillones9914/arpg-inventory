@@ -10,6 +10,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - (next milestone in progress)
 
+## [0.5.1] - 2026-11-25
+
+### Changed
+- Rediseñado el panel de equipo como silueta vertical con retrato del actor de fondo y velo opaco.
+- Ampliado de 8 a 14 slots: izquierda (Cabeza, Cuello, Hombreras, Cuerpo, Espalda, Manos), derecha (Pantalones, Zapatos, Anillo 1, Anillo 2) e inferior central (Arma principal, Arma secundaria, Distancia, Municiones).
+- Slots más vistosos: borde por rareza, código corto, etiqueta visible, glow al hover y fondo degradado.
+- El inventario principal (pestañas + grid) queda debajo del panel de equipo.
+
+### Fixed
+- La migración añade los slots nuevos sin perder los equipamientos existentes.
+
 ## [0.5.0] - 2026-11-25
 
 ### Added — M5 Equipment & containers

@@ -198,13 +198,28 @@ export class InventoryApp extends foundry.applications.api.ApplicationV2 {
     weightBar.append(fill, label);
     if (weight > capacity.maxWeight) root.classList.add('arpginv-overweight');
 
-    // Equipment slots.
+    // Equipment silhouette: portrait background + 14 positioned slots.
     const equipment = document.createElement('div');
     equipment.className = 'arpginv-equipment';
+    if (this.actor.img) {
+      const portrait = String(this.actor.img).replace(/"/g, '%22');
+      equipment.style.setProperty('--arpginv-portrait', `url("${portrait}")`);
+    }
+    const frame = document.createElement('div');
+    frame.className = 'arpginv-equipment__frame';
+    const bottomRow = document.createElement('div');
+    bottomRow.className = 'arpginv-equipment__bottom';
+
     for (const slot of EQUIPMENT_SLOTS) {
       const slotEl = document.createElement('div');
-      slotEl.className = 'arpginv-slot';
+      slotEl.className = `arpginv-slot arpginv-slot--${slot.id} arpginv-slot--${slot.side}`;
       slotEl.dataset.slot = slot.id;
+      slotEl.title = slot.label;
+      const code = document.createElement('span');
+      code.className = 'arpginv-slot__code';
+      code.textContent = slot.code;
+      slotEl.appendChild(code);
+
       const itemId = inv.equipment[slot.id];
       const item = itemId ? this.actor.items.get(itemId) : null;
       if (item) {
@@ -216,12 +231,12 @@ export class InventoryApp extends foundry.applications.api.ApplicationV2 {
         slotEl.addEventListener('dragstart', (ev) => {
           this._beginDrag(ev, item.id, { kind: 'equipment', slot: slot.id });
         });
-      } else {
-        const labelEl = document.createElement('span');
-        labelEl.className = 'arpginv-slot__label';
-        labelEl.textContent = slot.label;
-        slotEl.appendChild(labelEl);
       }
+      const labelEl = document.createElement('span');
+      labelEl.className = 'arpginv-slot__label';
+      labelEl.textContent = slot.label;
+      slotEl.appendChild(labelEl);
+
       slotEl.addEventListener('dragover', (ev) => {
         ev.preventDefault();
         ev.stopPropagation();
@@ -231,8 +246,12 @@ export class InventoryApp extends foundry.applications.api.ApplicationV2 {
         ev.stopPropagation();
         await this._equipDragged(slot.id);
       });
-      equipment.appendChild(slotEl);
+
+      if (slot.side === 'bottom') bottomRow.appendChild(slotEl);
+      else frame.appendChild(slotEl);
     }
+    frame.appendChild(bottomRow);
+    equipment.appendChild(frame);
 
     // Zone tabs (main + containers).
     const tabs = document.createElement('div');
