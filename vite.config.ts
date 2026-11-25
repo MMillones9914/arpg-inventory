@@ -6,7 +6,7 @@ export default defineConfig({
     emptyOutDir: true,
     sourcemap: true,
     lib: {
-      entry: 'src/module.mjs',
+      entry: 'src/module.ts',
       formats: ['es'],
       fileName: () => 'module.mjs'
     },

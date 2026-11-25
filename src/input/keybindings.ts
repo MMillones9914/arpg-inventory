@@ -1,6 +1,6 @@
-import { MODULE_ID } from '../constants.mjs';
-import { log, warn } from '../utils/logger.mjs';
-import { InventoryApp } from '../apps/inventory-app.mjs';
+import { MODULE_ID } from '../constants';
+import { log, warn } from '../utils/logger';
+import { InventoryApp } from '../apps/inventory-app';
 
 let appInstance = null;
 
@@ -24,10 +24,10 @@ export function openInventory() {
 export function registerKeybindings() {
   if (!game?.keybindings) return false;
   try {
-    game.keybindings.register(MODULE_ID, 'openInventory', {
-      name: 'ARPGINV.Keybindings.OpenInventory.Name',
-      hint: 'ARPGINV.Keybindings.OpenInventory.Hint',
-      editable: [{ key: 'KeyB' }],
+    game.keybindings.register(MODULE_ID,'openInventory', {
+      name:'ARPGINV.Keybindings.OpenInventory.Name',
+      hint:'ARPGINV.Keybindings.OpenInventory.Hint',
+      editable: [{ key:'KeyB' }],
       onDown: () => {
         openInventory();
         return true;
@@ -44,9 +44,9 @@ export function registerKeybindings() {
 
 export function registerFallbackKeydown() {
   document.addEventListener('keydown', (ev) => {
-    if (ev.code !== 'KeyB' || ev.repeat) return;
-    const target = ev.target;
-    if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable)) return;
+    if (ev.code !=='KeyB' || ev.repeat) return;
+    const target = ev.target as any;
+    if (target && (target.tagName ==='INPUT' || target.tagName ==='TEXTAREA' || target.isContentEditable)) return;
     openInventory();
   });
   log('Fallback keydown (B) registered');

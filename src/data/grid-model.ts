@@ -4,7 +4,7 @@
 export const INVENTORY_SCHEMA_VERSION = 1;
 
 const DEFAULT_CAPACITY = {
-  mode: 'manual',
+  mode:'manual',
   cols: 10,
   rows: 6,
   maxWeight: 100
@@ -24,7 +24,7 @@ const ITEM_STACK_MAX = {
   default: 1
 };
 
-export function defaultCapacity(settings = {}) {
+export function defaultCapacity(settings: any = {}) {
   return {
     mode: settings.defaultCapacityMode ?? DEFAULT_CAPACITY.mode,
     cols: Number.isFinite(settings.defaultCols) ? settings.defaultCols : DEFAULT_CAPACITY.cols,
@@ -33,20 +33,20 @@ export function defaultCapacity(settings = {}) {
   };
 }
 
-export function defaultItemGrid(itemType = 'default') {
+export function defaultItemGrid(itemType ='default') {
   const size = ITEM_GRID_DEFAULTS[itemType] ?? ITEM_GRID_DEFAULTS.default;
   return { w: size.w, h: size.h, rotatable: true };
 }
 
-export function defaultItemStackMax(itemType = 'default') {
+export function defaultItemStackMax(itemType ='default') {
   return ITEM_STACK_MAX[itemType] ?? ITEM_STACK_MAX.default;
 }
 
-export function defaultItemStack(itemType = 'default', quantity = 1) {
+export function defaultItemStack(itemType ='default', quantity = 1) {
   return { current: Math.max(1, quantity || 1), max: defaultItemStackMax(itemType) };
 }
 
-export function createEmptyInventory(settings = {}) {
+export function createEmptyInventory(settings: any = {}) {
   return {
     version: INVENTORY_SCHEMA_VERSION,
     capacity: defaultCapacity(settings),
@@ -54,8 +54,8 @@ export function createEmptyInventory(settings = {}) {
   };
 }
 
-export function migrateInventory(raw, settings = {}) {
-  if (!raw || typeof raw !== 'object') {
+export function migrateInventory(raw: any, settings: any = {}) {
+  if (!raw || typeof raw !=='object') {
     return createEmptyInventory(settings);
   }
 
@@ -65,17 +65,17 @@ export function migrateInventory(raw, settings = {}) {
   // v0 -> v1
   if (data.version < 1) {
     data.version = 1;
-    if (!data.capacity || typeof data.capacity !== 'object') {
+    if (!data.capacity || typeof data.capacity !=='object') {
       data.capacity = defaultCapacity(settings);
     }
-    if (!data.placements || typeof data.placements !== 'object') {
+    if (!data.placements || typeof data.placements !=='object') {
       data.placements = {};
     }
     // legacy "items" map -> placements
-    if (data.items && typeof data.items === 'object') {
+    if (data.items && typeof data.items ==='object') {
       for (const [id, info] of Object.entries(data.items)) {
         if (!(id in data.placements)) {
-          data.placements[id] = info && typeof info === 'object' ? (info.position ?? null) : null;
+          data.placements[id] = info && typeof info ==='object' ? ((info as any).position ?? null) : null;
         }
       }
       delete data.items;
@@ -83,16 +83,16 @@ export function migrateInventory(raw, settings = {}) {
   }
 
   data.capacity = { ...defaultCapacity(settings), ...(data.capacity || {}) };
-  if (!data.placements || typeof data.placements !== 'object') data.placements = {};
+  if (!data.placements || typeof data.placements !=='object') data.placements = {};
   data.version = INVENTORY_SCHEMA_VERSION;
   return data;
 }
 
-export function normalizeActorInventory(raw, actorItemIds = [], settings = {}) {
+export function normalizeActorInventory(raw: any, actorItemIds: any = [], settings: any = {}) {
   const inv = migrateInventory(raw, settings);
   const idSet = new Set(actorItemIds);
 
-  for (const id of idSet) {
+  for (const id of idSet as any) {
     if (!(id in inv.placements)) inv.placements[id] = null;
   }
   for (const id of Object.keys(inv.placements)) {

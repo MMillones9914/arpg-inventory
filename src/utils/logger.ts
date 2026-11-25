@@ -1,4 +1,4 @@
-const PREFIX = '[ARPG Inventory]';
+const PREFIX ='[ARPG Inventory]';
 
 export function log(...args) {
   console.log(PREFIX, ...args);

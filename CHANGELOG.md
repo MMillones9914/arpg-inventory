@@ -10,6 +10,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - (next milestone in progress)
 
+## [0.4.11] - 2026-11-25
+
+### Changed
+- Migrated codebase to TypeScript.
+- Fixed placement dimension normalization.
+
 ## [0.4.10] - 2026-11-25
 
 ### Debug

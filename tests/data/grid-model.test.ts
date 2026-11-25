@@ -5,7 +5,7 @@ import {
   defaultItemGrid,
   defaultItemStack,
   createEmptyInventory
-} from '../../src/data/grid-model.mjs';
+} from '../../src/data/grid-model';
 
 describe('grid-model', () => {
   it('creates empty inventory with defaults', () => {
@@ -24,8 +24,8 @@ describe('grid-model', () => {
   });
 
   it('normalizes placements to actor items', () => {
-    const raw = { version: 1, capacity: { mode: 'manual', cols: 2, rows: 2, maxWeight: 10 }, placements: { a: null, stale: null } };
-    const inv = normalizeActorInventory(raw, ['a', 'b']);
+    const raw = { version: 1, capacity: { mode:'manual', cols: 2, rows: 2, maxWeight: 10 }, placements: { a: null, stale: null } };
+    const inv = normalizeActorInventory(raw, ['a','b']);
     expect(inv.placements.a).toBeNull();
     expect(inv.placements.b).toBeNull();
     expect(inv.placements.stale).toBeUndefined();
