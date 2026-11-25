@@ -206,15 +206,19 @@ export class InventoryApp extends foundry.applications.api.ApplicationV2 {
     const paneTitle = document.createElement('div');
     paneTitle.className = 'arpginv-inventory-pane__title';
     paneTitle.textContent = 'Inventario';
+    const inventoryContent = document.createElement('div');
+    inventoryContent.className = 'arpginv-inventory-content';
     const weaponBar = document.createElement('div');
     weaponBar.className = 'arpginv-weapon-bar';
     const weaponTitle = document.createElement('span');
     weaponTitle.className = 'arpginv-weapon-bar__title';
     weaponTitle.textContent = 'Armas';
     weaponBar.appendChild(weaponTitle);
+    const weaponPair = document.createElement('div');
+    weaponPair.className = 'arpginv-weapon-pair';
 
     // Equipment silhouette: real actor-art image + 10 positioned slots.
-    // Weapon slots live in the separate bar above the inventory grid.
+    // Weapon slots live in the separate bar at the side of the inventory grid.
     const equipment = document.createElement('div');
     equipment.className = 'arpginv-equipment';
     const art = this.actor.img
@@ -265,9 +269,14 @@ export class InventoryApp extends foundry.applications.api.ApplicationV2 {
         await this._equipDragged(slot.id);
       });
 
-      if (slot.side === 'weapon') weaponBar.appendChild(slotEl);
-      else frame.appendChild(slotEl);
+      if (slot.side === 'weapon') {
+        if (slot.id === 'offhand' || slot.id === 'ammo') weaponPair.appendChild(slotEl);
+        else weaponBar.appendChild(slotEl);
+      } else {
+        frame.appendChild(slotEl);
+      }
     }
+    weaponBar.appendChild(weaponPair);
     equipment.appendChild(frame);
 
     // Zone tabs (main + containers).
@@ -408,7 +417,8 @@ export class InventoryApp extends foundry.applications.api.ApplicationV2 {
       document.addEventListener('keydown', this._dragKeyHandler);
     }
 
-    inventoryPane.append(paneTitle, weaponBar, weightBar, tabs, info, grid);
+    inventoryContent.append(grid, weaponBar);
+    inventoryPane.append(paneTitle, weightBar, tabs, info, inventoryContent);
     layout.append(equipment, inventoryPane);
     root.append(layout);
     return root;

@@ -54,6 +54,7 @@ Leyenda de estado: 🔲 To do · 🔄 In progress · ✅ Done
 - [x] Layout horizontal equipo (9:16) + inventario a la derecha con arte del actor (0.5.2)
 - [x] Corrección de fila de armas y visibilidad del arte del actor (0.5.3)
 - [x] Barra de armas sobre el grid (principal/secundaria alargadas + munición centrada) y slot de distancia eliminado (0.5.4)
+- [x] Barra de armas al costado del grid, slots alargados verticalmente y grid ajustado a su tamaño total (0.5.5)
 
 ## M6 — D&D 5e integration (0.6.0) 🔲
 - [ ] Capacidad dinámica desde Fuerza

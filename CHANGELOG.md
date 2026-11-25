@@ -10,6 +10,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - (next milestone in progress)
 
+## [0.5.5] - 2026-11-25
+
+### Changed
+- La barra de armas se mueve al **costado derecho del grid** (referencia Stoneshard), como columna vertical.
+- Corregida la orientación de los slots alargados: `mainhand` y `offhand` son ahora **verticales (58×150)**, no horizontales.
+- `ammo` permanece como cuadro pequeño (44×44) centrado junto a `offhand`.
+- El grid y el panel del inventario usan `width: max-content`: ocupan exactamente el total de celdas y no se exceden.
+
 ## [0.5.4] - 2026-11-25
 
 ### Changed
