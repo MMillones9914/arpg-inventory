@@ -13,6 +13,7 @@ export function openInventory() {
       else if (game.user?.character) actor = game.user.character;
     } catch (e) {}
     if (!appInstance || (actor && appInstance.actor !== actor)) {
+      if (appInstance?.rendered) appInstance.close();
       appInstance = new InventoryApp({ actor });
     }
     appInstance.render(true);

@@ -4,7 +4,9 @@ import {
   normalizeActorInventory,
   defaultItemGrid,
   defaultItemStack,
-  createEmptyInventory
+  createEmptyInventory,
+  normalizePlacement,
+  normalizeCapacity
 } from '../../src/data/grid-model';
 
 describe('grid-model', () => {
@@ -38,5 +40,20 @@ describe('grid-model', () => {
 
   it('defaults item stack', () => {
     expect(defaultItemStack('consumable', 3)).toEqual({ current: 3, max: 10 });
+  });
+
+  it('coerces string coordinates and clamps to grid bounds', () => {
+    const p = normalizePlacement({ x: '3', y: '2', w: '2', h: '1' }, {}, 4, 3);
+    expect(p).toMatchObject({ x: 2, y: 2, w: 2, h: 1 });
+  });
+
+  it('does not swap already-rotated dimensions again', () => {
+    const p = normalizePlacement({ x: 0, y: 0, w: 1, h: 2, rotated: true }, { w: 2, h: 1 }, 10, 6);
+    expect(p).toMatchObject({ w: 1, h: 2, rotated: true });
+  });
+
+  it('normalizes capacity values saved as strings', () => {
+    expect(normalizeCapacity({ mode: 'strength', cols: '8', rows: '4', maxWeight: '250' }))
+      .toEqual({ mode: 'strength', cols: 8, rows: 4, maxWeight: 250 });
   });
 });

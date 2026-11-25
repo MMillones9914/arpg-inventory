@@ -42,6 +42,7 @@ Leyenda de estado: 🔲 To do · 🔄 In progress · ✅ Done
 - [x] Rotación con tecla, cancelación
 - [x] Apilado automático y split (stack)
 - [x] Auto-colocación inicial de items
+- [x] Correcciones de colocación/hit-testing y normalización (0.4.13)
 
 ## M5 — Equipment & containers (0.5.0) 🔲
 - [ ] Slots de equipo

@@ -17,6 +17,6 @@ Hooks.once('init', () => {
 Hooks.once('ready', () => {
   log('Ready');
   registerDnd5eHooks();
-  registerKeybindings();
-  registerFallbackKeydown();
+  // Fallback is only needed when Foundry keybindings are unavailable.
+  if (!registerKeybindings()) registerFallbackKeydown();
 });

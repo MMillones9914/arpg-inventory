@@ -10,6 +10,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - (next milestone in progress)
 
+## [0.4.13] - 2026-11-25
+
+### Fixed
+- Redesigned drag target detection: grid cells are now explicitly positioned and hit-testing uses viewport geometry, so `data-x/y` always matches the visible cell (fixes “Cannot place item here” on free cells).
+- Removed double-swap of rotated item dimensions during inventory normalization.
+- Coerced saved coordinates/dimensions with `Number()` instead of `Number.isFinite()` on raw values; string placements no longer collapse to `(0,0)`.
+- Clamped placements to grid bounds, repaired stale/overlapping placements via auto-place, and normalized capacity values saved as strings.
+- Resizing an item (GM) now invalidates and re-auto-places it instead of leaving an overlapping placement.
+- Fixed duplicate “Inventory (B)” button injected into the inventory window itself.
+- Avoided double B-key handling (official keybinding + fallback) and cleaned up the temporary rotation listener on close.
+
+### Added
+- Pure grid-geometry helper with regression tests for gap/bounds hit-testing.
+- Regression tests for string coords, clamped placement and rotated dimensions.
+
 ## [0.4.12] - 2026-11-25
 
 ### Fixed
