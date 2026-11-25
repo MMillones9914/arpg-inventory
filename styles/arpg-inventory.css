@@ -1,7 +1,16 @@
 .arpg-inventory {
-  padding: 12px;
+  --arpginv-space: 10px;
   color: var(--color-text, #191813);
   font-family: var(--font-primary, sans-serif);
+}
+
+.window-app.arpg-inventory > .window-content {
+  padding: 0;
+}
+
+.arpg-inventory__root {
+  padding: var(--arpginv-space);
+  margin: 0;
 }
 
 .arpginv-weight {
@@ -12,7 +21,7 @@
   background: rgba(0, 0, 0, 0.15);
   border: 1px solid var(--color-border, #999);
   border-radius: 4px;
-  margin-bottom: 8px;
+  margin-bottom: var(--arpginv-space);
   overflow: hidden;
 }
 
@@ -47,7 +56,7 @@
   width: max-content;
   gap: 2px;
   background: rgba(0, 0, 0, 0.12);
-  padding: 4px;
+  padding: var(--arpginv-space);
   border-radius: 4px;
   border: 1px solid rgba(0, 0, 0, 0.25);
 }
@@ -131,7 +140,7 @@
 /* M5 — side-by-side layout, equipment silhouette, zone tabs */
 .arpginv-layout {
   display: flex;
-  gap: 14px;
+  gap: var(--arpginv-space);
   align-items: flex-start;
 }
 
@@ -144,7 +153,7 @@
   font-size: 12px;
   font-weight: bold;
   letter-spacing: 0.5px;
-  margin-bottom: 6px;
+  margin-bottom: var(--arpginv-space);
 }
 
 .arpginv-equipment {
@@ -202,7 +211,7 @@
   gap: 8px;
   width: 100%;
   box-sizing: border-box;
-  margin-bottom: 8px;
+  margin-bottom: var(--arpginv-space);
 }
 
 .arpginv-weapon-pair {
@@ -230,7 +239,7 @@
 .arpginv-weapon-bar .arpginv-slot {
   position: relative;
   flex: 0 0 auto;
-  width: 96px;
+  width: 112px;
   height: 150px;
   background: transparent;
   outline: 1px solid rgba(0, 0, 0, 0.35);
@@ -243,9 +252,8 @@
 }
 
 .arpginv-weapon-bar .arpginv-item__img {
-  object-fit: contain;
-  padding: 10px 6px 16px;
-  box-sizing: border-box;
+  object-fit: cover;
+  padding: 0;
 }
 
 .arpginv-weapon-info {
@@ -315,7 +323,7 @@
 .arpginv-tabs {
   display: flex;
   gap: 4px;
-  margin-bottom: 6px;
+  margin-bottom: var(--arpginv-space);
 }
 
 .arpginv-tab {
@@ -334,7 +342,7 @@
 .arpginv-zone-info {
   font-size: 11px;
   opacity: 0.85;
-  margin-bottom: 6px;
+  margin-bottom: var(--arpginv-space);
 }
 
 .arpg-inventory.arpginv-overweight .arpginv-weight__label::after {

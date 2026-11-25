@@ -58,6 +58,7 @@ Leyenda de estado: 🔲 To do · 🔄 In progress · ✅ Done
 - [x] Barra de armas de vuelta encima del grid, slots verticales más anchos (0.5.6)
 - [x] Barra sin texto ni fondo, slots como espacios más anchos y ventana ajustada al contenido (0.5.7)
 - [x] Espacios de datos junto a cada arma, imagen sin zoom excesivo, barra de peso fija y márgenes profesionales (0.5.8)
+- [x] Margen general unificado, imagen de armas a pantalla completa y slots más anchos (0.5.9)
 
 ## M6 — D&D 5e integration (0.6.0) 🔲
 - [ ] Contenido de los espacios de datos del arma equipada (derecha de principal, izquierda de secundaria)

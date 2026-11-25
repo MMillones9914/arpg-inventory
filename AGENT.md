@@ -1,6 +1,6 @@
 # AGENT.md — Guía del agente de desarrollo
 
-> Documento vivo. Define arquitectura, convenciones y reglas de trabajo del módulo **ARPG Inventory** para Foundry VTT v14. Versión del documento: **0.5.8**.
+> Documento vivo. Define arquitectura, convenciones y reglas de trabajo del módulo **ARPG Inventory** para Foundry VTT v14. Versión del documento: **0.5.9**.
 
 ---
 
@@ -80,7 +80,7 @@ tests/{data,engine}/*.test.ts
 - `w`/`h` en un placement son **siempre** las dimensiones efectivas en grid; `rotated` solo es metadata. Nunca se swap de nuevo al leer.
 - Las celdas del grid se posicionan explícitamente (`gridColumn`/`gridRow`); `data-x/y` debe coincidir con la celda visible.
 - Cadenas visibles al usuario: usar `game.i18n.localize` cuando exista clave en `lang/en.json`.
-- Layout de la app: flex horizontal, padding 12px y gap 14px; equipo 9:16 a la izquierda con `actor.img` de fondo, inventario a la derecha con espacios de armas encima del grid (sin texto ni fondo). El panel del inventario tiene ancho fijo igual al grid principal, así la barra de peso no cambia al cambiar de zona; ventana 740×610.
+- Layout de la app: flex horizontal con un único margen general `--arpginv-space` (10px) aplicado a raíz, paneles, títulos, barras, pestañas y grid; se anula el padding propio del `.window-content`. Equipo 9:16 a la izquierda con `actor.img` de fondo, inventario a la derecha con espacios de armas encima del grid. El panel del inventario tiene ancho fijo igual al grid principal; ventana 740×600.
 
 ---
 
@@ -102,7 +102,7 @@ Inventory {
 
 Slots (13):
 - Panel de equipo (silueta vertical, 10): izquierda `head`, `neck`, `shoulders`, `body`, `back`, `hands`; derecha `legs`, `feet`, `ring1`, `ring2`.
-- Espacios de armas encima del grid del inventario (3): `mainhand` y `offhand` alargados verticalmente (96×150), `ammo` como cuadro pequeño (44×44) centrado junto a la secundaria. Espacios reservados a la derecha de `mainhand` y a la izquierda de `offhand` (contenido pendiente de M6); `ammo` sin espacio. `ranged` fue eliminado.
+- Espacios de armas encima del grid del inventario (3): `mainhand` y `offhand` alargados verticalmente (112×150) con imagen `cover` que rellena el slot, `ammo` como cuadro pequeño (44×44) centrado junto a la secundaria. Espacios reservados a la derecha de `mainhand` y a la izquierda de `offhand` (contenido pendiente de M6); `ammo` sin espacio. `ranged` fue eliminado.
 
 Contenedores por defecto: `backpack` (6×4, 40) y `quiver` (2×4, 10).
 Un item está en **una sola zona**; `removeItemFromInventory` lo saca de todas antes de moverlo.
@@ -145,4 +145,4 @@ Un item está en **una sola zona**; `removeItemFromInventory` lo saca de todas a
 
 ---
 
-_Última actualización: 0.5.8 (M5 completado; espacios de datos junto a las armas, barra de peso fija y márgenes mejorados)._
+_Última actualización: 0.5.9 (M5 completado; margen general unificado, armas más anchas con imagen completa)._

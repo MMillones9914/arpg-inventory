@@ -10,6 +10,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - (next milestone in progress)
 
+## [0.5.9] - 2026-11-25
+
+### Changed
+- Margen general unificado con `--arpginv-space` (10px) en raíz, separación de paneles, títulos, barra de peso, pestañas, info de zona y grid. Eliminado el padding doble del contenido de la ventana.
+- Ancho de los espacios de arma aumentado a **112px** (alto 150px).
+- Las imágenes de las armas vuelven a **rellenar todo el slot** (`object-fit: cover`, sin padding).
+- Ventana ajustada a **740×600** teniendo en cuenta el nuevo ancho del grid con padding uniforme.
+
 ## [0.5.8] - 2026-11-25
 
 ### Changed
