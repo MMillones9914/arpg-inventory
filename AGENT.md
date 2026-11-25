@@ -1,6 +1,6 @@
 # AGENT.md — Guía del agente de desarrollo
 
-> Documento vivo. Define arquitectura, convenciones y reglas de trabajo del módulo **ARPG Inventory** para Foundry VTT v14. Versión del documento: **0.5.6**.
+> Documento vivo. Define arquitectura, convenciones y reglas de trabajo del módulo **ARPG Inventory** para Foundry VTT v14. Versión del documento: **0.5.7**.
 
 ---
 
@@ -80,7 +80,7 @@ tests/{data,engine}/*.test.ts
 - `w`/`h` en un placement son **siempre** las dimensiones efectivas en grid; `rotated` solo es metadata. Nunca se swap de nuevo al leer.
 - Las celdas del grid se posicionan explícitamente (`gridColumn`/`gridRow`); `data-x/y` debe coincidir con la celda visible.
 - Cadenas visibles al usuario: usar `game.i18n.localize` cuando exista clave en `lang/en.json`.
-- Layout de la app: flex horizontal; equipo 9:16 a la izquierda con `actor.img` de fondo, inventario a la derecha con barra de armas encima del grid. El grid y su panel usan `max-content` para no exceder el total de celdas.
+- Layout de la app: flex horizontal; equipo 9:16 a la izquierda con `actor.img` de fondo, inventario a la derecha con espacios de armas encima del grid (sin texto ni fondo). El grid y su panel usan `max-content`; la ventana por defecto es 730×600 para ajustarse al contenido.
 
 ---
 
@@ -102,7 +102,7 @@ Inventory {
 
 Slots (13):
 - Panel de equipo (silueta vertical, 10): izquierda `head`, `neck`, `shoulders`, `body`, `back`, `hands`; derecha `legs`, `feet`, `ring1`, `ring2`.
-- Barra de armas encima del grid del inventario (3): `mainhand` y `offhand` alargados verticalmente (72×150), `ammo` como cuadro pequeño centrado junto a la secundaria. `ranged` fue eliminado.
+- Espacios de armas encima del grid del inventario (3): `mainhand` y `offhand` alargados verticalmente (84×150), `ammo` como cuadro pequeño (44×44) centrado junto a la secundaria. `ranged` fue eliminado.
 
 Contenedores por defecto: `backpack` (6×4, 40) y `quiver` (2×4, 10).
 Un item está en **una sola zona**; `removeItemFromInventory` lo saca de todas antes de moverlo.
@@ -145,4 +145,4 @@ Un item está en **una sola zona**; `removeItemFromInventory` lo saca de todas a
 
 ---
 
-_Última actualización: 0.5.6 (M5 completado; armas encima del grid, verticales y más anchas)._
+_Última actualización: 0.5.7 (M5 completado; armas como espacios sin fondo y ventana ajustada al contenido)._

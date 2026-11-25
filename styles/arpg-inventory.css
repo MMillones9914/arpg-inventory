@@ -200,19 +200,6 @@
   align-items: center;
   gap: 8px;
   margin-bottom: 8px;
-  padding: 6px 10px;
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  border-radius: 7px;
-  background: rgba(0, 0, 0, 0.55);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
-}
-
-.arpginv-weapon-bar__title {
-  flex: 0 0 auto;
-  font-size: 11px;
-  font-weight: bold;
-  letter-spacing: 0.5px;
-  color: #d4af37;
 }
 
 .arpginv-weapon-pair {
@@ -240,13 +227,21 @@
 .arpginv-weapon-bar .arpginv-slot {
   position: relative;
   flex: 0 0 auto;
-  width: 72px;
+  width: 84px;
   height: 150px;
+  background: transparent;
+  outline: 1px solid rgba(0, 0, 0, 0.35);
+  outline-offset: -1px;
 }
 
 .arpginv-weapon-bar .arpginv-slot--ammo {
   width: 44px;
   height: 44px;
+}
+
+.arpginv-weapon-bar .arpginv-slot__code {
+  color: var(--color-text, #191813);
+  opacity: 0.55;
 }
 
 .arpginv-slot.has-item {

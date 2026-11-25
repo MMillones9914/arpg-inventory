@@ -10,6 +10,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - (next milestone in progress)
 
+## [0.5.7] - 2026-11-25
+
+### Changed
+- Eliminado el texto "Armas" y el fondo/borde de la barra de armas: ahora solo se ven los espacios de los slots.
+- Slots de arma sin degradado, con contorno sutil y ancho aumentado a **84px** (alto 150px); municiones sigue en 44×44.
+- Ventana reducida a **730×600** para ajustarla al contenido y quitar el espacio sobrante a la derecha.
+
 ## [0.5.6] - 2026-11-25
 
 ### Changed

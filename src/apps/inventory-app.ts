@@ -82,7 +82,7 @@ export class InventoryApp extends foundry.applications.api.ApplicationV2 {
     id: 'arpg-inventory-inventory',
     classes: ['arpg-inventory'],
     window: { title: 'ARPG Inventory' },
-    position: { width: 900, height: 640 }
+    position: { width: 730, height: 600 }
   };
 
   get title() {
@@ -208,10 +208,6 @@ export class InventoryApp extends foundry.applications.api.ApplicationV2 {
     paneTitle.textContent = 'Inventario';
     const weaponBar = document.createElement('div');
     weaponBar.className = 'arpginv-weapon-bar';
-    const weaponTitle = document.createElement('span');
-    weaponTitle.className = 'arpginv-weapon-bar__title';
-    weaponTitle.textContent = 'Armas';
-    weaponBar.appendChild(weaponTitle);
     const weaponPair = document.createElement('div');
     weaponPair.className = 'arpginv-weapon-pair';
 
