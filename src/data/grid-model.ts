@@ -21,10 +21,9 @@ export const EQUIPMENT_SLOTS = [
   { id: 'feet', label: 'Zapatos', code: 'ZAP', side: 'right' },
   { id: 'ring1', label: 'Anillo 1', code: 'A1', side: 'right' },
   { id: 'ring2', label: 'Anillo 2', code: 'A2', side: 'right' },
-  { id: 'mainhand', label: 'Arma principal', code: 'AP', side: 'bottom' },
-  { id: 'offhand', label: 'Arma secundaria', code: 'AS', side: 'bottom' },
-  { id: 'ranged', label: 'Distancia', code: 'DIS', side: 'bottom' },
-  { id: 'ammo', label: 'Municiones', code: 'MUN', side: 'bottom' }
+  { id: 'mainhand', label: 'Arma principal', code: 'AP', side: 'weapon' },
+  { id: 'offhand', label: 'Arma secundaria', code: 'AS', side: 'weapon' },
+  { id: 'ammo', label: 'Municiones', code: 'MUN', side: 'weapon' }
 ] as const;
 
 const DEFAULT_CONTAINERS = [

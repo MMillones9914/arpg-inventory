@@ -206,8 +206,15 @@ export class InventoryApp extends foundry.applications.api.ApplicationV2 {
     const paneTitle = document.createElement('div');
     paneTitle.className = 'arpginv-inventory-pane__title';
     paneTitle.textContent = 'Inventario';
+    const weaponBar = document.createElement('div');
+    weaponBar.className = 'arpginv-weapon-bar';
+    const weaponTitle = document.createElement('span');
+    weaponTitle.className = 'arpginv-weapon-bar__title';
+    weaponTitle.textContent = 'Armas';
+    weaponBar.appendChild(weaponTitle);
 
-    // Equipment silhouette: real actor-art image + 14 positioned slots.
+    // Equipment silhouette: real actor-art image + 10 positioned slots.
+    // Weapon slots live in the separate bar above the inventory grid.
     const equipment = document.createElement('div');
     equipment.className = 'arpginv-equipment';
     const art = this.actor.img
@@ -220,8 +227,6 @@ export class InventoryApp extends foundry.applications.api.ApplicationV2 {
     equipment.appendChild(portrait);
     const frame = document.createElement('div');
     frame.className = 'arpginv-equipment__frame';
-    const bottomRow = document.createElement('div');
-    bottomRow.className = 'arpginv-equipment__bottom';
 
     for (const slot of EQUIPMENT_SLOTS) {
       const slotEl = document.createElement('div');
@@ -260,10 +265,9 @@ export class InventoryApp extends foundry.applications.api.ApplicationV2 {
         await this._equipDragged(slot.id);
       });
 
-      if (slot.side === 'bottom') bottomRow.appendChild(slotEl);
+      if (slot.side === 'weapon') weaponBar.appendChild(slotEl);
       else frame.appendChild(slotEl);
     }
-    frame.appendChild(bottomRow);
     equipment.appendChild(frame);
 
     // Zone tabs (main + containers).
@@ -404,7 +408,7 @@ export class InventoryApp extends foundry.applications.api.ApplicationV2 {
       document.addEventListener('keydown', this._dragKeyHandler);
     }
 
-    inventoryPane.append(paneTitle, weightBar, tabs, info, grid);
+    inventoryPane.append(paneTitle, weaponBar, weightBar, tabs, info, grid);
     layout.append(equipment, inventoryPane);
     root.append(layout);
     return root;

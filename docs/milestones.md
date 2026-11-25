@@ -53,6 +53,7 @@ Leyenda de estado: 🔲 To do · 🔄 In progress · ✅ Done
 - [x] Rediseño visual del panel de equipo a silueta vertical con 14 slots (0.5.1)
 - [x] Layout horizontal equipo (9:16) + inventario a la derecha con arte del actor (0.5.2)
 - [x] Corrección de fila de armas y visibilidad del arte del actor (0.5.3)
+- [x] Barra de armas sobre el grid (principal/secundaria alargadas + munición centrada) y slot de distancia eliminado (0.5.4)
 
 ## M6 — D&D 5e integration (0.6.0) 🔲
 - [ ] Capacidad dinámica desde Fuerza

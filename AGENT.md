@@ -1,6 +1,6 @@
 # AGENT.md — Guía del agente de desarrollo
 
-> Documento vivo. Define arquitectura, convenciones y reglas de trabajo del módulo **ARPG Inventory** para Foundry VTT v14. Versión del documento: **0.5.3**.
+> Documento vivo. Define arquitectura, convenciones y reglas de trabajo del módulo **ARPG Inventory** para Foundry VTT v14. Versión del documento: **0.5.4**.
 
 ---
 
@@ -80,7 +80,7 @@ tests/{data,engine}/*.test.ts
 - `w`/`h` en un placement son **siempre** las dimensiones efectivas en grid; `rotated` solo es metadata. Nunca se swap de nuevo al leer.
 - Las celdas del grid se posicionan explícitamente (`gridColumn`/`gridRow`); `data-x/y` debe coincidir con la celda visible.
 - Cadenas visibles al usuario: usar `game.i18n.localize` cuando exista clave en `lang/en.json`.
-- Layout de la app: flex horizontal; equipo 9:16 a la izquierda con `actor.img` de fondo, inventario (pestañas + grid) a la derecha.
+- Layout de la app: flex horizontal; equipo 9:16 a la izquierda con `actor.img` de fondo, inventario a la derecha con barra de armas encima del grid (pestañas + grid debajo).
 
 ---
 
@@ -100,10 +100,9 @@ Inventory {
 }
 ```
 
-Slots (14, diseño de silueta vertical):
-- Izquierda: `head`, `neck`, `shoulders`, `body`, `back`, `hands`.
-- Derecha: `legs`, `feet`, `ring1`, `ring2`.
-- Inferior central: `mainhand`, `offhand`, `ranged`, `ammo`.
+Slots (13):
+- Panel de equipo (silueta vertical, 10): izquierda `head`, `neck`, `shoulders`, `body`, `back`, `hands`; derecha `legs`, `feet`, `ring1`, `ring2`.
+- Barra de armas sobre el grid del inventario (3): `mainhand` y `offhand` alargados, `ammo` como cuadro pequeño. `ranged` fue eliminado.
 
 Contenedores por defecto: `backpack` (6×4, 40) y `quiver` (2×4, 10).
 Un item está en **una sola zona**; `removeItemFromInventory` lo saca de todas antes de moverlo.
@@ -146,4 +145,4 @@ Un item está en **una sola zona**; `removeItemFromInventory` lo saca de todas a
 
 ---
 
-_Última actualización: 0.5.3 (M5 completado; fila de armas corregida y arte del actor visible como imagen real)._
+_Última actualización: 0.5.4 (M5 completado; armas en barra propia sobre el grid y slot de distancia eliminado)._

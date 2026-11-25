@@ -10,6 +10,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - (next milestone in progress)
 
+## [0.5.4] - 2026-11-25
+
+### Changed
+- `mainhand`, `offhand` y `ammo` se muestran ahora en una barra propia encima del grid del inventario (antes en la fila inferior del panel de equipo).
+- Arma principal y Arma secundaria usan slots alargados (150×58); Municiones es un cuadro pequeño (44×44) centrado junto a la secundaria.
+
+### Removed
+- Eliminado el slot de Distancia (`ranged`) del modelo y de la UI. Los ítems que estuvieran equipados ahí se normalizan y vuelven al inventario automáticamente.
+
 ## [0.5.3] - 2026-11-25
 
 ### Fixed
