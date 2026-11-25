@@ -82,7 +82,7 @@ export class InventoryApp extends foundry.applications.api.ApplicationV2 {
     id: 'arpg-inventory-inventory',
     classes: ['arpg-inventory'],
     window: { title: 'ARPG Inventory' },
-    position: { width: 730, height: 600 }
+    position: { width: 740, height: 610 }
   };
 
   get title() {
@@ -203,11 +203,19 @@ export class InventoryApp extends foundry.applications.api.ApplicationV2 {
     layout.className = 'arpginv-layout';
     const inventoryPane = document.createElement('div');
     inventoryPane.className = 'arpginv-inventory-pane';
+    // Keep pane width tied to the main grid so the weight bar and weapon row
+    // stay the same size when switching to smaller container zones.
+    const mainCols = Math.max(1, Number(inv.capacity.cols) || 10);
+    inventoryPane.style.width = `${mainCols * CELL_SIZE + (mainCols - 1) * 2 + 10}px`;
     const paneTitle = document.createElement('div');
     paneTitle.className = 'arpginv-inventory-pane__title';
     paneTitle.textContent = 'Inventario';
     const weaponBar = document.createElement('div');
     weaponBar.className = 'arpginv-weapon-bar';
+    const mainInfo = document.createElement('div');
+    mainInfo.className = 'arpginv-weapon-info arpginv-weapon-info--mainhand';
+    const offInfo = document.createElement('div');
+    offInfo.className = 'arpginv-weapon-info arpginv-weapon-info--offhand';
     const weaponPair = document.createElement('div');
     weaponPair.className = 'arpginv-weapon-pair';
 
@@ -270,7 +278,7 @@ export class InventoryApp extends foundry.applications.api.ApplicationV2 {
         frame.appendChild(slotEl);
       }
     }
-    weaponBar.appendChild(weaponPair);
+    weaponBar.append(mainInfo, offInfo, weaponPair);
     equipment.appendChild(frame);
 
     // Zone tabs (main + containers).

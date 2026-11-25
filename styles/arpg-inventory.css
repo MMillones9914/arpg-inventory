@@ -1,11 +1,13 @@
 .arpg-inventory {
-  padding: 8px;
+  padding: 12px;
   color: var(--color-text, #191813);
   font-family: var(--font-primary, sans-serif);
 }
 
 .arpginv-weight {
   position: relative;
+  width: 100%;
+  box-sizing: border-box;
   height: 18px;
   background: rgba(0, 0, 0, 0.15);
   border: 1px solid var(--color-border, #999);
@@ -129,13 +131,12 @@
 /* M5 — side-by-side layout, equipment silhouette, zone tabs */
 .arpginv-layout {
   display: flex;
-  gap: 10px;
+  gap: 14px;
   align-items: flex-start;
 }
 
 .arpginv-inventory-pane {
   flex: 0 0 auto;
-  width: max-content;
   min-width: 0;
 }
 
@@ -199,6 +200,8 @@
   display: flex;
   align-items: center;
   gap: 8px;
+  width: 100%;
+  box-sizing: border-box;
   margin-bottom: 8px;
 }
 
@@ -227,7 +230,7 @@
 .arpginv-weapon-bar .arpginv-slot {
   position: relative;
   flex: 0 0 auto;
-  width: 84px;
+  width: 96px;
   height: 150px;
   background: transparent;
   outline: 1px solid rgba(0, 0, 0, 0.35);
@@ -237,6 +240,23 @@
 .arpginv-weapon-bar .arpginv-slot--ammo {
   width: 44px;
   height: 44px;
+}
+
+.arpginv-weapon-bar .arpginv-item__img {
+  object-fit: contain;
+  padding: 10px 6px 16px;
+  box-sizing: border-box;
+}
+
+.arpginv-weapon-info {
+  flex: 1 1 0;
+  height: 150px;
+  min-width: 0;
+  box-sizing: border-box;
+  border: 1px dashed rgba(0, 0, 0, 0.28);
+  border-radius: 5px;
+  background: rgba(0, 0, 0, 0.03);
+  pointer-events: none;
 }
 
 .arpginv-weapon-bar .arpginv-slot__code {

@@ -10,6 +10,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - (next milestone in progress)
 
+## [0.5.8] - 2026-11-25
+
+### Changed
+- Ancho de los slots de arma aumentado a **96px** (alto 150px).
+- Las imágenes equipadas en esos slots usan `object-fit: contain` con padding: se rellena el espacio pero se ve el arma completa, sin tanto zoom.
+- Añadidos espacios reservados para datos del arma equipada: a la **derecha de `mainhand`** y a la **izquierda de `offhand`**. `ammo` no lleva espacio. El contenido se detallará en M6.
+- La barra de peso y la fila de armas mantienen un ancho fijo igual al grid principal, también al cambiar a Backpack o Quiver.
+- Márgenes generales ampliados (12px) y separación entre paneles (14px); ventana ajustada a 740×610.
+
 ## [0.5.7] - 2026-11-25
 
 ### Changed
