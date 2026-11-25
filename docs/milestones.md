@@ -62,6 +62,7 @@ Leyenda de estado: 🔲 To do · 🔄 In progress · ✅ Done
 - [x] Margen general de 5px y ventana con más alto para no cortar el personaje (0.5.10)
 - [x] Contenido anclado arriba-izquierda con margen solo abajo/derecha (0.5.11)
 - [x] Margen superior/izquierdo de 2px para equilibrar el contenido (0.5.12)
+- [x] Margen superior/izquierdo ampliado a 7px (0.5.13)
 
 ## M6 — D&D 5e integration (0.6.0) 🔲
 - [ ] Contenido de los espacios de datos del arma equipada (derecha de principal, izquierda de secundaria)

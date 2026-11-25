@@ -11,7 +11,7 @@
 }
 
 .arpg-inventory__root {
-  padding: 2px var(--arpginv-space) var(--arpginv-space) 2px;
+  padding: 7px var(--arpginv-space) var(--arpginv-space) 7px;
   margin: 0;
 }
 
