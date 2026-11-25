@@ -1,6 +1,6 @@
 {
   "name": "arpg-inventory",
-  "version": "0.4.11",
+  "version": "0.4.12",
   "description": "ARPG Inventory module for Foundry VTT v14 (Diablo/Stoneshard style), integrated with D&D 5e 6.1.0+.",
   "type": "module",
   "scripts": {

@@ -29,14 +29,18 @@ export function getActorInventory(actor) {
     const max = actor.system?.attributes?.encumbrance?.max;
     if (Number.isFinite(max) && max > 0) inv.capacity.maxWeight = max;
   }
-  // Ensure placements carry dimensions.
+  // Ensure placements carry numeric coordinates and dimensions.
   for (const id of Object.keys(inv.placements)) {
     const p: any = inv.placements[id];
-    if (p && (!Number.isFinite(p.w) || !Number.isFinite(p.h))) {
-      const item = actor.items?.get?.(id);
-      const g: any = item ? getItemGrid(item) : { w: 1, h: 1 };
-      p.w = Number.isFinite(p.w) ? p.w : g.w;
-      p.h = Number.isFinite(p.h) ? p.h : g.h;
+    if (p) {
+      p.x = Number.isFinite(p.x) ? p.x : 0;
+      p.y = Number.isFinite(p.y) ? p.y : 0;
+      if (!Number.isFinite(p.w) || !Number.isFinite(p.h)) {
+        const item = actor.items?.get?.(id);
+        const g: any = item ? getItemGrid(item) : { w: 1, h: 1 };
+        p.w = Number.isFinite(p.w) ? p.w : g.w;
+        p.h = Number.isFinite(p.h) ? p.h : g.h;
+      }
       if (typeof p.rotated !== 'boolean') p.rotated = false;
       if (p.rotated) {
         const tmp = p.w; p.w = p.h; p.h = tmp;

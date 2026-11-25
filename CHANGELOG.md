@@ -10,6 +10,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - (next milestone in progress)
 
+## [0.4.12] - 2026-11-25
+
+### Fixed
+- Coerced placement coordinates to numbers (fixes cannot place).
+
 ## [0.4.11] - 2026-11-25
 
 ### Changed

@@ -62,10 +62,16 @@ export class InventoryApp extends foundry.applications.api.ApplicationV2 {
       const p: any = placement;
       const item = this.actor.items.get(itemId);
       if (!item) continue;
-      state.placements[itemId] = { ...p };
-      for (let dy = 0; dy < p.h; dy++) {
-        for (let dx = 0; dx < p.w; dx++) {
-          state.cells[`${p.x + dx},${p.y + dy}`] = itemId;
+      const g: any = getItemGrid(item);
+      const x = Number(p.x) || 0;
+      const y = Number(p.y) || 0;
+      const w = Number.isFinite(Number(p.w)) ? Number(p.w) : g.w;
+      const h = Number.isFinite(Number(p.h)) ? Number(p.h) : g.h;
+      const placed = { ...p, x, y, w, h };
+      state.placements[itemId] = placed;
+      for (let dy = 0; dy < h; dy++) {
+        for (let dx = 0; dx < w; dx++) {
+          state.cells[`${x + dx},${y + dy}`] = itemId;
         }
       }
     }
