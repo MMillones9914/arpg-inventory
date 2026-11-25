@@ -10,6 +10,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - (next milestone in progress)
 
+## [0.7.0] - 2026-11-25
+
+### Added — M7 UX, accessibility & theming
+- Barra de búsqueda por nombre (insensible a acentos) y panel desplegable de filtros por tipo, rareza y zona, con contador `mostrados/total`. Los objetos que no coinciden se atenúan y los que coinciden se resaltan.
+- Tooltip propio en objetos y slots del equipo: nombre, tipo, rareza, peso, cantidad, usos, attunement y datos de arma (daño, ataque, alcance, propiedades). Funciona con ratón y con foco de teclado; sustituye al `title` nativo.
+- Atajos: **B** abre/cierra el inventario, **R** rota al arrastrar, **Esc** cierra, **1/2/3** cambian de zona, **Tab** recorre slots y objetos, **Enter** mueve el objeto enfocado o desequipa el slot enfocado. Panel de ayuda con `?`.
+- Temas **claro**, **oscuro** y **alto contraste** (setting por cliente) con variables CSS centralizadas; el cambio se aplica en caliente a la ventana abierta.
+- Sonidos configurables (setting por cliente) para abrir, cerrar, equipar, colocar, apilar y colocación inválida, usando únicamente assets de Foundry.
+- Accesibilidad: `aria-label`, `role="button"`, `tabindex` y outline de foco visible en objetos, slots y controles.
+
+### Changed
+- Módulo puro `src/data/ux.ts` con filtros, opciones de selector, peso y tooltips; 6 tests nuevos (total 30).
+- `itemWeight` se movió a `src/data/ux.ts` y la UI reutiliza esa helper.
+- B pasa de "abrir" a "abrir/cerrar" y no actúa mientras se escribe en un campo.
+
+### Fixed
+- El tooltip no se recorta dentro de la ventana: se renderiza en `document.body` con posición fija y se limpia al cerrar.
+- Los handlers de teclado y tooltip se eliminan al cerrar la app.
+
 ## [0.6.0] - 2026-11-25
 
 ### Added — M6 D&D 5e integration

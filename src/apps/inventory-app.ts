@@ -13,7 +13,18 @@ import {
   getItemStack,
   setActorInventory
 } from '../data/inventory-service';
-import { attunementState, canEditInventory, usesLabel, weaponSummary } from '../data/dnd5e';
+import { attunementState, canEditInventory, weaponSummary } from '../data/dnd5e';
+import {
+  EMPTY_FILTERS,
+  SHORTCUTS,
+  filterOptions,
+  itemType,
+  itemWeight,
+  matchingItemIds,
+  tooltipLines,
+  type ItemFilters
+} from '../data/ux';
+import { playInventorySound } from '../utils/sound';
 import { pointToCell } from '../engine/grid-geometry';
 import {
   createGridState,
@@ -33,12 +44,6 @@ function rarityClass(item: any) {
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-|-$/g, '');
   return `arpginv-rarity--${slug || 'common'}`;
-}
-
-function itemWeight(item: any) {
-  const weight = item?.system?.weight?.value ?? item?.system?.weight ?? 0;
-  const quantity = item?.system?.quantity ?? 1;
-  return (Number(weight) || 0) * (Number(quantity) || 1);
 }
 
 function actorWeight(actor: any) {
@@ -75,8 +80,8 @@ function appendAttunement(parent: HTMLElement, item: any) {
 }
 
 function itemTooltip(item: any, fallback = '') {
-  const uses = usesLabel(item);
-  return [item?.name || fallback, uses ? `Uses ${uses}` : null].filter(Boolean).join(' · ');
+  const lines = tooltipLines(item);
+  return lines.length ? lines.map((line) => `${line.label}: ${line.value}`).join(' · ') : fallback;
 }
 
 export class InventoryApp extends foundry.applications.api.ApplicationV2 {
@@ -85,8 +90,11 @@ export class InventoryApp extends foundry.applications.api.ApplicationV2 {
   dragItemId: string | null = null;
   dragRotated = false;
   dragSource: any = null;
+  filters: ItemFilters = { ...EMPTY_FILTERS };
   _lastMouse: { x: number; y: number } | null = null;
   _dragKeyHandler: ((ev: KeyboardEvent) => void) | null = null;
+  _uiKeyHandler: ((ev: KeyboardEvent) => void) | null = null;
+  _tooltipEl: HTMLElement | null = null;
 
   constructor(options: any = {}) {
     super(options);
@@ -106,6 +114,27 @@ export class InventoryApp extends foundry.applications.api.ApplicationV2 {
 
   get editable() {
     return canEditInventory(game?.user);
+  }
+
+  _localize(key: string, fallback: string) {
+    try {
+      return game.i18n?.localize?.(key) || fallback;
+    } catch (e) {
+      return fallback;
+    }
+  }
+
+  _themeClass() {
+    const theme = game?.settings?.get?.(MODULE_ID, 'theme');
+    return `arpginv-theme--${['light', 'dark', 'highContrast'].includes(theme) ? theme : 'light'}`;
+  }
+
+  _zoneDefs() {
+    const inv = getActorInventory(this.actor);
+    return [
+      { id: 'main', name: this._localize('ARPGINV.App.ZoneMain', 'Main'), zone: inv },
+      ...inv.containers.map((c: any) => ({ id: c.id, name: c.name, zone: c }))
+    ];
   }
 
   /** Fill one of the compact info spaces beside a weapon slot. */
@@ -202,9 +231,269 @@ export class InventoryApp extends foundry.applications.api.ApplicationV2 {
     if (changed) await setActorInventory(this.actor, inv);
   }
 
+  // ---- M7: filters, tooltips, shortcuts ------------------------------------
+
+  _hasActiveFilters() {
+    return !!(this.filters.query || this.filters.type || this.filters.rarity);
+  }
+
+  _applyFilters(root?: HTMLElement) {
+    const scope: ParentNode = root ?? this.element ?? document;
+    const active = this._hasActiveFilters();
+    const matches = new Set(matchingItemIds(this.actor?.items ?? [], this.filters));
+    let total = 0;
+    let shown = 0;
+    scope.querySelectorAll<HTMLElement>('.arpginv-item, .arpginv-slot[data-item-id]').forEach((el) => {
+      const ok = matches.has(el.dataset.itemId ?? '');
+      el.classList.toggle('arpginv-filtered-out', active && !ok);
+      el.classList.toggle('arpginv-filtered-match', active && ok);
+      el.tabIndex = ok ? 0 : -1;
+      if (el.classList.contains('arpginv-item')) {
+        total += 1;
+        if (ok) shown += 1;
+      }
+    });
+    const count = scope.querySelector<HTMLElement>('.arpginv-filter-count');
+    if (count) {
+      count.textContent = `${this._localize('ARPGINV.App.Results', 'Results')} ${shown}/${total}`;
+    }
+  }
+
+  _buildHelpPanel() {
+    const panel = document.createElement('div');
+    panel.className = 'arpginv-help';
+    panel.hidden = true;
+    panel.setAttribute('role', 'note');
+    for (const shortcut of SHORTCUTS) {
+      const row = document.createElement('div');
+      row.className = 'arpginv-help__row';
+      const key = document.createElement('kbd');
+      key.textContent = shortcut.keys;
+      const action = document.createElement('span');
+      action.textContent = shortcut.action;
+      row.append(key, action);
+      panel.appendChild(row);
+    }
+    return panel;
+  }
+
+  _buildFilterBar() {
+    const wrapper = document.createElement('div');
+    wrapper.className = 'arpginv-ux';
+
+    const bar = document.createElement('div');
+    bar.className = 'arpginv-filterbar';
+
+    const search = document.createElement('input');
+    search.type = 'search';
+    search.className = 'arpginv-filter-search';
+    search.placeholder = this._localize('ARPGINV.App.Search', 'Search items...');
+    search.setAttribute('aria-label', search.placeholder);
+    search.value = this.filters.query;
+    search.addEventListener('input', () => {
+      this.filters.query = search.value;
+      this._applyFilters();
+    });
+
+    const toggle = document.createElement('button');
+    toggle.type = 'button';
+    toggle.className = 'arpginv-filter-toggle';
+    toggle.textContent = this._localize('ARPGINV.App.Filters', 'Filters');
+    toggle.setAttribute('aria-expanded', 'false');
+
+    const count = document.createElement('span');
+    count.className = 'arpginv-filter-count';
+
+    const helpBtn = document.createElement('button');
+    helpBtn.type = 'button';
+    helpBtn.className = 'arpginv-help-toggle';
+    helpBtn.textContent = '?';
+    helpBtn.title = this._localize('ARPGINV.App.Help', 'Shortcuts');
+    helpBtn.setAttribute('aria-label', helpBtn.title);
+    helpBtn.setAttribute('aria-expanded', 'false');
+
+    const panel = document.createElement('div');
+    panel.className = 'arpginv-filterpanel';
+    panel.hidden = true;
+
+    const items = [...(this.actor?.items ?? [])];
+    const makeSelect = (
+      className: string,
+      allLabel: string,
+      options: Array<{ value: string; label: string }>,
+      value: string,
+      onChange: (next: string) => void
+    ) => {
+      const select = document.createElement('select');
+      select.className = `arpginv-filter-select ${className}`;
+      select.setAttribute('aria-label', allLabel);
+      const all = document.createElement('option');
+      all.value = '';
+      all.textContent = allLabel;
+      select.appendChild(all);
+      for (const option of options) {
+        const opt = document.createElement('option');
+        opt.value = option.value;
+        opt.textContent = option.label;
+        select.appendChild(opt);
+      }
+      select.value = value;
+      select.addEventListener('change', () => onChange(select.value));
+      return select;
+    };
+
+    const asOptions = (values: string[]) => values.map((value) => ({ value, label: value }));
+    const typeSelect = makeSelect(
+      'arpginv-filter-type',
+      this._localize('ARPGINV.App.AllTypes', 'All types'),
+      asOptions(filterOptions(items, 'type')),
+      this.filters.type,
+      (next) => { this.filters.type = next; this._applyFilters(); }
+    );
+    const raritySelect = makeSelect(
+      'arpginv-filter-rarity',
+      this._localize('ARPGINV.App.AllRarities', 'All rarities'),
+      asOptions(filterOptions(items, 'rarity')),
+      this.filters.rarity,
+      (next) => { this.filters.rarity = next; this._applyFilters(); }
+    );
+    const zoneSelect = makeSelect(
+      'arpginv-filter-zone',
+      this._localize('ARPGINV.App.AllZones', 'All zones'),
+      this._zoneDefs().map((zone) => ({ value: zone.id, label: zone.name })),
+      this.activeZone,
+      (next) => this._switchZone(next || 'main')
+    );
+    panel.append(typeSelect, raritySelect, zoneSelect);
+
+    const help = this._buildHelpPanel();
+    toggle.addEventListener('click', () => {
+      panel.hidden = !panel.hidden;
+      toggle.setAttribute('aria-expanded', String(!panel.hidden));
+    });
+    helpBtn.addEventListener('click', () => {
+      help.hidden = !help.hidden;
+      helpBtn.setAttribute('aria-expanded', String(!help.hidden));
+    });
+
+    bar.append(search, toggle, count, helpBtn);
+    wrapper.append(bar, panel, help);
+    return wrapper;
+  }
+
+  _showTooltip(target: HTMLElement) {
+    const itemId = target.dataset.itemId;
+    const item = itemId ? this.actor?.items?.get?.(itemId) : null;
+    const lines = tooltipLines(item);
+    if (!lines.length) return;
+    let tip = this._tooltipEl;
+    if (!tip) {
+      tip = document.createElement('div');
+      tip.className = 'arpginv-tooltip';
+      tip.setAttribute('role', 'tooltip');
+      document.body.appendChild(tip);
+      this._tooltipEl = tip;
+    }
+    tip.replaceChildren(...lines.map((line) => {
+      const row = document.createElement('div');
+      row.className = 'arpginv-tooltip__row';
+      const label = document.createElement('span');
+      label.className = 'arpginv-tooltip__label';
+      label.textContent = line.label;
+      const value = document.createElement('span');
+      value.textContent = line.value;
+      row.append(label, value);
+      return row;
+    }));
+    tip.classList.add('visible');
+    const rect = target.getBoundingClientRect();
+    const left = Math.min(window.innerWidth - tip.offsetWidth - 8, rect.right + 8);
+    const top = Math.min(window.innerHeight - tip.offsetHeight - 8, rect.top);
+    tip.style.left = `${Math.max(8, left)}px`;
+    tip.style.top = `${Math.max(8, top)}px`;
+  }
+
+  _hideTooltip() {
+    this._tooltipEl?.classList.remove('visible');
+  }
+
+  _switchZone(zoneId: string) {
+    if (!this._zoneDefs().some((zone) => zone.id === zoneId)) return;
+    this.activeZone = zoneId;
+    this.render(true);
+  }
+
+  async _activateFocused() {
+    const active = document.activeElement as HTMLElement | null;
+    const itemId = active?.dataset?.itemId;
+    if (!itemId) return;
+    if (active?.classList.contains('arpginv-slot')) await this._unequipItem(itemId);
+    else await this._moveItemToZone(itemId, this.activeZone);
+  }
+
+  _registerUiKeyHandler() {
+    if (this._uiKeyHandler) return;
+    this._uiKeyHandler = (ev: KeyboardEvent) => {
+      if (!this.rendered) return;
+      const target = ev.target as HTMLElement | null;
+      if (target && (target.tagName === 'INPUT' || target.tagName === 'SELECT'
+        || target.tagName === 'TEXTAREA' || target.isContentEditable)) {
+        if (ev.code === 'Escape') target.blur();
+        return;
+      }
+      if (ev.code === 'Escape') {
+        ev.preventDefault();
+        this.close();
+        return;
+      }
+      if (/^Digit[123]$/.test(ev.code)) {
+        const zone = this._zoneDefs()[Number(ev.code.slice(-1)) - 1];
+        if (zone) {
+          ev.preventDefault();
+          this._switchZone(zone.id);
+        }
+        return;
+      }
+      if (ev.code === 'Enter') {
+        if ((target as HTMLElement | null)?.dataset?.itemId) {
+          ev.preventDefault();
+          this._activateFocused();
+        }
+      }
+    };
+    document.addEventListener('keydown', this._uiKeyHandler);
+  }
+
+  async _unequipItem(itemId: string) {
+    if (!this.editable) return false;
+    const item = this.actor?.items?.get?.(itemId);
+    if (!item) return false;
+    const inv = getActorInventory(this.actor);
+    for (const slotId of Object.keys(inv.equipment ?? {})) {
+      if (inv.equipment[slotId] === itemId) inv.equipment[slotId] = null;
+    }
+    const state = this._buildEngineState(inv);
+    const grid = this._effectiveGrid(item, false);
+    const spot = findFirstAvailable(state, grid, false);
+    if (!spot) {
+      ui.notifications?.warn('No free space in the main inventory');
+      playInventorySound('invalid');
+      return false;
+    }
+    const token = { id: itemId, grid, stack: getItemStack(item), stackKey: item.name };
+    const placed = placeItem(state, token, spot.x, spot.y, false);
+    if (!placed) return false;
+    inv.placements = placed.placements;
+    await setActorInventory(this.actor, inv);
+    playInventorySound('place');
+    this.render(true);
+    return true;
+  }
+
   async _renderHTML() {
     const root = document.createElement('div');
     root.className = 'arpg-inventory arpg-inventory__root';
+    root.classList.add(this._themeClass());
 
     if (!this.actor) {
       root.textContent = 'No actor selected.';
@@ -283,7 +572,9 @@ export class InventoryApp extends foundry.applications.api.ApplicationV2 {
       const slotEl = document.createElement('div');
       slotEl.className = `arpginv-slot arpginv-slot--${slot.id} arpginv-slot--${slot.side}`;
       slotEl.dataset.slot = slot.id;
-      slotEl.title = slot.label;
+      slotEl.tabIndex = 0;
+      slotEl.setAttribute('role', 'button');
+      slotEl.setAttribute('aria-label', slot.label);
       const code = document.createElement('span');
       code.className = 'arpginv-slot__code';
       code.textContent = slot.code;
@@ -295,7 +586,7 @@ export class InventoryApp extends foundry.applications.api.ApplicationV2 {
         slotEl.classList.add('has-item', `arpginv-rarity--${rarityClass(item).replace('arpginv-rarity--', '')}`);
         slotEl.draggable = this.editable;
         slotEl.dataset.itemId = item.id;
-        slotEl.title = itemTooltip(item, slot.label);
+        slotEl.setAttribute('aria-label', itemTooltip(item, slot.label));
         appendImage(slotEl, item);
         appendAttunement(slotEl, item);
         slotEl.addEventListener('dragstart', (ev) => {
@@ -334,10 +625,7 @@ export class InventoryApp extends foundry.applications.api.ApplicationV2 {
     // Zone tabs (main + containers).
     const tabs = document.createElement('div');
     tabs.className = 'arpginv-tabs';
-    const zoneDefs = [
-      { id: 'main', name: 'Main', zone: inv },
-      ...inv.containers.map((c: any) => ({ id: c.id, name: c.name, zone: c }))
-    ];
+    const zoneDefs = this._zoneDefs();
     for (const def of zoneDefs) {
       const btn = document.createElement('button');
       btn.type = 'button';
@@ -400,7 +688,9 @@ export class InventoryApp extends foundry.applications.api.ApplicationV2 {
       el.dataset.itemId = item.id;
       el.style.gridColumn = `${p.x + 1} / span ${p.w}`;
       el.style.gridRow = `${p.y + 1} / span ${p.h}`;
-      el.title = itemTooltip(item);
+      el.tabIndex = 0;
+      el.setAttribute('role', 'button');
+      el.setAttribute('aria-label', itemTooltip(item));
       appendImage(el, item);
       appendAttunement(el, item);
       if (stack.current > 1) {
@@ -470,9 +760,27 @@ export class InventoryApp extends foundry.applications.api.ApplicationV2 {
       document.addEventListener('keydown', this._dragKeyHandler);
     }
 
-    inventoryPane.append(paneTitle, weaponBar, weightBar, tabs, info, grid);
+    const ux = this._buildFilterBar();
+    inventoryPane.append(paneTitle, weaponBar, weightBar, tabs, ux, info, grid);
     layout.append(equipment, inventoryPane);
     root.append(layout);
+
+    root.addEventListener('mouseover', (ev) => {
+      const target = (ev.target as HTMLElement)?.closest<HTMLElement>('[data-item-id]');
+      if (target && root.contains(target)) this._showTooltip(target);
+    });
+    root.addEventListener('mouseout', (ev) => {
+      const target = (ev.target as HTMLElement)?.closest<HTMLElement>('[data-item-id]');
+      if (target) this._hideTooltip();
+    });
+    root.addEventListener('focusin', (ev) => {
+      const target = (ev.target as HTMLElement)?.closest<HTMLElement>('[data-item-id]');
+      if (target) this._showTooltip(target);
+    });
+    root.addEventListener('focusout', () => this._hideTooltip());
+
+    this._registerUiKeyHandler();
+    this._applyFilters(root);
     return root;
   }
 
@@ -515,6 +823,7 @@ export class InventoryApp extends foundry.applications.api.ApplicationV2 {
     const res = placeOrStack(state, token, x, y);
     if (!res) {
       ui.notifications?.warn('Cannot place item here');
+      playInventorySound('invalid');
       return false;
     }
 
@@ -534,8 +843,10 @@ export class InventoryApp extends foundry.applications.api.ApplicationV2 {
       await this._consumeStackedItem(inv, res.targetId, placements);
       await setActorInventory(this.actor, inv);
       await this.actor.deleteEmbeddedDocuments('Item', [draggedId]);
+      playInventorySound('stack');
     } else {
       await setActorInventory(this.actor, inv);
+      playInventorySound('place');
     }
     this._endDrag();
     this.render(true);
@@ -550,21 +861,20 @@ export class InventoryApp extends foundry.applications.api.ApplicationV2 {
     removeItemFromInventory(inv, draggedId);
     inv.equipment[slotId] = draggedId;
     await setActorInventory(this.actor, inv);
+    playInventorySound('equip');
     this._endDrag();
     this.render(true);
     return true;
   }
 
-  /** Move the dragged item to the first free cell of a zone (drop on tab). */
-  async _moveDraggedToZone(zoneId: string) {
+  /** Move an item to the first free cell of a zone (drop on tab, Enter key). */
+  async _moveItemToZone(itemId: string, zoneId: string) {
     if (!this.editable) return false;
-    const draggedId = this.dragItemId;
-    if (!draggedId) return false;
-    const item = this.actor?.items?.get?.(draggedId);
+    const item = this.actor?.items?.get?.(itemId);
     if (!item) return false;
 
     const inv = getActorInventory(this.actor);
-    removeItemFromInventory(inv, draggedId);
+    removeItemFromInventory(inv, itemId);
     const zone = getInventoryZone(inv, zoneId);
     if (!zone) return false;
     const grid = this._effectiveGrid(item, false);
@@ -572,17 +882,26 @@ export class InventoryApp extends foundry.applications.api.ApplicationV2 {
     const spot = findFirstAvailable(state, grid, false);
     if (!spot) {
       ui.notifications?.warn('No free space in this container');
+      playInventorySound('invalid');
       return false;
     }
-    const token = { id: draggedId, grid, stack: getItemStack(item), stackKey: item.name };
+    const token = { id: itemId, grid, stack: getItemStack(item), stackKey: item.name };
     const placed = placeItem(state, token, spot.x, spot.y, false);
     if (!placed) return false;
     if (zoneId === 'main') inv.placements = placed.placements;
     else zone.placements = placed.placements;
     await setActorInventory(this.actor, inv);
+    playInventorySound('place');
     this._endDrag();
     this.render(true);
     return true;
+  }
+
+  /** Move the dragged item to the first free cell of a zone (drop on tab). */
+  async _moveDraggedToZone(zoneId: string) {
+    const draggedId = this.dragItemId;
+    if (!draggedId) return false;
+    return this._moveItemToZone(draggedId, zoneId);
   }
 
   async _consumeStackedItem(inv: any, targetId: string, placements: any) {
@@ -656,6 +975,13 @@ export class InventoryApp extends foundry.applications.api.ApplicationV2 {
       document.removeEventListener('keydown', this._dragKeyHandler);
       this._dragKeyHandler = null;
     }
+    if (this._uiKeyHandler) {
+      document.removeEventListener('keydown', this._uiKeyHandler);
+      this._uiKeyHandler = null;
+    }
+    this._hideTooltip();
+    this._tooltipEl?.remove();
+    this._tooltipEl = null;
     this._endDrag();
     return super.close(options);
   }

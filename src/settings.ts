@@ -1,4 +1,5 @@
 import { MODULE_ID } from './constants';
+import { refreshInventoryForActor } from './input/keybindings';
 
 export function registerSettings() {
   game.settings.register(MODULE_ID, 'defaultCapacityMode', {
@@ -39,5 +40,30 @@ export function registerSettings() {
     config: true,
     type: Number,
     default: 100
+  });
+
+  // M7 — UX, accessibility & theming.
+  game.settings.register(MODULE_ID, 'theme', {
+    name: 'ARPGINV.Settings.Theme.Name',
+    hint: 'ARPGINV.Settings.Theme.Hint',
+    scope: 'client',
+    config: true,
+    type: String,
+    choices: {
+      light: 'ARPGINV.Settings.Theme.ChoiceLight',
+      dark: 'ARPGINV.Settings.Theme.ChoiceDark',
+      highContrast: 'ARPGINV.Settings.Theme.ChoiceHighContrast'
+    },
+    default: 'light',
+    onChange: () => refreshInventoryForActor()
+  });
+
+  game.settings.register(MODULE_ID, 'sounds', {
+    name: 'ARPGINV.Settings.Sounds.Name',
+    hint: 'ARPGINV.Settings.Sounds.Hint',
+    scope: 'client',
+    config: true,
+    type: Boolean,
+    default: true
   });
 }

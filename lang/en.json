@@ -18,15 +18,35 @@
       "DefaultMaxWeight": {
         "Name": "Default max weight",
         "Hint": "Default maximum carry weight for new inventories."
+      },
+      "Theme": {
+        "Name": "Inventory theme",
+        "Hint": "Color theme for the inventory window.",
+        "ChoiceLight": "Light",
+        "ChoiceDark": "Dark",
+        "ChoiceHighContrast": "High contrast"
+      },
+      "Sounds": {
+        "Name": "Inventory sounds",
+        "Hint": "Play short sounds when equipping, placing, stacking or failing to place an item."
       }
     },
     "App": {
-      "Title": "ARPG Inventory"
+      "Title": "ARPG Inventory",
+      "Search": "Search items...",
+      "Filters": "Filters",
+      "Help": "Shortcuts",
+      "AllTypes": "All types",
+      "AllRarities": "All rarities",
+      "AllZones": "All zones",
+      "ZoneMain": "Main",
+      "Results": "Results",
+      "CloseHelp": "Close shortcuts"
     },
     "Keybindings": {
       "OpenInventory": {
         "Name": "Open ARPG Inventory",
-        "Hint": "Opens the ARPG inventory window (default: B)."
+        "Hint": "Opens or closes the ARPG inventory window (default: B)."
       }
     }
   }

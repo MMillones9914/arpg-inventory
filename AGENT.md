@@ -1,6 +1,6 @@
 # AGENT.md — Guía del agente de desarrollo
 
-> Documento vivo. Define arquitectura, convenciones y reglas de trabajo del módulo **ARPG Inventory** para Foundry VTT v14. Versión del documento: **0.6.0**.
+> Documento vivo. Define arquitectura, convenciones y reglas de trabajo del módulo **ARPG Inventory** para Foundry VTT v14. Versión del documento: **0.7.0**.
 
 ---
 
@@ -54,21 +54,24 @@ src/
 ├── data/
 │   ├── dnd5e.ts                   # reglas 5e puras: capacidad, tipos, attunement, usos, permisos
 │   ├── grid-model.ts              # schema v2, zones, slots, normalización pura
-│   └── inventory-service.ts       # acceso a flags + grid/stack de items
+│   ├── inventory-service.ts       # acceso a flags + grid/stack de items
+│   └── ux.ts                      # filtros, opciones, peso y tooltips (puro)
 ├── engine/
 │   ├── grid-engine.ts             # occupación, colisión, rotación, stacking
 │   └── grid-geometry.ts           # viewport -> celda (puro, testeable)
 ├── hooks/
 │   ├── dnd5e-hooks.ts             # sync de items/actores
 │   └── ui-hooks.ts                # botón "Inventory (B)" en ficha
-├── input/keybindings.ts           # tecla B (oficial + fallback)
+├── input/keybindings.ts           # tecla B (abrir/cerrar, oficial + fallback)
 ├── module.ts                      # init/ready
-├── settings.ts                    # capacidad por defecto
+├── settings.ts                    # capacidad, tema y sonidos
 ├── types/foundry.d.ts             # declarations globales
-└── utils/logger.ts
+└── utils/
+    ├── logger.ts
+    └── sound.ts                   # feedback opcional con assets de Foundry
 styles/arpg-inventory.css
 lang/en.json
-tests/{data,engine}/*.test.ts   # incluye dnd5e.test.ts
+tests/{data,engine}/*.test.ts   # incluye dnd5e.test.ts y ux.test.ts
 ```
 
 ---
@@ -83,6 +86,9 @@ tests/{data,engine}/*.test.ts   # incluye dnd5e.test.ts
 - Cadenas visibles al usuario: usar `game.i18n.localize` cuando exista clave en `lang/en.json`.
 - Reglas dnd5e y permisos van en `src/data/dnd5e.ts` (puro, testeable); la UI solo consume esos helpers.
 - Mutar flags del inventario está permitido únicamente al GM (`canEditInventory`); otros usuarios ven la app en solo lectura.
+- Lógica de UX no dependiente de Foundry va en `src/data/ux.ts` (puro, testeable); el sonido opcional en `src/utils/sound.ts`.
+- Los temas son variables CSS en `.arpg-inventory` con clases `arpginv-theme--light|dark|highContrast`; la app añade la clase activa a la raíz.
+- El tooltip propio vive en `document.body`; se oculta al salir del objetivo y se elimina al cerrar la app.
 - Layout de la app: flex horizontal; `.window-content` sin padding y raíz con padding 7px arriba/izquierda y 5px abajo/derecha. El resto de separaciones usan `--arpginv-space` (5px). Equipo 9:16 a la izquierda con `actor.img` de fondo, inventario a la derecha con espacios de armas encima del grid; panel con ancho fijo igual al grid principal; ventana 710×620.
 
 ---
@@ -133,7 +139,7 @@ Un item está en **una sola zona**; `removeItemFromInventory` lo saca de todas a
 | M4 Drag & Drop | 0.4.0 (+fix 0.4.13) | ✅ |
 | M5 Equipment & containers | 0.5.0 | ✅ |
 | M6 D&D 5e integration | 0.6.0 | ✅ |
-| M7 UX, accessibility & theming | 0.7.0 | 🔲 |
+| M7 UX, accessibility & theming | 0.7.0 | ✅ |
 | M8 Multiplayer & sync | 0.8.0 | 🔲 |
 | M9 Public API & extensibility | 0.9.0 | 🔲 |
 | M10 Polish & release | 1.0.0 | 🔲 |
@@ -150,4 +156,4 @@ Un item está en **una sola zona**; `removeItemFromInventory` lo saca de todas a
 
 ---
 
-_Última actualización: 0.6.0 (M6 completado; integración dnd5e y edición solo GM)._
+_Última actualización: 0.7.0 (M7 completado; filtros, tooltips, atajos, temas, sonidos y accesibilidad)._

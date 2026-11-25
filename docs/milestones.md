@@ -71,12 +71,13 @@ Leyenda de estado: 🔲 To do · 🔄 In progress · ✅ Done
 - [x] Sync de items, attunement, usos (hook `updateItem` + refresh)
 - [x] Permisos (edición solo GM)
 
-## M7 — UX, accessibility & theming (0.7.0) 🔲
-- [ ] Búsqueda y filtros
-- [ ] Atajos de teclado
-- [ ] Tooltips ricos
-- [ ] Temas claro/oscuro + alto contraste
-- [ ] Sonidos configurables
+## M7 — UX, accessibility & theming (0.7.0) ✅
+- [x] Búsqueda y filtros (nombre, tipo, rareza, zona) con contador y resaltado (0.7.0)
+- [x] Atajos de teclado: B, R, Esc, 1/2/3, Tab, Enter + panel de ayuda (0.7.0)
+- [x] Tooltips ricos con ratón y teclado, sin `title` nativo (0.7.0)
+- [x] Temas claro/oscuro + alto contraste con variables CSS (0.7.0)
+- [x] Sonidos configurables con assets de Foundry (0.7.0)
+- [x] Accesibilidad: aria-label, foco visible y navegación por teclado (0.7.0)
 
 ## M8 — Multiplayer, permissions & sync (0.8.0) 🔲
 - [ ] Permisos GM/Jugador
