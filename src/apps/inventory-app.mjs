@@ -218,6 +218,7 @@ export class InventoryApp extends foundry.applications.api.ApplicationV2 {
         : state;
       const token = { id: this.dragItemId, grid: gridDims, stack: getItemStack(item), stackKey: item.name };
       const valid = canPlace(working, gridDims, x, y) || !!placeOrStack(working, token, x, y);
+      console.log('[ARPG] dragover', { x, y, gridDims, valid, occupied: working.cells[`${x},${y}`] ?? null, placements: Object.keys(working.placements) });
       this._highlightCells(grid, x, y, gridDims, valid);
       this._setDropHighlight(grid, valid);
     });

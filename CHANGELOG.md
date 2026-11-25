@@ -10,6 +10,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - (next milestone in progress)
 
+## [0.4.9] - 2026-11-25
+
+### Debug
+- Added dragover debug info (occupied cell).
+
 ## [0.4.8] - 2026-11-24
 
 ### Debug
