@@ -105,6 +105,7 @@ Leyenda de estado: 🔲 To do · 🔄 In progress · ✅ Done
 - [x] Sin fila de ataque: el daño incluye modificadores del actor; listas sin viñetas ni puntitos y valores con color más claro (0.8.12)
 - [x] Tooltip mínimo (nombre, rareza con color, tipo, equipado y cantidad) y doble clic para abrir la ficha del objeto en Foundry (0.8.13)
 - [x] Botón `Dimensiones` en la ficha de cada objeto con ventana para editar el tamaño en formato `WxH`; el cambio se guarda en el flag del item y reubica el objeto en todas las zonas (0.8.14)
+- [x] `ARPG Propiedades` reemplaza al botón anterior: dimensiones, checkbox `Estaqueable` y `Límite` condicional; entrada también en el menú de 3 puntos con icono `stone-path.svg`; badge `xN` siempre en objetos apilables (0.8.15)
 
 ## M9 — Public API & extensibility (0.9.0) 🔲
 - [ ] API pública documentada

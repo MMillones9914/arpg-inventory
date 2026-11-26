@@ -2,8 +2,11 @@ import { afterEach, describe, it, expect, vi } from 'vitest';
 import {
   getActorInventory,
   getItemGrid,
+  getItemStack,
+  isItemStackable,
   itemContainerId,
   setItemGrid,
+  setItemProperties,
   syncDynamicContainers
 } from '../../src/data/inventory-service';
 import { createEmptyInventory } from '../../src/data/grid-model';
@@ -239,5 +242,44 @@ describe('item dimensions', () => {
     item.parent = { isOwner: false };
     expect(await setItemGrid(item, { w: 3, h: 3 })).toBe(false);
     expect(setFlag).not.toHaveBeenCalled();
+  });
+
+  it('derives stackability from the type or the explicit flag', () => {
+    const potion = { type: 'consumable', system: { quantity: 1 }, getFlag: () => null };
+    const sword = { type: 'weapon', system: { quantity: 1 }, getFlag: () => null };
+    expect(isItemStackable(potion)).toBe(true);
+    expect(getItemStack(potion)).toEqual({ current: 1, max: 10 });
+    expect(isItemStackable(sword)).toBe(false);
+    expect(getItemStack(sword)).toEqual({ current: 1, max: 1 });
+
+    const flagged = {
+      ...sword,
+      getFlag: (_mod: string, key: string) => key === 'stackable'
+        ? true
+        : (key === 'stack' ? { current: 1, max: 7 } : null)
+    };
+    expect(isItemStackable(flagged)).toBe(true);
+    expect(getItemStack(flagged)).toEqual({ current: 1, max: 7 });
+  });
+
+  it('saves size, stackable flag and stack limit together', async () => {
+    const setFlag = vi.fn();
+    const item = {
+      type: 'weapon',
+      parent: { isOwner: true },
+      system: { quantity: 2 },
+      getFlag: () => null,
+      setFlag
+    };
+    (globalThis as any).game = { user: { isGM: false, id: 'u1' } };
+    expect(await setItemProperties(item, { grid: { w: 2, h: 4 }, stackable: true, stackMax: 6 })).toBe(true);
+    expect(setFlag).toHaveBeenCalledWith('arpg-inventory', 'grid', { w: 2, h: 4, rotatable: true });
+    expect(setFlag).toHaveBeenCalledWith('arpg-inventory', 'stackable', true);
+    expect(setFlag).toHaveBeenCalledWith('arpg-inventory', 'stack', { current: 2, max: 6 });
+
+    setFlag.mockClear();
+    expect(await setItemProperties(item, { grid: { w: 1, h: 1 }, stackable: false, stackMax: 6 })).toBe(true);
+    expect(setFlag).toHaveBeenCalledWith('arpg-inventory', 'stackable', false);
+    expect(setFlag).toHaveBeenCalledWith('arpg-inventory', 'stack', { current: 2, max: 1 });
   });
 });

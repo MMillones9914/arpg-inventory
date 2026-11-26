@@ -1,5 +1,5 @@
 .arpg-inventory,
-.arpg-dimensions__root {
+.arpg-properties__root {
   --arpginv-space: 5px;
   --arpginv-text: var(--color-text, #191813);
   --arpginv-surface: rgba(255, 255, 255, 0.95);
@@ -22,7 +22,7 @@
 }
 
 .arpg-inventory.arpginv-theme--dark,
-.arpg-dimensions__root.arpginv-theme--dark {
+.arpg-properties__root.arpginv-theme--dark {
   --arpginv-text: #f5f5f5;
   --arpginv-surface: #1b1b20;
   --arpginv-cell-bg: rgba(255, 255, 255, 0.06);
@@ -42,7 +42,7 @@
 }
 
 .arpg-inventory.arpginv-theme--high-contrast,
-.arpg-dimensions__root.arpginv-theme--high-contrast {
+.arpg-properties__root.arpginv-theme--high-contrast {
   --arpginv-text: #ffffff;
   --arpginv-surface: #000000;
   --arpginv-cell-bg: #111111;
@@ -192,6 +192,11 @@
   font-weight: bold;
   color: #fff;
   text-shadow: 0 1px 2px rgba(0,0,0,0.8);
+}
+
+.arpginv-slot .arpginv-item__stack {
+  left: 3px;
+  right: auto;
 }
 
 /* Rarity colors (dnd5e scale) */
@@ -784,15 +789,15 @@
 .arpginv-filter-select:focus-visible,
 .arpg-inventory button:focus-visible,
 .arpg-open-btn:focus-visible,
-.arpg-dimensions-btn:focus-visible,
-.arpg-dimensions__root button:focus-visible,
-.arpg-dimensions__root input:focus-visible {
+.arpg-properties-btn:focus-visible,
+.arpg-properties__root button:focus-visible,
+.arpg-properties__root input:focus-visible {
   outline: 2px solid var(--arpginv-focus, #d4af37);
   outline-offset: 1px;
 }
 
 .arpg-open-btn,
-.arpg-dimensions-btn {
+.arpg-properties-btn {
   flex: 0 0 auto;
   margin-left: 4px;
   padding: 2px 6px;
@@ -801,7 +806,34 @@
   cursor: pointer;
 }
 
-.arpg-dimensions__root {
+.arpg-properties-btn,
+.arpg-properties-menu-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.arpg-properties-btn__icon,
+.arpg-properties-menu-btn__icon {
+  width: 14px;
+  height: 14px;
+  flex: 0 0 auto;
+  object-fit: contain;
+}
+
+.arpg-properties-menu-btn {
+  width: 100%;
+  padding: 4px 8px;
+  border: 0;
+  background: none;
+  color: inherit;
+  font-size: 12px;
+  text-align: left;
+}
+
+.arpg-properties__root {
   display: flex;
   flex-direction: column;
   min-width: 260px;
@@ -811,20 +843,20 @@
   color: var(--arpginv-text);
 }
 
-.arpg-dimensions__form {
+.arpg-properties__form {
   display: flex;
   flex-direction: column;
   gap: 6px;
 }
 
-.arpg-dimensions__label {
+.arpg-properties__label {
   display: flex;
   flex-direction: column;
   gap: 4px;
   font-weight: bold;
 }
 
-.arpg-dimensions__input {
+.arpg-properties__input {
   width: 100%;
   box-sizing: border-box;
   padding: 4px 6px;
@@ -834,23 +866,35 @@
   color: var(--arpginv-text);
 }
 
-.arpg-dimensions__hint {
+.arpg-properties__check {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: bold;
+}
+
+.arpg-properties__input:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.arpg-properties__hint {
   font-size: 10px;
   color: var(--arpginv-info-muted);
 }
 
-.arpg-dimensions__error {
+.arpg-properties__error {
   min-height: 14px;
   font-size: 11px;
   color: #c62828;
 }
 
-.arpginv-theme--dark .arpg-dimensions__error,
-.arpginv-theme--high-contrast .arpg-dimensions__error {
+.arpginv-theme--dark .arpg-properties__error,
+.arpginv-theme--high-contrast .arpg-properties__error {
   color: #ff8a80;
 }
 
-.arpg-dimensions__actions {
+.arpg-properties__actions {
   display: flex;
   justify-content: flex-end;
   gap: 6px;

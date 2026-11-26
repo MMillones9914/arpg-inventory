@@ -10,6 +10,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - (next milestone in progress)
 
+## [0.8.15] - 2026-11-26
+
+### Added
+- The item-sheet button is now `ARPG Propiedades` (with the `icons/svg/stone-path.svg` icon) and opens a window with three fields: dimensions (`WxH`), an `Estaqueable` checkbox, and a `Límite` field enabled only when the checkbox is on.
+- The same entry is also added to Foundry 14's header 3-dots controls menu of item sheets.
+- Stackable items always show their quantity badge, including `x1`, both on the grid and in equipment slots.
+
+### Changed
+- Stacking state comes from an explicit item flag (falling back to the dnd5e type default); unstackable items report a stack size of 1.
+- Saving properties writes dimensions, stackable state and stack limit together and refreshes the inventory.
+
 ## [0.8.14] - 2026-11-26
 
 ### Added

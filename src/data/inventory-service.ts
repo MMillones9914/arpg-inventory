@@ -280,6 +280,14 @@ export async function setItemGrid(item: any, grid: any): Promise<boolean> {
   return true;
 }
 
+/** Explicit flag wins; otherwise dnd5e's per-type default decides. */
+export function isItemStackable(item: any): boolean {
+  if (!item) return false;
+  const stored = item.getFlag?.(MODULE_ID, 'stackable');
+  if (typeof stored === 'boolean') return stored;
+  return defaultItemStackMax(dnd5eItemType(item)) > 1;
+}
+
 export function getItemStack(item: any) {
   if (!item) return { current: 1, max: 1 };
   const stored = item.getFlag(MODULE_ID, 'stack');
@@ -288,10 +296,26 @@ export function getItemStack(item: any) {
   const current = Math.max(1, Math.floor(
     Number.isFinite(qty) ? qty : (Number.isFinite(storedCurrent) ? storedCurrent : 1)
   ));
+  if (!isItemStackable(item)) return { current, max: 1 };
   const configured = Number(stored?.max);
   const max = Math.max(
     current,
     Math.floor(Number.isFinite(configured) ? configured : defaultItemStackMax(dnd5eItemType(item)))
   );
   return { current, max };
+}
+
+/** Save dimensions, stackable state and stack limit together from the properties window. */
+export async function setItemProperties(item: any, props: any): Promise<boolean> {
+  if (!item || typeof item.setFlag !== 'function') return false;
+  if (!canEditInventory(game?.user, item?.parent ?? item)) return false;
+  const grid = normalizeItemGrid(props?.grid, getItemGrid(item));
+  const stackable = props?.stackable === true;
+  const current = getItemStack(item).current;
+  const requested = Math.floor(Number(props?.stackMax));
+  const max = stackable ? Math.max(current, Math.min(99, Number.isFinite(requested) ? requested : 1)) : 1;
+  await item.setFlag(MODULE_ID, 'grid', { w: grid.w, h: grid.h, rotatable: grid.rotatable });
+  await item.setFlag(MODULE_ID, 'stackable', stackable);
+  await item.setFlag(MODULE_ID, 'stack', { current, max });
+  return true;
 }

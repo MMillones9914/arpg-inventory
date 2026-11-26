@@ -12,6 +12,7 @@ import {
   getActorInventory,
   getItemGrid,
   getItemStack,
+  isItemStackable,
   itemContainerId,
   setActorInventory
 } from '../data/inventory-service';
@@ -95,6 +96,14 @@ function appendAttunement(parent: HTMLElement, item: any) {
   const badge = document.createElement('span');
   badge.className = `arpginv-attunement arpginv-attunement--${state}`;
   badge.textContent = state === 'attuned' ? 'A' : 'R';
+  parent.appendChild(badge);
+}
+
+function appendStackBadge(parent: HTMLElement, item: any) {
+  if (!isItemStackable(item)) return;
+  const badge = document.createElement('span');
+  badge.className = 'arpginv-item__stack';
+  badge.textContent = `x${getItemStack(item).current}`;
   parent.appendChild(badge);
 }
 
@@ -968,6 +977,7 @@ export class InventoryApp extends foundry.applications.api.ApplicationV2 {
         slotEl.setAttribute('aria-label', itemTooltip(item, slot.label));
         appendImage(slotEl, item);
         appendAttunement(slotEl, item);
+        appendStackBadge(slotEl, item);
 
         // A two-handed weapon appears in both hands. The offhand copy is a
         // muted mirror: same image, greyed out, with the real weapon in main.
@@ -1149,7 +1159,6 @@ export class InventoryApp extends foundry.applications.api.ApplicationV2 {
       if (!isInventoryItem(item)) continue;
       const p = this._normalizePlacement(item.id, zone);
       if (!p) continue;
-      const stack = getItemStack(item);
       const el = document.createElement('div');
       el.className = `arpginv-item ${rarityClass(item)}`;
       el.draggable = this.editable;
@@ -1161,12 +1170,7 @@ export class InventoryApp extends foundry.applications.api.ApplicationV2 {
       el.setAttribute('aria-label', itemTooltip(item));
       appendImage(el, item);
       appendAttunement(el, item);
-      if (stack.current > 1) {
-        const badge = document.createElement('span');
-        badge.className = 'arpginv-item__stack';
-        badge.textContent = `x${stack.current}`;
-        el.appendChild(badge);
-      }
+      appendStackBadge(el, item);
       const location = findItemLocation(inv, item.id);
       el.addEventListener('dragstart', (ev) => {
         this._beginDrag(ev, item.id, location ?? { kind: 'main', zoneId: 'main' });
