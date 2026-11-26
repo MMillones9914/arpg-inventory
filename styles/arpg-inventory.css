@@ -341,11 +341,6 @@
   margin-bottom: var(--arpginv-space);
 }
 
-.arpginv-weapon-bar .arpginv-slot__code {
-  color: var(--arpginv-text);
-  opacity: 0.55;
-}
-
 .arpginv-slot.has-item {
   cursor: grab;
   border-width: 2px;
@@ -356,12 +351,21 @@
   box-shadow: inset 0 0 8px rgba(212, 175, 55, 0.35), 0 0 6px rgba(212, 175, 55, 0.4);
 }
 
-.arpginv-slot__code {
+/* Uniform, greyed-out core icons shown only while a slot is empty. */
+.arpginv-slot:not(.has-item) .arpginv-slot__label {
+  opacity: 0.5;
+}
+
+.arpginv-slot__placeholder {
   position: absolute;
-  font-size: 11px;
-  font-weight: bold;
-  letter-spacing: 0.5px;
-  color: rgba(255, 255, 255, 0.28);
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  padding: 3px;
+  box-sizing: border-box;
+  object-fit: contain;
+  filter: grayscale(1) brightness(1.05);
+  opacity: 0.4;
   pointer-events: none;
 }
 
@@ -389,10 +393,11 @@
 .arpginv-slot--back { top: 352px; }
 .arpginv-slot--hands { top: 436px; }
 
-.arpginv-slot--legs { top: 100px; }
-.arpginv-slot--feet { top: 184px; }
-.arpginv-slot--ring1 { top: 268px; }
-.arpginv-slot--ring2 { top: 352px; }
+.arpginv-slot--wrist { top: 100px; }
+.arpginv-slot--waist { top: 184px; }
+.arpginv-slot--feet { top: 268px; }
+.arpginv-slot--ring1 { top: 352px; }
+.arpginv-slot--ring2 { top: 436px; }
 
 .arpginv-tabs {
   display: flex;
@@ -402,13 +407,26 @@
 
 .arpginv-tab {
   flex: 0 0 auto;
-  padding: 3px 10px;
-  font-size: 11px;
+  width: 34px;
+  height: 34px;
+  padding: 2px;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   cursor: pointer;
 }
 
+.arpginv-tab__icon {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  filter: grayscale(1) brightness(1.05);
+  opacity: 0.4;
+  pointer-events: none;
+}
+
 .arpginv-tab.active {
-  font-weight: bold;
   border-color: #4caf50;
   box-shadow: inset 0 -2px 0 #4caf50;
 }

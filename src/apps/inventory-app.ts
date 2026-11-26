@@ -24,6 +24,7 @@ import {
   tooltipLines,
   type ItemFilters
 } from '../data/ux';
+import { slotPlaceholder, zonePlaceholder } from '../data/placeholders';
 import { playInventorySound } from '../utils/sound';
 import { pointToCell } from '../engine/grid-geometry';
 import {
@@ -553,7 +554,7 @@ export class InventoryApp extends foundry.applications.api.ApplicationV2 {
     const weaponPair = document.createElement('div');
     weaponPair.className = 'arpginv-weapon-pair';
 
-    // Equipment silhouette: real actor-art image + 10 positioned slots.
+    // Equipment silhouette: real actor-art image + 11 positioned slots.
     // Weapon slots live in the separate bar above the inventory grid.
     const equipment = document.createElement('div');
     equipment.className = 'arpginv-equipment';
@@ -575,10 +576,6 @@ export class InventoryApp extends foundry.applications.api.ApplicationV2 {
       slotEl.tabIndex = 0;
       slotEl.setAttribute('role', 'button');
       slotEl.setAttribute('aria-label', slot.label);
-      const code = document.createElement('span');
-      code.className = 'arpginv-slot__code';
-      code.textContent = slot.code;
-      slotEl.appendChild(code);
 
       const itemId = inv.equipment[slot.id];
       const item = itemId ? this.actor.items.get(itemId) : null;
@@ -592,6 +589,16 @@ export class InventoryApp extends foundry.applications.api.ApplicationV2 {
         slotEl.addEventListener('dragstart', (ev) => {
           this._beginDrag(ev, item.id, { kind: 'equipment', slot: slot.id });
         });
+      } else {
+        const icon = slotPlaceholder(slot.id);
+        if (icon) {
+          const placeholder = document.createElement('img');
+          placeholder.className = 'arpginv-slot__placeholder';
+          placeholder.src = icon;
+          placeholder.alt = '';
+          placeholder.setAttribute('aria-hidden', 'true');
+          slotEl.appendChild(placeholder);
+        }
       }
       const labelEl = document.createElement('span');
       labelEl.className = 'arpginv-slot__label';
@@ -632,7 +639,14 @@ export class InventoryApp extends foundry.applications.api.ApplicationV2 {
       btn.className = 'arpginv-tab';
       if (def.id === this.activeZone) btn.classList.add('active');
       btn.dataset.zone = def.id;
-      btn.textContent = def.name;
+      btn.title = def.name;
+      btn.setAttribute('aria-label', def.name);
+      const icon = document.createElement('img');
+      icon.className = 'arpginv-tab__icon';
+      icon.src = zonePlaceholder(def.id);
+      icon.alt = '';
+      icon.setAttribute('aria-hidden', 'true');
+      btn.appendChild(icon);
       btn.addEventListener('click', () => {
         this.activeZone = def.id;
         this.render(true);

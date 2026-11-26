@@ -10,6 +10,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - (next milestone in progress)
 
+## [0.7.1] - 2026-11-26
+
+### Added
+- Placeholders de **imágenes core de Foundry** para slots vacíos: 11 slots del panel de equipo, 3 espacios de armas y 3 pestañas de zona. Se muestran únicamente cuando no hay nada equipado/asignado.
+- Mapa puro `src/data/placeholders.ts` con las rutas de los icons y 4 tests nuevos (total 34).
+
+### Changed
+- Eliminado el slot `legs` (pantalones) y añadidos `wrist` (brazaletes) y `waist` (cinturón) en la columna derecha; el panel de equipo pasa a 11 slots + 3 de armas (14 en total).
+- Los códigos de texto (`CAB`, `CUE`, …) ya no se renderizan; el nombre del slot sigue disponible en tooltip/aria-label.
+- Las pestañas de zona muestran icono en lugar de texto; el nombre se conserva en tooltip y aria-label.
+- Todos los placeholders comparten el mismo estilo grisáreo (`grayscale(1)`, opacidad 0.4) para que queden como fondo.
+
+### Fixed
+- Al quitar `legs`, la normalización ya no conserva ese slot en flags guardados; el item queda libre y se autocoloca en el grid.
+
 ## [0.7.0] - 2026-11-25
 
 ### Added — M7 UX, accessibility & theming

@@ -11,19 +11,20 @@ const DEFAULT_CAPACITY = {
 };
 
 export const EQUIPMENT_SLOTS = [
-  { id: 'head', label: 'Cabeza', code: 'CAB', side: 'left' },
-  { id: 'neck', label: 'Cuello', code: 'CUE', side: 'left' },
-  { id: 'shoulders', label: 'Hombreras', code: 'HOM', side: 'left' },
-  { id: 'body', label: 'Cuerpo', code: 'CRP', side: 'left' },
-  { id: 'back', label: 'Espalda', code: 'ESP', side: 'left' },
-  { id: 'hands', label: 'Manos', code: 'MAN', side: 'left' },
-  { id: 'legs', label: 'Pantalones', code: 'PAN', side: 'right' },
-  { id: 'feet', label: 'Zapatos', code: 'ZAP', side: 'right' },
-  { id: 'ring1', label: 'Anillo 1', code: 'A1', side: 'right' },
-  { id: 'ring2', label: 'Anillo 2', code: 'A2', side: 'right' },
-  { id: 'mainhand', label: 'Arma principal', code: 'AP', side: 'weapon' },
-  { id: 'offhand', label: 'Arma secundaria', code: 'AS', side: 'weapon' },
-  { id: 'ammo', label: 'Municiones', code: 'MUN', side: 'weapon' }
+  { id: 'head', label: 'Cabeza', side: 'left' },
+  { id: 'neck', label: 'Cuello', side: 'left' },
+  { id: 'shoulders', label: 'Hombreras', side: 'left' },
+  { id: 'body', label: 'Cuerpo', side: 'left' },
+  { id: 'back', label: 'Espalda', side: 'left' },
+  { id: 'hands', label: 'Manos', side: 'left' },
+  { id: 'wrist', label: 'Brazaletes', side: 'right' },
+  { id: 'waist', label: 'Cinturón', side: 'right' },
+  { id: 'feet', label: 'Zapatos', side: 'right' },
+  { id: 'ring1', label: 'Anillo 1', side: 'right' },
+  { id: 'ring2', label: 'Anillo 2', side: 'right' },
+  { id: 'mainhand', label: 'Arma principal', side: 'weapon' },
+  { id: 'offhand', label: 'Arma secundaria', side: 'weapon' },
+  { id: 'ammo', label: 'Municiones', side: 'weapon' }
 ] as const;
 
 const DEFAULT_CONTAINERS = [

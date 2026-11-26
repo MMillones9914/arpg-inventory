@@ -22,10 +22,14 @@ describe('grid-model', () => {
     expect(inv.capacity.rows).toBe(4);
     expect(inv.placements).toEqual({});
     expect(Object.keys(inv.equipment)).toEqual(EQUIPMENT_SLOTS.map((s) => s.id));
-    expect(EQUIPMENT_SLOTS).toHaveLength(13);
+    expect(EQUIPMENT_SLOTS).toHaveLength(14);
     expect(EQUIPMENT_SLOTS.filter((s) => s.side === 'weapon').map((s) => s.id))
       .toEqual(['mainhand', 'offhand', 'ammo']);
-    expect((EQUIPMENT_SLOTS as readonly { id: string }[]).some((s) => s.id === 'ranged')).toBe(false);
+    const ids = EQUIPMENT_SLOTS.map((s) => s.id);
+    expect(ids).not.toContain('legs');
+    expect(ids).not.toContain('ranged');
+    expect(ids).toContain('wrist');
+    expect(ids).toContain('waist');
     expect(inv.containers).toHaveLength(2);
     expect(inv.containers[0].capacity.cols).toBe(6);
   });
