@@ -372,18 +372,11 @@ export class InventoryApp extends foundry.applications.api.ApplicationV2 {
     name.title = info.name;
     panel.appendChild(name);
 
+    // Ordered as: identity, attack, damage, defence, traits, requirements.
     if (info.rarity) {
       this._infoRow(panel, 'Rareza', this._configLabel('itemRarity', info.rarity));
     }
-    if (info.mastery) {
-      this._infoRow(
-        panel,
-        'Maestría',
-        this._configLabel('weaponMasteries', info.mastery),
-        `arpginv-weapon-info__mastery${info.hasMastery ? ' arpginv-weapon-info__mastery--active' : ''}`,
-        infoDescription('mastery', info.mastery)
-      );
-    }
+    if (info.attack) this._infoRow(panel, 'Ataque', info.attack);
 
     const twoHanded = this._usesTwoHands(item);
     const damage = twoHanded && info.altDamage ? info.altDamage : info.damage;
@@ -411,9 +404,17 @@ export class InventoryApp extends foundry.applications.api.ApplicationV2 {
         infoDescription(twoHanded ? 'damage' : 'versatileDamage', 'base')
       );
     }
-    if (info.attack) this._infoRow(panel, 'Ataque', info.attack);
-    if (info.ac) this._infoRow(panel, 'CA', info.ac, 'arpginv-weapon-info__damage');
     if (info.range) this._infoRow(panel, 'Alcance', this._distanceLabel(info.range));
+    if (info.ac) this._infoRow(panel, 'CA', info.ac, 'arpginv-weapon-info__ac');
+    if (info.mastery) {
+      this._infoRow(
+        panel,
+        'Maestría',
+        this._configLabel('weaponMasteries', info.mastery),
+        `arpginv-weapon-info__mastery${info.hasMastery ? ' arpginv-weapon-info__mastery--active' : ''}`,
+        infoDescription('mastery', info.mastery)
+      );
+    }
     if (info.attunement !== 'none') {
       this._infoRow(panel, 'Sintonía', info.attunement === 'attuned' ? 'Sintonizado' : 'Requerida');
     }

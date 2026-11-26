@@ -100,6 +100,7 @@ Leyenda de estado: 🔲 To do · 🔄 In progress · ✅ Done
 - [x] Réplica en plomo del arma a dos manos en la secundaria; botón de manos sobre la imagen y panel de datos completo con scroll (0.8.7)
 - [x] Descripciones al pasar el mouse por propiedades, maestría y daño; lista de propiedades; sin usos; dado versátil y modo de ataque de dnd5e sincronizados al cambiar de manos (0.8.8)
 - [x] Bloque de propiedades una por línea, distancia de arrojo en `thr`, alcance normal separado, sin fila de manos y lectura de ataque desde actividades de dnd5e 6.x (0.8.9)
+- [x] Información ordenada y contrastes corregidos en temas light/dark/high-contrast: daño, AC y maestría legibles, scrollbar visible (0.8.10)
 
 ## M9 — Public API & extensibility (0.9.0) 🔲
 - [ ] API pública documentada

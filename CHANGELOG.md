@@ -10,6 +10,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - (next milestone in progress)
 
+## [0.8.10] - 2026-11-26
+
+### Changed
+- Reordered equipment info into identity, attack, damage, defence, traits and requirements.
+- Damage and AC values now use the active theme's text colour, so the dice are readable in the light theme.
+- Weapon mastery uses theme-aware highlight colours instead of fixed pale yellow, with matching border/background in light, dark and high-contrast themes.
+- Info panel scrollbar is now visible and uses theme colours; muted labels have explicit readable colours.
+
 ## [0.8.9] - 2026-11-26
 
 ### Added
