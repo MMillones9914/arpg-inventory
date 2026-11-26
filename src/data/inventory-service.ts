@@ -7,7 +7,10 @@ import {
   MAIN_GRID_COLS,
   defaultItemGrid,
   defaultItemStackMax,
-  DEFAULT_CONTAINERS
+  DEFAULT_CONTAINERS,
+  EQUIPMENT_SLOTS,
+  getInventoryZone,
+  removeItemFromInventory
 } from './grid-model';
 import { dnd5eItemType, strengthCapacity } from './dnd5e';
 import { containerCapacity } from './container-capacity';
@@ -44,6 +47,46 @@ function normalizeZonePlacements(actor: any, zone: any, settings: any) {
     );
   }
   return zone;
+}
+
+/** dnd5e stores container membership as an item id in `system.container`. */
+export function itemContainerId(item: any): string | null {
+  const raw = item?.system?.container;
+  if (typeof raw === 'string') return raw || null;
+  if (raw && typeof raw === 'object') {
+    const id = (raw as any).id ?? (raw as any)._id;
+    return id ? String(id) : null;
+  }
+  return null;
+}
+
+/**
+ * Foundry is the source of truth for which container holds an item. Keep a
+ * single placement in that zone so the ARPG flag can never show the same item
+ * in both the main grid and a container.
+ */
+function enforceFoundryContainerMembership(actor: any, inv: any, itemIds: string[]) {
+  const available = new Set(
+    (inv.containers ?? [])
+      .filter((zone: any) => zone.available !== false && itemIds.includes(String(zone.id)))
+      .map((zone: any) => String(zone.id))
+  );
+  const known = new Set(itemIds);
+
+  for (const item of [...(actor?.items ?? [])]) {
+    if (!isInventoryItem(item)) continue;
+    const id = String(item.id);
+    if (!known.has(id)) continue;
+    const owner = itemContainerId(item);
+    const zoneId = owner && owner !== id && available.has(owner) ? owner : 'main';
+    const zone = getInventoryZone(inv, zoneId);
+    if (!zone) continue;
+    const kept = zone.placements?.[id] ?? null;
+    const equippedIn = EQUIPMENT_SLOTS.find((slot) => inv.equipment?.[slot.id] === id)?.id ?? null;
+    removeItemFromInventory(inv, id);
+    if (zoneId === 'main' && equippedIn) inv.equipment[equippedIn] = id;
+    zone.placements[id] = kept;
+  }
 }
 
 /** Keep placements valid after a zone grid was resized by a weight change. */
@@ -153,6 +196,7 @@ export function getActorInventory(actor: any) {
   }
 
   syncDynamicContainers(actor, inv, settings);
+  enforceFoundryContainerMembership(actor, inv, itemIds);
   normalizeZonePlacements(actor, inv, settings);
   for (const container of inv.containers) normalizeZonePlacements(actor, container, settings);
   reflowZonePlacements(actor, inv);

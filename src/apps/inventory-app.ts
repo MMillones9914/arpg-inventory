@@ -12,6 +12,7 @@ import {
   getActorInventory,
   getItemGrid,
   getItemStack,
+  itemContainerId,
   setActorInventory
 } from '../data/inventory-service';
 import { attunementState, weaponSummary } from '../data/dnd5e';
@@ -148,6 +149,27 @@ export class InventoryApp extends foundry.applications.api.ApplicationV2 {
       this.render(true);
     }
     return false;
+  }
+
+  /** Zone that owns an item according to dnd5e's real container field. */
+  _itemZoneId(item: any, inv: any) {
+    const owner = itemContainerId(item);
+    if (!owner || owner === String(item?.id)) return 'main';
+    const container = inv?.containers?.find(
+      (zone: any) => String(zone.id) === owner && zone.available !== false
+    );
+    return container ? owner : 'main';
+  }
+
+  /** Persist the move on the Foundry item itself, not only in our flag. */
+  async _syncItemContainer(item: any, zoneId: string) {
+    if (!item || !this.editable) return;
+    const supportsContainer = item.system?.container !== undefined
+      || !!item.system?.schema?.fields?.container;
+    if (!supportsContainer) return;
+    const containerId = zoneId === 'main' ? null : zoneId;
+    if (itemContainerId(item) === containerId) return;
+    await item.update({ 'system.container': containerId });
   }
 
   /** Apply a merged stack to its item after the inventory flag was saved. */
@@ -325,10 +347,13 @@ export class InventoryApp extends foundry.applications.api.ApplicationV2 {
     }
     for (const item of items) {
       if (findItemLocation(inv, item.id)) continue;
+      const requiredZone = this._itemZoneId(item, inv);
       const grid = this._effectiveGrid(item, false);
       const stack = getItemStack(item);
       const token = { id: item.id, grid, stack, stackKey: item.name };
       for (const z of zones) {
+        // Never auto-place an item outside the container Foundry says holds it.
+        if (z.id !== requiredZone) continue;
         if (z.zone.capacity.mode === 'count' && stack.current > z.zone.capacity.maxCount) continue;
         const spot = findFirstAvailable(states.get(z.id), grid, false);
         if (!spot) continue;
@@ -605,6 +630,7 @@ export class InventoryApp extends foundry.applications.api.ApplicationV2 {
     if (!placed) return false;
     inv.placements = placed.placements;
     if (!(await this._saveInventory(inv))) return false;
+    await this._syncItemContainer(item, 'main');
     playInventorySound('place');
     this.render(true);
     return true;
@@ -1034,9 +1060,12 @@ export class InventoryApp extends foundry.applications.api.ApplicationV2 {
     }
     if (consumed) {
       await this._persistStack(targetId, placements);
+      await this._syncItemContainer(this.actor.items.get(targetId), zoneId);
       await this.actor.deleteEmbeddedDocuments('Item', [draggedId]);
       playInventorySound('stack');
     } else {
+      // The same Item document now lives in the target zone in Foundry too.
+      await this._syncItemContainer(item, zoneId);
       playInventorySound('place');
     }
     this._endDrag();
@@ -1053,6 +1082,7 @@ export class InventoryApp extends foundry.applications.api.ApplicationV2 {
     removeItemFromInventory(inv, draggedId);
     inv.equipment[slotId] = draggedId;
     if (!(await this._saveInventory(inv))) return false;
+    await this._syncItemContainer(dragged, 'main');
     playInventorySound('equip');
     this._endDrag();
     this.render(true);
@@ -1089,6 +1119,7 @@ export class InventoryApp extends foundry.applications.api.ApplicationV2 {
     if (zoneId === 'main') inv.placements = placed.placements;
     else zone.placements = placed.placements;
     if (!(await this._saveInventory(inv))) return false;
+    await this._syncItemContainer(item, zoneId);
     playInventorySound('place');
     this._endDrag();
     this.render(true);

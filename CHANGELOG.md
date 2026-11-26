@@ -10,6 +10,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - (next milestone in progress)
 
+## [0.8.4] - 2026-11-26
+
+### Fixed
+- Moving an item into a container now writes dnd5e's real `system.container` field on the Item document, so Foundry itself moves the object instead of leaving a second copy outside the bag.
+- Container membership is now the source of truth when loading the flag: an item appears only in the zone that owns it in Foundry, never in both the main grid and a container. Auto-placement is restricted to that same zone.
+- Moving back to the main grid, equipping or unequipping clears `system.container`; native Foundry container moves are picked up by the `updateItem` hook.
+
 ## [0.8.3] - 2026-11-26
 
 ### Changed

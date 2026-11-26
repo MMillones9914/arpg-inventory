@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { getActorInventory, syncDynamicContainers } from '../../src/data/inventory-service';
+import { getActorInventory, itemContainerId, syncDynamicContainers } from '../../src/data/inventory-service';
 import { createEmptyInventory } from '../../src/data/grid-model';
 
 const backpack = {
@@ -16,6 +16,12 @@ const quiver = {
 };
 
 describe('dynamic container zones', () => {
+  it('reads dnd5e container ids in both stored forms', () => {
+    expect(itemContainerId({ system: { container: 'bag-item' } })).toBe('bag-item');
+    expect(itemContainerId({ system: { container: { id: 'bag-item' } } })).toBe('bag-item');
+    expect(itemContainerId({ system: { container: null } })).toBeNull();
+  });
+
   it('creates one zone per carried container with capacity-derived grids', () => {
     const inv = createEmptyInventory();
     syncDynamicContainers({ items: [backpack, waterskin, quiver] }, inv, { maxContainers: 5 });
@@ -78,6 +84,57 @@ describe('dynamic container zones', () => {
     expect(inv.capacity.rows).toBe(1);
     expect(inv.placements.sword).toMatchObject({ x: 8, y: 0, w: 2, h: 1 });
     expect(inv.placements.sword.x + inv.placements.sword.w).toBeLessThanOrEqual(inv.capacity.cols);
+  });
+
+  it('keeps an item only in the zone dnd5e says contains it', () => {
+    const bag = { ...backpack, getFlag: () => null };
+    const sword = {
+      id: 'sword', name: 'Sword', type: 'weapon',
+      system: { container: 'bag-item' }, getFlag: () => null
+    };
+    const actor: any = {
+      getFlag: () => ({
+        capacity: { mode: 'manual', maxWeight: 100, cols: 10, rows: 6 },
+        placements: { sword: { x: 0, y: 0, w: 2, h: 1, rotated: false, stack: { current: 1, max: 1 } } },
+        equipment: {},
+        containers: [{
+          id: 'bag-item', name: 'Backpack',
+          capacity: { cols: 5, rows: 2, maxWeight: 40 },
+          placements: { sword: { x: 1, y: 0, w: 2, h: 1, rotated: false, stack: { current: 1, max: 1 } } }
+        }]
+      }),
+      items: [bag, sword]
+    };
+    actor.items.get = (id: string) => actor.items.find((item: any) => item.id === id);
+    const inv: any = getActorInventory(actor);
+    expect(inv.placements.sword).toBeUndefined();
+    expect(inv.containers.find((c: any) => c.id === 'bag-item').placements.sword)
+      .toMatchObject({ x: 1, y: 0 });
+  });
+
+  it('returns an item to the main grid when its container field is cleared', () => {
+    const bag = { ...backpack, getFlag: () => null };
+    const sword = {
+      id: 'sword', name: 'Sword', type: 'weapon',
+      system: { container: null }, getFlag: () => null
+    };
+    const actor: any = {
+      getFlag: () => ({
+        capacity: { mode: 'manual', maxWeight: 100, cols: 10, rows: 6 },
+        placements: {},
+        equipment: {},
+        containers: [{
+          id: 'bag-item', name: 'Backpack',
+          capacity: { cols: 5, rows: 2, maxWeight: 40 },
+          placements: { sword: { x: 1, y: 0, w: 2, h: 1, rotated: false, stack: { current: 1, max: 1 } } }
+        }]
+      }),
+      items: [bag, sword]
+    };
+    actor.items.get = (id: string) => actor.items.find((item: any) => item.id === id);
+    const inv: any = getActorInventory(actor);
+    expect(inv.containers.find((c: any) => c.id === 'bag-item').placements.sword).toBeUndefined();
+    expect(inv.placements.sword).toBeUndefined();
   });
 
   it('drops zones when the container item disappears', () => {

@@ -93,6 +93,7 @@ Leyenda de estado: 🔲 To do · 🔄 In progress · ✅ Done
 - [x] Corrección de peso: el grid principal se deriva de la capacidad de carga a 4 lb/celda (300 lb → 75 espacios), con reflow de colocaciones (0.8.1)
 - [x] Grid de ancho fijo: 10 columnas siempre, filas según capacidad; ancho del panel estabilizado para que nada se oculte (0.8.2)
 - [x] Scroll vertical del contenido y eliminación del encabezado "Inventario" para grids altos (0.8.3)
+- [x] Sincronización real con dnd5e: mover un objeto a un contenedor escribe `system.container` y evita duplicados entre zonas (0.8.4)
 
 ## M9 — Public API & extensibility (0.9.0) 🔲
 - [ ] API pública documentada
