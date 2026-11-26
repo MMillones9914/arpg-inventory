@@ -372,15 +372,15 @@ export class InventoryApp extends foundry.applications.api.ApplicationV2 {
     if (info.rarity) {
       this._infoRow(panel, 'Rareza', this._configLabel('itemRarity', info.rarity));
     }
-    if (info.attack) this._infoRow(panel, 'Ataque', info.attack);
 
     const twoHanded = this._usesTwoHands(item);
     const damage = twoHanded && info.altDamage ? info.altDamage : info.damage;
     if (damage) {
+      const damageValue = info.damageModifiers ? `${damage} ${info.damageModifiers}` : damage;
       this._infoRow(
         panel,
         twoHanded && info.altDamage ? 'Daño (2 manos)' : 'Daño',
-        damage,
+        damageValue,
         'arpginv-weapon-info__damage',
         infoDescription(twoHanded && info.altDamage ? 'versatileDamage' : 'damage', 'base')
       );

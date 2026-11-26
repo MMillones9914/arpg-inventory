@@ -10,6 +10,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - (next milestone in progress)
 
+## [0.8.12] - 2026-11-26
+
+### Added
+- Damage rows now append the actor's ability modifier and configured damage bonus for melee/ranged weapon attacks.
+
+### Changed
+- Removed the `Ataque` row from the info panel.
+- List bullets and dotted underlines were removed; values use a lighter theme-aware colour.
+- Finesse weapons use the actor's higher STR/DEX modifier; ranged weapons use DEX.
+
 ## [0.8.11] - 2026-11-26
 
 ### Changed

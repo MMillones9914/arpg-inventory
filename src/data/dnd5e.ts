@@ -159,7 +159,7 @@ export interface EquippedInfo {
   damage: string | null;
   damageTypes: string[];
   altDamage: string | null;
-  attack: string | null;
+  damageModifiers: string | null;
   range: string | null;
   throwRange: string | null;
   mastery: string | null;
@@ -208,18 +208,55 @@ function thrownRangeLabel(system: any): string | null {
   return distanceLabel(Number(system?.range?.value), Number(system?.range?.long), rangeUnits(system));
 }
 
-/** dnd5e 6.x keeps the attack bonus on activities, not on `system.attack`. */
-function attackBonusLabel(item: any): string | null {
+function firstAttackActivity(item: any): any {
   const activities = item?.system?.activities ?? [];
-  const activity = [...activities].find((entry: any) =>
-    !!entry && (!entry.type || entry.type === 'attack') && entry.attack?.bonus !== undefined
-  );
-  const raw = item?.system?.attack?.bonus ?? activity?.attack?.bonus;
+  return [...activities].find((entry: any) => !!entry && (!entry.type || entry.type === 'attack')) ?? null;
+}
+
+function abilityModifier(actor: any, key: string): number | null {
+  const raw = actor?.system?.abilities?.[key]?.mod ?? actor?.system?.abilities?.[key]?.value;
+  const value = Number(raw);
+  return Number.isFinite(value) ? value : null;
+}
+
+function isRangedWeapon(item: any): boolean {
+  const type = String(item?.system?.type?.value ?? '').toLowerCase();
+  return firstAttackActivity(item)?.attack?.type?.value === 'ranged' || /r$|ranged|siege/.test(type);
+}
+
+function damageAbility(item: any, actor: any): string {
+  const explicit = firstAttackActivity(item)?.attack?.ability;
+  if (explicit && explicit !== 'none') return String(explicit);
+  if (itemProperties(item).includes('fin')) {
+    const str = abilityModifier(actor, 'str') ?? -Infinity;
+    const dex = abilityModifier(actor, 'dex') ?? -Infinity;
+    return dex > str ? 'dex' : 'str';
+  }
+  return isRangedWeapon(item) ? 'dex' : 'str';
+}
+
+function signedFormula(raw: any): string | null {
   if (raw === undefined || raw === null || raw === '') return null;
   if (typeof raw === 'number' && Number.isFinite(raw)) return signed(raw);
   const text = String(raw).trim();
+  if (!text) return null;
   if (/^[+-]?\d+(?:\.\d+)?$/.test(text)) return signed(Number(text));
-  return text || null;
+  return /^[+-]/.test(text) ? text : `+${text}`;
+}
+
+/** Ability modifier and actor-wide damage bonus appended to the weapon die. */
+function damageModifiers(item: any, actor: any): string | null {
+  if (dnd5eItemType(item).toLowerCase() !== 'weapon') return null;
+  const parts: string[] = [];
+  const ability = damageAbility(item, actor);
+  const modifier = abilityModifier(actor, ability);
+  if (modifier !== null && modifier !== 0) parts.push(signed(modifier));
+  const kind = isRangedWeapon(item) ? 'rwak' : 'mwak';
+  const bonus = actor?.system?.rolls?.damage?.[kind]?.bonus
+    ?? actor?.system?.bonuses?.[kind]?.damage;
+  const bonusLabel = signedFormula(bonus);
+  if (bonusLabel && bonusLabel !== '+0') parts.push(bonusLabel);
+  return parts.length ? parts.join(' ') : null;
 }
 
 /** Everything the equipment-info panel needs, in pure data form. */
@@ -240,7 +277,7 @@ export function equippedInfo(item: any, actor: any): EquippedInfo | null {
       ? damageTypeKeys(system.damage?.base?.types ?? (Array.isArray(parts[0]) ? parts[0][1] : null))
       : [],
     altDamage: type === 'weapon' ? damageFormula(system.damage?.versatile) : null,
-    attack: attackBonusLabel(item),
+    damageModifiers: damageModifiers(item, actor),
     range: type === 'weapon' ? rangeLabel(system, thrown) : null,
     throwRange: thrown ? thrownRangeLabel(system) : null,
     mastery: type === 'weapon' ? (String(system.mastery ?? '') || null) : null,

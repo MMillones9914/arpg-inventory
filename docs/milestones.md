@@ -102,6 +102,7 @@ Leyenda de estado: 🔲 To do · 🔄 In progress · ✅ Done
 - [x] Bloque de propiedades una por línea, distancia de arrojo en `thr`, alcance normal separado, sin fila de manos y lectura de ataque desde actividades de dnd5e 6.x (0.8.9)
 - [x] Información ordenada y contrastes corregidos en temas light/dark/high-contrast: daño, AC y maestría legibles, scrollbar visible (0.8.10)
 - [x] Sin CA ni fila extra de daño alternativo; alcance cuerpo a cuerpo, bloques verticales con títulos en negrita y una sola propiedad también debajo del título (0.8.11)
+- [x] Sin fila de ataque: el daño incluye modificadores del actor; listas sin viñetas ni puntitos y valores con color más claro (0.8.12)
 
 ## M9 — Public API & extensibility (0.9.0) 🔲
 - [ ] API pública documentada

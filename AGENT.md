@@ -1,6 +1,6 @@
 # AGENT.md — Guía del agente de desarrollo
 
-> Documento vivo. Define arquitectura, convenciones y reglas de trabajo del módulo **ARPG Inventory** para Foundry VTT v14. Versión del documento: **0.8.11**.
+> Documento vivo. Define arquitectura, convenciones y reglas de trabajo del módulo **ARPG Inventory** para Foundry VTT v14. Versión del documento: **0.8.12**.
 
 ---
 
@@ -125,7 +125,7 @@ Inventory {
 
 Slots (14):
 - Panel de equipo (silueta vertical, 11): izquierda `head`, `neck`, `shoulders`, `body`, `back`, `hands`; derecha `wrist`, `waist`, `feet`, `ring1`, `ring2`. `legs` fue eliminado.
-- Espacios de armas encima del grid del inventario (3): `mainhand` y `offhand` alargados verticalmente (96×150) con imagen `cover` que rellena el slot, `ammo` como cuadro pequeño (44×44) centrado junto a la secundaria. Un único panel de datos entre `mainhand` y `offhand`: clic en `mainhand`, `offhand` o `ammo` elige qué objeto describe. Orden: nombre, rareza, ataque, daño (el dado cambia al alternar manos), tipo de daño, alcance (cuerpo a cuerpo o distancia), maestría (resaltada si el actor la posee), sintonía y propiedades. Sin CA, usos, fila de manos ni fila extra con el daño alternativo. Con scroll visible en vez de recortar. Cada campo es un bloque vertical con el título en negrita arriba y el valor debajo; `Propiedades` y `Tipo de daño` siempre son listas, incluso con una sola entrada, y cada propiedad, maestría, tipo y fila de daño tiene descripción al pasar el mouse. `ranged` fue eliminado.
+- Espacios de armas encima del grid del inventario (3): `mainhand` y `offhand` alargados verticalmente (96×150) con imagen `cover` que rellena el slot, `ammo` como cuadro pequeño (44×44) centrado junto a la secundaria. Un único panel de datos entre `mainhand` y `offhand`: clic en `mainhand`, `offhand` o `ammo` elige qué objeto describe. Orden: nombre, rareza, daño (dado activo + modificador de habilidad y bonificación del actor; cambia al alternar manos), tipo de daño, alcance (cuerpo a cuerpo o distancia), maestría (resaltada si el actor la posee), sintonía y propiedades. Sin CA, usos, fila de ataque, fila de manos ni fila extra con el daño alternativo. Con scroll visible en vez de recortar. Cada campo es un bloque vertical con el título en negrita arriba y el valor en color más claro debajo; `Propiedades` y `Tipo de daño` siempre son listas sin viñetas ni puntitos, incluso con una sola entrada, y cada propiedad, maestría, tipo y fila de daño tiene descripción al pasar el mouse. `ranged` fue eliminado.
 - Los colores del panel vienen de variables de tema (`--arpginv-info-text`, `--arpginv-info-muted`, `--arpginv-info-accent*`). Daño y CA usan el color de texto del tema y la maestría activa usa un dorado legible en light, dark y high-contrast; nada queda en blanco sobre fondo claro.
 - Las armas arrojadizas muestran sus dos distancias juntas en la propiedad `thr` (`Arrojadiza 20/60 ft`), mientras `Alcance` muestra el alcance normal cuerpo a cuerpo. Las distancias usan `system.range.units` y la abreviatura localizada de dnd5e. El ataque se lee de `system.activities[].attack.bonus` (dnd5e 6.x), con compatibilidad con `system.attack.bonus` legacy.
 - `weaponHands()` lee `system.properties` (`two`, `ver`); `equipmentSlotsForItem()` y `enforceFoundryPlacement()` asignan dos manos a las armas con `two` (glaive, greatsword) y a las versátiles con el flag `twoHanded` del módulo. `_equipSlotsFor()` y `_toggleTwoHanded()` aplican la misma regla al equipar desde la UI. La copia de `offhand` de un arma a dos manos muestra la misma imagen en plomo (`arpginv-slot--mirror-hand`). El botón para alternar manos va sobre la imagen equipada, abajo a la derecha, con `icons/skills/melee/hand-grip-staff-blue.webp`, y su icono es cuadrado y llena el botón.
@@ -176,4 +176,4 @@ Permisos: el GM edita cualquier actor; un jugador solo edita los actores que pos
 
 ---
 
-_Última actualización: 0.8.11 (sin CA ni daño alternativo duplicado; bloques verticales con títulos en negrita)._
+_Última actualización: 0.8.12 (sin ataque, daño con modificadores del actor y listas limpias)._

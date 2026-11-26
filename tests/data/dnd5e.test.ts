@@ -81,11 +81,18 @@ describe('dnd5e helpers', () => {
         damage: { base: { formula: '1d10', bonus: '', types: new Set(['slashing']) } }
       }
     };
-    const actor = { system: { traits: { weaponProf: { mastery: { value: new Set(['glaive']) } } } } };
+    const actor = {
+      system: {
+        traits: { weaponProf: { mastery: { value: new Set(['glaive']) } } },
+        abilities: { str: { mod: 3 }, dex: { mod: 2 } },
+        rolls: { damage: { mwak: { bonus: '+1' } } }
+      }
+    };
     const info = equippedInfo(weapon, actor);
     expect(info?.damage).toBe('1d10');
+    expect(info?.damageModifiers).toBe('+3 +1');
     expect(info?.damageTypes).toEqual(['slashing']);
-    expect(info?.attack).toBe('+7');
+    expect(info).not.toHaveProperty('attack');
     expect(info?.range).toBe('10 ft');
     expect(info?.rarity).toBe('rare');
     expect(info?.mastery).toBe('graze');
@@ -128,6 +135,20 @@ describe('dnd5e helpers', () => {
     };
     expect(equippedInfo(bow, {})?.range).toBe('80/320 ft');
     expect(equippedInfo(bow, {})?.throwRange).toBeNull();
+  });
+
+  it('uses the actor ability modifier that matches the weapon', () => {
+    const actor = { system: { abilities: { str: { mod: 1 }, dex: { mod: 4 } } } };
+    const finesse = {
+      type: 'weapon',
+      system: { type: { value: 'simpleM' }, properties: new Set(['fin']) }
+    };
+    const bow = {
+      type: 'weapon',
+      system: { type: { value: 'simpleR' }, properties: new Set([]) }
+    };
+    expect(equippedInfo(finesse, actor)?.damageModifiers).toBe('+4');
+    expect(equippedInfo(bow, actor)?.damageModifiers).toBe('+4');
   });
 
   it('maps holding mode to the dnd5e attack mode used by rolls', async () => {
