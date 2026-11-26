@@ -1,6 +1,6 @@
 # AGENT.md — Guía del agente de desarrollo
 
-> Documento vivo. Define arquitectura, convenciones y reglas de trabajo del módulo **ARPG Inventory** para Foundry VTT v14. Versión del documento: **0.7.1**.
+> Documento vivo. Define arquitectura, convenciones y reglas de trabajo del módulo **ARPG Inventory** para Foundry VTT v14. Versión del documento: **0.7.2**.
 
 ---
 
@@ -12,7 +12,7 @@ Ingeniero principal del módulo `arpg-inventory`. Responsabilidades:
 - Usar solo APIs públicas de Foundry (`ApplicationV2`, hooks, flags) y eventos HTML5 controlados.
 - Documentar **todo cambio** en `CHANGELOG.md`; actualizar `docs/milestones.md` y este archivo cuando cambie la arquitectura.
 - Seguir SemVer: `0.0.1` bootstrap, `0.x.0` hitos, `1.0.0` culminación.
-- Mantener el código limpio: eliminar placeholders, settings sin uso y constantes muertas.
+- Mantener el código limpio: eliminar placeholders de código (stubs), settings sin uso y constantes muertas. Los placeholders visuales de icons sí son parte del diseño.
 
 Idioma con el usuario: **español**. Código/comentarios técnicos: **inglés**.
 
@@ -55,6 +55,7 @@ src/
 │   ├── dnd5e.ts                   # reglas 5e puras: capacidad, tipos, attunement, usos, permisos
 │   ├── grid-model.ts              # schema v2, zones, slots, normalización pura
 │   ├── inventory-service.ts       # acceso a flags + grid/stack de items
+│   ├── containers.ts              # disponibilidad de zonas según contenedor poseído
 │   ├── placeholders.ts            # icons core para slots/armas/zonas vacías
 │   └── ux.ts                      # filtros, opciones, peso y tooltips (puro)
 ├── engine/
@@ -87,8 +88,9 @@ tests/{data,engine}/*.test.ts   # incluye dnd5e.test.ts y ux.test.ts
 - Cadenas visibles al usuario: usar `game.i18n.localize` cuando exista clave en `lang/en.json`.
 - Reglas dnd5e y permisos van en `src/data/dnd5e.ts` (puro, testeable); la UI solo consume esos helpers.
 - Mutar flags del inventario está permitido únicamente al GM (`canEditInventory`); otros usuarios ven la app en solo lectura.
-- Lógica de UX no dependiente de Foundry va en `src/data/ux.ts` (puro, testeable); los icons de placeholders en `src/data/placeholders.ts`; el sonido opcional en `src/utils/sound.ts`.
-- Un placeholder solo se renderiza cuando el slot/arma/zona está vacío; todos usan el mismo filtro grisáreo y opacidad para quedar como fondo.
+- Lógica de UX no dependiente de Foundry va en `src/data/ux.ts` (puro, testeable); los icons de placeholders en `src/data/placeholders.ts`; las reglas de contenedores disponibles en `src/data/containers.ts`; el sonido opcional en `src/utils/sound.ts`.
+- Un placeholder solo se renderiza cuando el slot/arma/zona está vacío; todos usan el mismo filtro grisáreo y opacidad para quedar como fondo. La excepción son las pestañas de zona disponibles (icono a color) y las armas (placeholder a pantalla completa).
+- `backpack` y `quiver` solo están disponibles si el actor posee el ítem contenedor; si no, se ocultan y sus ítems se reubican en una zona válida.
 - Los temas son variables CSS en `.arpg-inventory` con clases `arpginv-theme--light|dark|highContrast`; la app añade la clase activa a la raíz.
 - El tooltip propio vive en `document.body`; se oculta al salir del objetivo y se elimina al cerrar la app.
 - Layout de la app: flex horizontal; `.window-content` sin padding y raíz con padding 7px arriba/izquierda y 5px abajo/derecha. El resto de separaciones usan `--arpginv-space` (5px). Equipo 9:16 a la izquierda con `actor.img` de fondo, inventario a la derecha con espacios de armas encima del grid; panel con ancho fijo igual al grid principal; ventana 710×620.
@@ -158,4 +160,4 @@ Un item está en **una sola zona**; `removeItemFromInventory` lo saca de todas a
 
 ---
 
-_Última actualización: 0.7.1 (placeholders con icons core, slots `wrist`/`waist` y sin códigos de texto)._
+_Última actualización: 0.7.2 (placeholders de armas a pantalla completa, iconos de zona a color y disponibilidad por contenedor)._

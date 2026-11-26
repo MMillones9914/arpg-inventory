@@ -79,6 +79,7 @@ Leyenda de estado: 🔲 To do · 🔄 In progress · ✅ Done
 - [x] Sonidos configurables con assets de Foundry (0.7.0)
 - [x] Accesibilidad: aria-label, foco visible y navegación por teclado (0.7.0)
 - [x] Placeholders con icons core de Foundry para slots, armas y zonas; `legs` sustituido por `wrist`/`waist` (0.7.1)
+- [x] Disponibilidad de zonas por contenedor poseído, icono `main` a color y placeholders de armas a pantalla completa (0.7.2)
 
 ## M8 — Multiplayer, permissions & sync (0.8.0) 🔲
 - [ ] Permisos GM/Jugador

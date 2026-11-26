@@ -10,6 +10,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - (next milestone in progress)
 
+## [0.7.2] - 2026-11-26
+
+### Added
+- Reglas puras de disponibilidad de contenedores en `src/data/containers.ts` + 3 tests nuevos (total 37): el actor debe poseer un ítem `backpack`/`mochila` o `quiver`/`carcaj` para usar cada zona.
+
+### Changed
+- Las pestañas `Backpack` y `Quiver` solo se muestran cuando el actor tiene ese contenedor; si desaparece, la pestaña se oculta y la zona deja de ser destino válido para drag & drop, atajos y teclado.
+- El icono de la zona `main` se muestra a color (siempre disponible), al igual que el de los contenedores disponibles.
+- El placeholder de las armas (`mainhand`, `offhand`, `ammo`) cubre todo el slot (`object-fit: cover`, sin padding), igual que la imagen del ítem equipado.
+
+### Fixed
+- Los ítems guardados en un contenedor que el actor ya no posee se liberan y vuelven a colocarse en una zona disponible en lugar de quedar ocultos.
+
 ## [0.7.1] - 2026-11-26
 
 ### Added

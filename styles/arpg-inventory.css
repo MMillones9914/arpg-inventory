@@ -290,7 +290,8 @@
   height: 44px;
 }
 
-.arpginv-weapon-bar .arpginv-item__img {
+.arpginv-weapon-bar .arpginv-item__img,
+.arpginv-weapon-bar .arpginv-slot__placeholder {
   object-fit: cover;
   padding: 0;
 }
@@ -424,6 +425,11 @@
   filter: grayscale(1) brightness(1.05);
   opacity: 0.4;
   pointer-events: none;
+}
+
+.arpginv-tab--available .arpginv-tab__icon {
+  filter: none;
+  opacity: 0.9;
 }
 
 .arpginv-tab.active {
