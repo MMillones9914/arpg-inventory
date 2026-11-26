@@ -15,7 +15,12 @@ import {
   itemContainerId,
   setActorInventory
 } from '../data/inventory-service';
-import { attunementState, weaponSummary } from '../data/dnd5e';
+import {
+  attunementState,
+  equippedInfo,
+  isTwoHandedWeapon,
+  weaponHands
+} from '../data/dnd5e';
 import { canEditInventory } from '../data/permissions';
 import {
   EMPTY_FILTERS,
@@ -97,6 +102,7 @@ function itemTooltip(item: any, fallback = '') {
 export class InventoryApp extends foundry.applications.api.ApplicationV2 {
   actor: any;
   activeZone = 'main';
+  weaponInfoSlot = 'mainhand';
   dragItemId: string | null = null;
   dragTabId: string | null = null;
   dragRotated = false;
@@ -190,6 +196,151 @@ export class InventoryApp extends foundry.applications.api.ApplicationV2 {
     await item.update(changes);
   }
 
+  /** Does this weapon need both hands (including a versatile weapon set to 2H)? */
+  _usesTwoHands(item: any) {
+    if (!item || weaponHands(item) === null) return false;
+    return isTwoHandedWeapon(item, item.getFlag?.(MODULE_ID, 'twoHanded') === true);
+  }
+
+  /** Slots to fill when an item is equipped through our UI. */
+  _equipSlotsFor(item: any, slotId: string) {
+    if (slotId === 'ammo') return ['ammo'];
+    if (this._usesTwoHands(item)) return ['mainhand', 'offhand'];
+    return [slotId];
+  }
+
+  /**
+   * Assign equipment slots in memory. Returns items that lost a slot so the
+   * caller can unequip them in Foundry after the flag was saved.
+   */
+  _assignEquipmentSlots(inv: any, itemId: string, slots: string[]) {
+    const displaced = new Set<string>();
+    for (const slot of slots) {
+      const previous = inv.equipment?.[slot];
+      if (previous && String(previous) !== String(itemId)) displaced.add(String(previous));
+    }
+    for (const slot of EQUIPMENT_SLOTS) {
+      if (slots.includes(slot.id)) continue;
+      if (String(inv.equipment?.[slot.id] ?? '') === String(itemId)) inv.equipment[slot.id] = null;
+    }
+    for (const slot of slots) inv.equipment[slot] = itemId;
+    for (const id of displaced) {
+      for (const slot of EQUIPMENT_SLOTS) {
+        if (String(inv.equipment?.[slot.id] ?? '') === id) inv.equipment[slot.id] = null;
+      }
+      inv.placements[id] ??= null;
+    }
+    return [...displaced];
+  }
+
+  /** Switch a versatile weapon between one and two hands. */
+  async _toggleTwoHanded(itemId: string) {
+    if (!this.editable) return false;
+    const item = this.actor?.items?.get?.(itemId);
+    if (!item || weaponHands(item) !== 'versatile') return false;
+    const inv = getActorInventory(this.actor);
+    const isMain = String(inv.equipment?.mainhand ?? '') === String(itemId);
+    const isOff = String(inv.equipment?.offhand ?? '') === String(itemId);
+    if (!isMain && !isOff) return false;
+    const next = item.getFlag?.(MODULE_ID, 'twoHanded') !== true;
+    await item.setFlag(MODULE_ID, 'twoHanded', next);
+    const slots = next ? ['mainhand', 'offhand'] : ['mainhand'];
+    const displaced = this._assignEquipmentSlots(inv, itemId, slots);
+    if (!(await this._saveInventory(inv))) return false;
+    for (const id of displaced) {
+      await this._syncItemEquipped(this.actor?.items?.get?.(id), false);
+    }
+    this.render(true);
+    return true;
+  }
+
+  _configLabel(path: 'weaponProperties' | 'equipmentProperties' | 'weaponMasteries', key: string) {
+    try {
+      const config = (game as any)?.dnd5e?.config;
+      const label = config?.[path]?.[key]?.label;
+      if (label) return game.i18n?.localize?.(label) || label;
+    } catch (e) {
+      // Foundry/CONFIG may be absent in tests.
+    }
+    return key;
+  }
+
+  /** Rebuild the single compact info panel for the selected weapon slot. */
+  _updateWeaponInfo(inv: any = getActorInventory(this.actor), root?: HTMLElement) {
+    root ??= this.element as HTMLElement | undefined;
+    const panel = root?.querySelector('.arpginv-weapon-info') as HTMLElement | null;
+    if (!panel) return;
+    const slotId = this.weaponInfoSlot;
+    const itemId = inv?.equipment?.[slotId];
+    const item = itemId ? this.actor?.items?.get?.(itemId) : null;
+    root?.querySelectorAll('.arpginv-weapon-bar .arpginv-slot[data-slot]')
+      .forEach((el) => (el as HTMLElement).classList.toggle(
+        'arpginv-weapon-slot--active',
+        (el as HTMLElement).dataset.slot === slotId
+      ));
+
+    const info = equippedInfo(item, this.actor);
+    panel.replaceChildren();
+    panel.className = `arpginv-weapon-info${item ? ` ${rarityClass(item)}` : ''}`;
+    panel.title = item ? itemTooltip(item, info?.name ?? '') : '';
+    if (!info) {
+      panel.textContent = '—';
+      return;
+    }
+    const name = document.createElement('div');
+    name.className = 'arpginv-weapon-info__name';
+    name.textContent = info.name;
+    panel.appendChild(name);
+
+    if (info.mastery) {
+      const mastery = document.createElement('div');
+      mastery.className = `arpginv-weapon-info__mastery ${info.hasMastery ? 'arpginv-weapon-info__mastery--active' : ''}`;
+      mastery.textContent = this._configLabel('weaponMasteries', info.mastery);
+      mastery.title = info.hasMastery ? 'Maestría del arma' : 'Sin maestría';
+      panel.appendChild(mastery);
+    }
+
+    const damage = info.altDamage ? `${info.damage ?? ''} / ${info.altDamage}` : info.damage;
+    if (damage) {
+      const line = document.createElement('div');
+      line.className = 'arpginv-weapon-info__damage';
+      line.textContent = damage;
+      panel.appendChild(line);
+    }
+    if (info.ac) {
+      const line = document.createElement('div');
+      line.className = 'arpginv-weapon-info__damage';
+      line.textContent = info.ac;
+      panel.appendChild(line);
+    }
+    if (info.properties.length) {
+      const type = String(item?.type ?? '');
+      const path = type === 'weapon' ? 'weaponProperties' : 'equipmentProperties';
+      const props = document.createElement('div');
+      props.className = 'arpginv-weapon-info__props';
+      props.textContent = info.properties
+        .slice(0, 6)
+        .map((key) => this._configLabel(path, key))
+        .join(' · ');
+      props.title = props.textContent;
+      panel.appendChild(props);
+    }
+
+    if (weaponHands(item) === 'versatile') {
+      const toggle = document.createElement('button');
+      toggle.type = 'button';
+      toggle.className = 'arpginv-weapon-info__toggle';
+      toggle.textContent = this._usesTwoHands(item) ? '1 mano' : '2 manos';
+      toggle.title = 'Alternar uso a dos manos';
+      toggle.addEventListener('click', (ev) => {
+        ev.preventDefault();
+        ev.stopPropagation();
+        this._toggleTwoHanded(String(item.id));
+      });
+      panel.appendChild(toggle);
+    }
+  }
+
   /** Apply a merged stack to its item after the inventory flag was saved. */
   async _persistStack(targetId: string, placements: any) {
     if (!this.editable) return;
@@ -238,24 +389,6 @@ export class InventoryApp extends foundry.applications.api.ApplicationV2 {
     );
     ui.notifications?.warn?.(template.replace('{name}', zone?.name ?? ''));
     playInventorySound('invalid');
-  }
-
-  /** Fill one of the compact info spaces beside a weapon slot. */
-  _fillWeaponInfo(container: HTMLElement, item: any) {
-    const summary = weaponSummary(item);
-    if (!summary) return;
-    container.classList.add(rarityClass(item));
-    container.title = [summary.name, summary.rarity, summary.properties.join(', ')]
-      .filter(Boolean)
-      .join(' · ');
-    const lines = [summary.damage, summary.attack, summary.range, summary.uses];
-    if (summary.attunement !== 'none') lines.push(summary.attunement === 'attuned' ? 'A' : 'R');
-    for (const value of lines) {
-      if (!value) continue;
-      const line = document.createElement('span');
-      line.textContent = value;
-      container.appendChild(line);
-    }
   }
 
   /** Effective (already swapped) dimensions for an item in the current drag state. */
@@ -705,10 +838,10 @@ export class InventoryApp extends foundry.applications.api.ApplicationV2 {
     inventoryPane.style.width = `${paneWidth}px`;
     const weaponBar = document.createElement('div');
     weaponBar.className = 'arpginv-weapon-bar';
-    const mainInfo = document.createElement('div');
-    mainInfo.className = 'arpginv-weapon-info arpginv-weapon-info--mainhand';
-    const offInfo = document.createElement('div');
-    offInfo.className = 'arpginv-weapon-info arpginv-weapon-info--offhand';
+    // One shared info panel sits between mainhand and offhand. Clicking either
+    // slot (or ammo) switches which item it describes.
+    const weaponInfo = document.createElement('div');
+    weaponInfo.className = 'arpginv-weapon-info';
     const weaponPair = document.createElement('div');
     weaponPair.className = 'arpginv-weapon-pair';
 
@@ -772,19 +905,22 @@ export class InventoryApp extends foundry.applications.api.ApplicationV2 {
         ev.stopPropagation();
         await this._equipDragged(slot.id);
       });
+      slotEl.addEventListener('click', (ev) => {
+        if (slot.side !== 'weapon') return;
+        ev.stopPropagation();
+        this.weaponInfoSlot = slot.id;
+        this._updateWeaponInfo(inv, root);
+      });
 
       if (slot.side === 'weapon') {
-        if (slot.id === 'offhand' || slot.id === 'ammo') weaponPair.appendChild(slotEl);
-        else weaponBar.appendChild(slotEl);
+        if (slot.id === 'mainhand') weaponBar.appendChild(slotEl);
+        else weaponPair.appendChild(slotEl);
       } else {
         frame.appendChild(slotEl);
       }
     }
-    const mainItemId = inv.equipment.mainhand;
-    const offItemId = inv.equipment.offhand;
-    this._fillWeaponInfo(mainInfo, mainItemId ? this.actor.items.get(mainItemId) : null);
-    this._fillWeaponInfo(offInfo, offItemId ? this.actor.items.get(offItemId) : null);
-    weaponBar.append(mainInfo, offInfo, weaponPair);
+    weaponBar.appendChild(weaponPair);
+    weaponBar.insertBefore(weaponInfo, weaponPair);
     equipment.appendChild(frame);
 
     // Zone tabs (main + containers).
@@ -988,6 +1124,7 @@ export class InventoryApp extends foundry.applications.api.ApplicationV2 {
 
     this._registerUiKeyHandler();
     this._applyFilters(root);
+    this._updateWeaponInfo(inv, root);
     return root;
   }
 
@@ -1098,9 +1235,14 @@ export class InventoryApp extends foundry.applications.api.ApplicationV2 {
     if (!draggedId || !dragged || !isInventoryItem(dragged)) return false;
     const inv = getActorInventory(this.actor);
     removeItemFromInventory(inv, draggedId);
-    inv.equipment[slotId] = draggedId;
+    const slots = this._equipSlotsFor(dragged, slotId);
+    const displaced = this._assignEquipmentSlots(inv, draggedId, slots);
     if (!(await this._saveInventory(inv))) return false;
     await this._syncItemEquipped(dragged, true);
+    for (const id of displaced) {
+      await this._syncItemEquipped(this.actor?.items?.get?.(id), false);
+    }
+    this.weaponInfoSlot = slotId === 'ammo' ? 'mainhand' : slotId;
     playInventorySound('equip');
     this._endDrag();
     this.render(true);

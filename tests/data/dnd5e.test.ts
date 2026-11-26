@@ -7,7 +7,11 @@ import {
   weaponSummary,
   canEditInventory,
   equipmentSlotsForItem,
-  equipmentSlotForItem
+  equipmentSlotForItem,
+  weaponHands,
+  isTwoHandedWeapon,
+  hasWeaponMastery,
+  equippedInfo
 } from '../../src/data/dnd5e';
 import { defaultItemGrid, defaultItemStackMax } from '../../src/data/grid-model';
 
@@ -38,6 +42,55 @@ describe('dnd5e helpers', () => {
 
     const armor = { id: 'a', type: 'equipment', name: 'Plate', system: { equipped: true, type: { value: 'heavy' } } };
     expect(equipmentSlotForItem(armor, {})).toBe('body');
+  });
+
+  it('detects two-handed and versatile weapons', () => {
+    const glaive = {
+      type: 'weapon', name: 'Glaive', system: { equipped: true, properties: new Set(['two', 'rch']) }
+    };
+    expect(weaponHands(glaive)).toBe('two');
+    expect(isTwoHandedWeapon(glaive)).toBe(true);
+
+    const longsword = {
+      type: 'weapon', name: 'Longsword', system: { equipped: true, properties: new Set(['ver']) }
+    };
+    expect(weaponHands(longsword)).toBe('versatile');
+    expect(isTwoHandedWeapon(longsword)).toBe(false);
+    expect(isTwoHandedWeapon(longsword, true)).toBe(true);
+
+    const dagger = { type: 'weapon', name: 'Dagger', system: { equipped: true, properties: new Set(['lgt']) } };
+    expect(weaponHands(dagger)).toBe('one');
+    expect(isTwoHandedWeapon(dagger)).toBe(false);
+  });
+
+  it('builds equipped info with damage, mastery and properties', () => {
+    const weapon = {
+      name: 'Glaive',
+      type: 'weapon',
+      system: {
+        equipped: true,
+        rarity: 'rare',
+        mastery: 'graze',
+        properties: new Set(['two', 'rch']),
+        type: { baseItem: 'glaive' },
+        damage: { base: { formula: '1d10', bonus: '', types: new Set(['slashing']) } }
+      }
+    };
+    const actor = { system: { traits: { weaponProf: { mastery: { value: new Set(['glaive']) } } } } };
+    const info = equippedInfo(weapon, actor);
+    expect(info?.damage).toBe('1d10');
+    expect(info?.mastery).toBe('graze');
+    expect(info?.hasMastery).toBe(true);
+    expect(info?.properties).toEqual(['two', 'rch']);
+    expect(info?.hands).toBe('two');
+
+    const shield = {
+      name: 'Shield', type: 'equipment',
+      system: { equipped: true, armor: { value: 2 }, properties: new Set(['shl']) }
+    };
+    expect(equippedInfo(shield, actor)?.ac).toBe('2 AC');
+    expect(equippedInfo(shield, actor)?.damage).toBeNull();
+    expect(hasWeaponMastery(weapon, {})).toBe(false);
   });
 
   it('reads attunement and uses', () => {

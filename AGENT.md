@@ -1,6 +1,6 @@
 # AGENT.md — Guía del agente de desarrollo
 
-> Documento vivo. Define arquitectura, convenciones y reglas de trabajo del módulo **ARPG Inventory** para Foundry VTT v14. Versión del documento: **0.8.5**.
+> Documento vivo. Define arquitectura, convenciones y reglas de trabajo del módulo **ARPG Inventory** para Foundry VTT v14. Versión del documento: **0.8.6**.
 
 ---
 
@@ -125,7 +125,8 @@ Inventory {
 
 Slots (14):
 - Panel de equipo (silueta vertical, 11): izquierda `head`, `neck`, `shoulders`, `body`, `back`, `hands`; derecha `wrist`, `waist`, `feet`, `ring1`, `ring2`. `legs` fue eliminado.
-- Espacios de armas encima del grid del inventario (3): `mainhand` y `offhand` alargados verticalmente (112×150) con imagen `cover` que rellena el slot, `ammo` como cuadro pequeño (44×44) centrado junto a la secundaria. Espacios de datos a la derecha de `mainhand` y a la izquierda de `offhand` (implementados en M6); `ammo` sin espacio. `ranged` fue eliminado.
+- Espacios de armas encima del grid del inventario (3): `mainhand` y `offhand` alargados verticalmente (112×150) con imagen `cover` que rellena el slot, `ammo` como cuadro pequeño (44×44) centrado junto a la secundaria. Un único panel de datos entre `mainhand` y `offhand`: clic en `mainhand`, `offhand` o `ammo` elige qué objeto describe (daño base/versátil, maestría resaltada si el actor la posee, propiedades dnd5e y AC de escudos/armaduras). `ranged` fue eliminado.
+- `weaponHands()` lee `system.properties` (`two`, `ver`); `equipmentSlotsForItem()` y `enforceFoundryPlacement()` asignan dos manos a las armas con `two` (glaive, greatsword) y a las versátiles con el flag `twoHanded` del módulo. `_equipSlotsFor()` y `_toggleTwoHanded()` aplican la misma regla al equipar desde la UI.
 
 Capacidad `strength`: `system.attributes.encumbrance.max` o `Fuerza × 15` lb. **Regla universal: 4 lb = 1 space**; `spaces = suelo(maxWeight / 4)`. El grid usa **10 columnas fijas** y `filas = techo(spaces / 10)` (300 lb → 75 espacios → 10×8). `cols`/`rows` guardados solo se usan en zonas legacy sin peso declarado. Los contenedores grandes también se limitan a 10 columnas para no desbordar el panel. Al cambiar el tamaño del grid se recolocan las colocaciones válidas más cercanas (`reflowZonePlacements`). Tamaños por tipo dnd5e en `ITEM_GRID_DEFAULTS` (armadura 2×3, herramienta 1×2, munición 1×2 stack 20, contenedor 2×2, etc.).
 
@@ -172,4 +173,4 @@ Permisos: el GM edita cualquier actor; un jugador solo edita los actores que pos
 
 ---
 
-_Última actualización: 0.8.5 (equipamiento real vía `system.equipped`, sincronizado en ambos sentidos con Foundry)._
+_Última actualización: 0.8.6 (panel único de armas con maestría/daño/propiedades; armas de dos manos y versátiles a dos manos ocupan ambos slots)._

@@ -105,6 +105,25 @@ describe('dynamic container zones', () => {
     expect(inv.placements.armor).toBeUndefined();
   });
 
+  it('puts a two-handed weapon in both hand slots', () => {
+    const glaive = {
+      id: 'glaive', name: 'Glaive', type: 'weapon',
+      system: { equipped: true, properties: new Set(['two']) }, getFlag: () => null
+    };
+    const actor: any = {
+      getFlag: () => ({
+        capacity: { mode: 'manual', maxWeight: 100, cols: 10, rows: 6 },
+        placements: { glaive: null }, equipment: {}, containers: []
+      }),
+      items: [glaive]
+    };
+    actor.items.get = (id: string) => actor.items.find((item: any) => item.id === id);
+    const inv: any = getActorInventory(actor);
+    expect(inv.equipment.mainhand).toBe('glaive');
+    expect(inv.equipment.offhand).toBe('glaive');
+    expect(inv.placements.glaive).toBeUndefined();
+  });
+
   it('returns an unequipped item to the main grid', () => {
     const sword = {
       id: 'sword', name: 'Sword', type: 'weapon',

@@ -10,6 +10,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - (next milestone in progress)
 
+## [0.8.6] - 2026-11-26
+
+### Added
+- Single weapon-info panel between mainhand and offhand. Clicking mainhand, offhand or ammo switches the details shown there.
+- Panel shows weapon damage (including versatile damage), the weapon mastery (highlighted when the actor has mastered that base weapon), dnd5e properties, AC for shields/armor, and properties for relics or other equipment.
+- Versatile weapons get a 1-hand/2-hands toggle. Two-handed weapons (`two`) occupy both hand slots; a versatile weapon occupies both only when switched to two hands.
+
 ## [0.8.5] - 2026-11-26
 
 ### Added

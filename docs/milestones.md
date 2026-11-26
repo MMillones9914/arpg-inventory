@@ -95,6 +95,8 @@ Leyenda de estado: 🔲 To do · 🔄 In progress · ✅ Done
 - [x] Scroll vertical del contenido y eliminación del encabezado "Inventario" para grids altos (0.8.3)
 - [x] Sincronización real con dnd5e: mover un objeto a un contenedor escribe `system.container` y evita duplicados entre zonas (0.8.4)
 - [x] Equipamiento sincronizado: `system.equipped` se refleja en los slots y los objetos equipados salen del inventario (0.8.5)
+- [x] Panel único de información de armas/escudos/reliquias entre manos; maestría resaltada, daño y propiedades (0.8.6)
+- [x] Armas de dos manos ocupan ambos slots; versátiles conmutan entre 1 y 2 manos (0.8.6)
 
 ## M9 — Public API & extensibility (0.9.0) 🔲
 - [ ] API pública documentada

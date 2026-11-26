@@ -20,6 +20,43 @@ export function dnd5eItemType(item: any): string {
   return type;
 }
 
+/** Normalize dnd5e properties (Set, array or legacy object). */
+export function itemProperties(item: any): string[] {
+  const raw = item?.system?.properties;
+  if (Array.isArray(raw)) return raw.map((value) => String(value).toLowerCase());
+  if (raw instanceof Set) return [...raw].map((value) => String(value).toLowerCase());
+  if (!raw || typeof raw !== 'object') return [];
+  return Object.keys(raw).filter((key) => !!raw[key]).map((key) => key.toLowerCase());
+}
+
+export type WeaponHands = 'one' | 'two' | 'versatile' | null;
+
+/** How many hands a weapon uses, from dnd5e property keys (`two`, `ver`). */
+export function weaponHands(item: any): WeaponHands {
+  if (dnd5eItemType(item).toLowerCase() !== 'weapon') return null;
+  const props = itemProperties(item);
+  if (props.includes('two') || props.includes('two-handed') || props.includes('twohanded')) return 'two';
+  if (props.includes('ver') || props.includes('versatile')) return 'versatile';
+  return 'one';
+}
+
+/** Versatile weapons only take both slots when explicitly set to two hands. */
+export function isTwoHandedWeapon(item: any, versatileTwoHanded = false): boolean {
+  const hands = weaponHands(item);
+  return hands === 'two' || (hands === 'versatile' && versatileTwoHanded === true);
+}
+
+/** True when the actor has weapon mastery for this item's base id. */
+export function hasWeaponMastery(item: any, actor: any): boolean {
+  const base = String(item?.system?.type?.baseItem ?? '');
+  if (!base) return false;
+  const mastered = actor?.system?.traits?.weaponProf?.mastery?.value;
+  if (mastered instanceof Set) return mastered.has(base);
+  if (Array.isArray(mastered)) return mastered.includes(base);
+  if (mastered && typeof mastered === 'object') return !!mastered[base];
+  return false;
+}
+
 /** Candidate equipment slots for an item equipped in Foundry, in priority order. */
 export function equipmentSlotsForItem(item: any): string[] {
   if (item?.system?.equipped !== true) return [];
@@ -29,6 +66,8 @@ export function equipmentSlotsForItem(item: any): string[] {
   const label = `${subtype} ${name}`;
 
   if (type === 'ammo') return ['ammo'];
+  // Two-handed weapons are expanded to both slots by the caller; one-handed
+  // weapons use the first free hand.
   if (type === 'weapon') return ['mainhand', 'offhand'];
   if (type === 'shield' || subtype === 'shield') return ['offhand', 'mainhand'];
   if (/ring/.test(label)) return ['ring1', 'ring2'];
@@ -86,13 +125,11 @@ function signed(value: number): string {
   return `${value >= 0 ? '+' : ''}${value}`;
 }
 
-function propertyNames(raw: any): string[] {
-  if (Array.isArray(raw)) return raw.map(String);
-  if (!raw || typeof raw !== 'object') return [];
-  return Object.keys(raw).filter((key) => !!raw[key]);
+function propertyNames(item: any): string[] {
+  return itemProperties(item);
 }
 
-/** Compact data for the reserved spaces beside mainhand/offhand slots. */
+/** Compact data for the single weapon-info space. */
 export function weaponSummary(item: any): WeaponSummary | null {
   if (!item) return null;
   const system = item.system ?? {};
@@ -108,10 +145,52 @@ export function weaponSummary(item: any): WeaponSummary | null {
     rarity: String(system.rarity ?? ''),
     damage: damage || null,
     attack: Number.isFinite(bonus) ? signed(bonus) : null,
-    properties: propertyNames(system.properties).slice(0, 4),
+    properties: propertyNames(item).slice(0, 4),
     range: range ? String(range) : null,
     attunement: attunementState(item),
     uses: usesLabel(item)
+  };
+}
+
+export interface EquippedInfo {
+  name: string;
+  rarity: string;
+  damage: string | null;
+  altDamage: string | null;
+  mastery: string | null;
+  hasMastery: boolean;
+  ac: string | null;
+  properties: string[];
+  hands: WeaponHands;
+}
+
+function damageFormula(raw: any): string | null {
+  if (typeof raw === 'string') return raw || null;
+  const formula = String(raw?.formula ?? '').trim();
+  const bonus = String(raw?.bonus ?? '').trim();
+  if (formula && bonus && bonus !== '@mod') return `${formula} ${bonus}`;
+  return formula || null;
+}
+
+/** Everything the compact equipment-info panel needs, in pure data form. */
+export function equippedInfo(item: any, actor: any): EquippedInfo | null {
+  if (!item) return null;
+  const system = item.system ?? {};
+  const parts = Array.isArray(system.damage?.parts) ? system.damage.parts : [];
+  const type = dnd5eItemType(item).toLowerCase();
+  const hands = weaponHands(item);
+  return {
+    name: String(item.name ?? ''),
+    rarity: String(system.rarity ?? ''),
+    damage: type === 'weapon'
+      ? (damageFormula(system.damage?.base) ?? damageFormula(parts[0]) ?? null)
+      : null,
+    altDamage: type === 'weapon' ? damageFormula(system.damage?.versatile) : null,
+    mastery: type === 'weapon' ? (String(system.mastery ?? '') || null) : null,
+    hasMastery: type === 'weapon' ? hasWeaponMastery(item, actor) : false,
+    ac: system.armor?.value ? `${system.armor.value} AC` : null,
+    properties: itemProperties(item),
+    hands
   };
 }
 

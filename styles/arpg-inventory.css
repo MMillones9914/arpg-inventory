@@ -288,6 +288,12 @@
   background: transparent;
   outline: 1px solid rgba(0, 0, 0, 0.35);
   outline-offset: -1px;
+  cursor: pointer;
+}
+
+.arpginv-weapon-bar .arpginv-weapon-slot--active {
+  outline: 2px solid #ffd54f;
+  box-shadow: 0 0 6px rgba(255, 213, 79, 0.55);
 }
 
 .arpginv-weapon-bar .arpginv-slot--ammo {
@@ -321,6 +327,38 @@
   text-align: center;
   word-break: break-word;
   pointer-events: none;
+}
+
+.arpginv-weapon-info__name {
+  max-width: 100%;
+  font-weight: bold;
+}
+
+.arpginv-weapon-info__mastery {
+  padding: 1px 3px;
+  border: 1px solid transparent;
+  border-radius: 3px;
+  opacity: 0.7;
+}
+
+.arpginv-weapon-info__mastery--active {
+  border-color: #ffd54f;
+  background: rgba(255, 213, 79, 0.22);
+  color: #ffe082;
+  font-weight: bold;
+  opacity: 1;
+}
+
+.arpginv-weapon-info__damage { color: #f3f3f3; }
+.arpginv-weapon-info__props { opacity: 0.8; }
+
+.arpginv-weapon-info__toggle {
+  pointer-events: auto;
+  margin-top: 2px;
+  padding: 1px 4px;
+  font-size: 8px;
+  line-height: 1.1;
+  cursor: pointer;
 }
 
 .arpginv-attunement {

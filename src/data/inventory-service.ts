@@ -12,7 +12,12 @@ import {
   getInventoryZone,
   removeItemFromInventory
 } from './grid-model';
-import { dnd5eItemType, equipmentSlotForItem, strengthCapacity } from './dnd5e';
+import {
+  dnd5eItemType,
+  equipmentSlotForItem,
+  isTwoHandedWeapon,
+  strengthCapacity
+} from './dnd5e';
 import { containerCapacity } from './container-capacity';
 import { containerKindMatches, isContainerItem, normalizedContainerLimit } from './containers';
 import { inventoryItemIds, isInventoryItem } from './inventory-items';
@@ -50,6 +55,11 @@ function normalizeZonePlacements(actor: any, zone: any, settings: any) {
 }
 
 /** dnd5e stores container membership as an item id in `system.container`. */
+export function usesTwoHands(item: any): boolean {
+  const versatileTwoHanded = item?.getFlag?.(MODULE_ID, 'twoHanded') === true;
+  return isTwoHandedWeapon(item, versatileTwoHanded);
+}
+
 export function itemContainerId(item: any): string | null {
   const raw = item?.system?.container;
   if (typeof raw === 'string') return raw || null;
@@ -80,10 +90,19 @@ function enforceFoundryPlacement(actor: any, inv: any, itemIds: string[]) {
     if (item?.system?.equipped === true) {
       // A slot chosen in our UI wins; otherwise infer one from the dnd5e item.
       const currentSlot = EQUIPMENT_SLOTS.find((slot) => inv.equipment?.[slot.id] === id)?.id ?? null;
-      const slot = currentSlot ?? equipmentSlotForItem(item, inv.equipment ?? {});
+      const slots = usesTwoHands(item)
+        ? ['mainhand', 'offhand']
+        : [currentSlot ?? equipmentSlotForItem(item, inv.equipment ?? {})];
       removeItemFromInventory(inv, id);
-      if (slot && !inv.equipment[slot]) inv.equipment[slot] = id;
-      else inv.placements[id] = null; // Equipped elsewhere: keep it out of every grid.
+      let placed = false;
+      for (const slot of slots) {
+        if (!slot) continue;
+        // Never steal a slot from another equipped item during a read.
+        if (inv.equipment[slot] && String(inv.equipment[slot]) !== id) continue;
+        inv.equipment[slot] = id;
+        placed = true;
+      }
+      if (!placed) inv.placements[id] = null; // Equipped elsewhere: keep it out of every grid.
       continue;
     }
 
