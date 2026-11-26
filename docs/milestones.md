@@ -86,10 +86,10 @@ Leyenda de estado: 🔲 To do · 🔄 In progress · ✅ Done
 - [x] Reordenación de pestañas de contenedores arrastrando una sobre otra, con orden persistente (0.7.6)
 - [x] Filtro de tipos: hechizos, rasgos, clases, subclases, especies, antecedentes y demás objetos no físicos quedan fuera del inventario (0.7.7)
 
-## M8 — Multiplayer, permissions & sync (0.8.0) 🔲
-- [ ] Permisos GM/Jugador
-- [ ] Sync sin race conditions
-- [ ] Manejo de conflictos
+## M8 — Multiplayer, permissions & sync (0.8.0) ✅
+- [x] Permisos GM/Jugador: el GM edita cualquier actor, el jugador solo los suyos; observadores en solo lectura (0.8.0)
+- [x] Sync sin race conditions: revisión monótona en cada escritura (`revision`/`updatedBy`/`updatedAt`) y hooks que solo normalizan desde el cliente que hizo el cambio (0.8.0)
+- [x] Manejo de conflictos: escritura rezagada se rechaza con aviso y se recarga la versión ganadora (0.8.0)
 
 ## M9 — Public API & extensibility (0.9.0) 🔲
 - [ ] API pública documentada

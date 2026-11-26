@@ -169,7 +169,10 @@ export function createEmptyInventory(settings: any = {}) {
     placements: {},
     equipment: normalizeEquipment({}),
     containers: DEFAULT_CONTAINERS.map((c, i) => normalizeContainer(c, i, settings)),
-    containerOrder: []
+    containerOrder: [],
+    revision: 0,
+    updatedBy: null,
+    updatedAt: null
   };
 }
 
@@ -208,6 +211,7 @@ export function migrateInventory(raw: any, settings: any = {}) {
   data.containerOrder = Array.isArray(data.containerOrder)
     ? data.containerOrder.map((id: any) => String(id))
     : [];
+  data.revision = Math.max(0, Math.floor(Number(data.revision) || 0));
   data.version = INVENTORY_SCHEMA_VERSION;
   return data;
 }

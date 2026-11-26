@@ -11,6 +11,8 @@ import { dnd5eItemType, strengthCapacity } from './dnd5e';
 import { containerCapacity } from './container-capacity';
 import { containerKindMatches, isContainerItem, normalizedContainerLimit } from './containers';
 import { inventoryItemIds, isInventoryItem } from './inventory-items';
+import { canEditInventory } from './permissions';
+import { applyRevision, isStaleWrite, type InventoryWriteResult } from './inventory-sync';
 
 function settingsDefaults() {
   try {
@@ -120,14 +122,24 @@ export function getActorInventory(actor: any) {
   return inv;
 }
 
-export async function setActorInventory(actor: any, data: any) {
-  if (!actor) return null;
-  await actor.setFlag(MODULE_ID, 'inventory', data);
-  return data;
+/** Persist an inventory with an optimistic revision check. */
+export async function setActorInventory(
+  actor: any,
+  data: any,
+  options: { force?: boolean } = {}
+): Promise<InventoryWriteResult> {
+  if (!actor || !canEditInventory(game?.user, actor)) return { applied: false };
+  const current = actor.getFlag?.(MODULE_ID, 'inventory');
+  if (!options.force && isStaleWrite(current, data)) {
+    return { applied: false, conflict: true, current };
+  }
+  const next = applyRevision(data, current, game?.user?.id ?? null);
+  await actor.setFlag(MODULE_ID, 'inventory', next);
+  return { applied: true, data: next };
 }
 
 export async function syncActorItems(actor: any) {
-  if (!actor || (!actor.isOwner && !game.user?.isGM)) return null;
+  if (!actor || !canEditInventory(game?.user, actor)) return null;
   const next = getActorInventory(actor);
   const current = actor.getFlag(MODULE_ID, 'inventory');
   if (JSON.stringify(current) !== JSON.stringify(next)) {

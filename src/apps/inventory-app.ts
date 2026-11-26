@@ -13,7 +13,8 @@ import {
   getItemStack,
   setActorInventory
 } from '../data/inventory-service';
-import { attunementState, canEditInventory, weaponSummary } from '../data/dnd5e';
+import { attunementState, weaponSummary } from '../data/dnd5e';
+import { canEditInventory } from '../data/permissions';
 import {
   EMPTY_FILTERS,
   SHORTCUTS,
@@ -121,7 +122,7 @@ export class InventoryApp extends foundry.applications.api.ApplicationV2 {
   }
 
   get editable() {
-    return canEditInventory(game?.user);
+    return canEditInventory(game?.user, this.actor);
   }
 
   _localize(key: string, fallback: string) {
@@ -135,6 +136,27 @@ export class InventoryApp extends foundry.applications.api.ApplicationV2 {
   _themeClass() {
     const theme = game?.settings?.get?.(MODULE_ID, 'theme');
     return `arpginv-theme--${['light', 'dark', 'highContrast'].includes(theme) ? theme : 'light'}`;
+  }
+
+  /** Save with revision checking; reload on conflict instead of overwriting. */
+  async _saveInventory(inv: any): Promise<boolean> {
+    const result = await setActorInventory(this.actor, inv);
+    if (result.applied) return true;
+    if (result.conflict) {
+      ui?.notifications?.warn?.('Inventory changed elsewhere; reloaded your copy');
+      this.render(true);
+    }
+    return false;
+  }
+
+  /** Apply a merged stack to its item after the inventory flag was saved. */
+  async _persistStack(targetId: string, placements: any) {
+    if (!this.editable) return;
+    const targetItem = this.actor.items.get(targetId);
+    if (!targetItem) return;
+    const stack = placements[targetId]?.stack ?? { current: 1, max: 1 };
+    await targetItem.setFlag(MODULE_ID, 'stack', { current: stack.current, max: stack.max });
+    await targetItem.update({ 'system.quantity': stack.current });
   }
 
   /**
@@ -275,7 +297,7 @@ export class InventoryApp extends foundry.applications.api.ApplicationV2 {
     if (from < 0 || to < 0) return false;
     [ids[from], ids[to]] = [ids[to], ids[from]];
     inv.containerOrder = ids;
-    await setActorInventory(this.actor, inv);
+    if (!(await this._saveInventory(inv))) return false;
     playInventorySound('place');
     this.render(true);
     return true;
@@ -317,7 +339,7 @@ export class InventoryApp extends foundry.applications.api.ApplicationV2 {
         break;
       }
     }
-    if (changed) await setActorInventory(this.actor, inv);
+    if (changed) await this._saveInventory(inv);
   }
 
   // ---- M7: filters, tooltips, shortcuts ------------------------------------
@@ -581,7 +603,7 @@ export class InventoryApp extends foundry.applications.api.ApplicationV2 {
     const placed = placeItem(state, token, spot.x, spot.y, false);
     if (!placed) return false;
     inv.placements = placed.placements;
-    await setActorInventory(this.actor, inv);
+    if (!(await this._saveInventory(inv))) return false;
     playInventorySound('place');
     this.render(true);
     return true;
@@ -600,7 +622,7 @@ export class InventoryApp extends foundry.applications.api.ApplicationV2 {
     if (!this.editable) {
       const notice = document.createElement('div');
       notice.className = 'arpginv-readonly';
-      notice.textContent = 'Solo lectura: solo el GM puede editar el inventario.';
+      notice.textContent = 'Solo lectura: no tienes permiso para editar este inventario.';
       root.appendChild(notice);
     }
 
@@ -1008,13 +1030,15 @@ export class InventoryApp extends foundry.applications.api.ApplicationV2 {
     if (zoneId === 'main') inv.placements = placements;
     else zone.placements = placements;
 
+    if (!(await this._saveInventory(inv))) {
+      this._endDrag();
+      return false;
+    }
     if (consumed) {
-      await this._consumeStackedItem(inv, targetId, placements);
-      await setActorInventory(this.actor, inv);
+      await this._persistStack(targetId, placements);
       await this.actor.deleteEmbeddedDocuments('Item', [draggedId]);
       playInventorySound('stack');
     } else {
-      await setActorInventory(this.actor, inv);
       playInventorySound('place');
     }
     this._endDrag();
@@ -1030,7 +1054,7 @@ export class InventoryApp extends foundry.applications.api.ApplicationV2 {
     const inv = getActorInventory(this.actor);
     removeItemFromInventory(inv, draggedId);
     inv.equipment[slotId] = draggedId;
-    await setActorInventory(this.actor, inv);
+    if (!(await this._saveInventory(inv))) return false;
     playInventorySound('equip');
     this._endDrag();
     this.render(true);
@@ -1066,7 +1090,7 @@ export class InventoryApp extends foundry.applications.api.ApplicationV2 {
     if (!placed) return false;
     if (zoneId === 'main') inv.placements = placed.placements;
     else zone.placements = placed.placements;
-    await setActorInventory(this.actor, inv);
+    if (!(await this._saveInventory(inv))) return false;
     playInventorySound('place');
     this._endDrag();
     this.render(true);
@@ -1078,15 +1102,6 @@ export class InventoryApp extends foundry.applications.api.ApplicationV2 {
     const draggedId = this.dragItemId;
     if (!draggedId) return false;
     return this._moveItemToZone(draggedId, zoneId);
-  }
-
-  async _consumeStackedItem(inv: any, targetId: string, placements: any) {
-    if (!this.editable) return;
-    const targetItem = this.actor.items.get(targetId);
-    if (!targetItem) return;
-    const stack = placements[targetId]?.stack ?? { current: 1, max: 1 };
-    await targetItem.setFlag(MODULE_ID, 'stack', { current: stack.current, max: stack.max });
-    await targetItem.update({ 'system.quantity': stack.current });
   }
 
   _cellFromPoint(grid: HTMLElement, clientX: number, clientY: number) {

@@ -1,17 +1,32 @@
 import { MODULE_ID } from '../constants';
 import { warn } from '../utils/logger';
+import { canEditInventory } from '../data/permissions';
 import { syncActorItems } from '../data/inventory-service';
-import { refreshInventoryForActor } from '../input/keybindings';
+import { notifyRemoteInventoryUpdate, refreshInventoryForActor } from '../input/keybindings';
 
 const syncing = new WeakSet();
+const INVENTORY_FLAG = `flags.${MODULE_ID}.inventory`;
+
+function ownsChange(actor: any, userId: string) {
+  return game.user?.id === userId && canEditInventory(game.user, actor);
+}
+
+/** Local writers normalize the flag; every client refreshes its open panel. */
+async function syncAndRefresh(actor: any, userId: string) {
+  if (ownsChange(actor, userId)) await syncActorItems(actor);
+  refreshInventoryForActor(actor);
+}
+
+function touchesInventoryFlag(changes: any): boolean {
+  const keys = Object.keys(changes ?? {});
+  return keys.some((key) => key === INVENTORY_FLAG || key.startsWith(`${INVENTORY_FLAG}.`));
+}
 
 export function registerDnd5eHooks() {
   Hooks.on('createActor', async (actor, options, userId) => {
-    if (game.user?.id !== userId) return;
     if (!actor?.isOwner && !game.user?.isGM) return;
     try {
-      await syncActorItems(actor);
-      refreshInventoryForActor(actor);
+      await syncAndRefresh(actor, userId);
     } catch (e) {
       warn('createActor sync failed', e);
     }
@@ -19,14 +34,12 @@ export function registerDnd5eHooks() {
 
   Hooks.on('createItem', async (item, options, userId) => {
     const actor = item?.parent;
-    if (!actor || actor.documentName !=='Actor') return;
-    if (game.user?.id !== userId) return;
+    if (!actor || actor.documentName !== 'Actor') return;
     if (!actor.isOwner && !game.user?.isGM) return;
     if (syncing.has(actor)) return;
     syncing.add(actor);
     try {
-      await syncActorItems(actor);
-      refreshInventoryForActor(actor);
+      await syncAndRefresh(actor, userId);
     } catch (e) {
       warn('createItem sync failed', e);
     } finally {
@@ -36,14 +49,12 @@ export function registerDnd5eHooks() {
 
   Hooks.on('deleteItem', async (item, options, userId) => {
     const actor = item?.parent;
-    if (!actor || actor.documentName !=='Actor') return;
-    if (game.user?.id !== userId) return;
+    if (!actor || actor.documentName !== 'Actor') return;
     if (!actor.isOwner && !game.user?.isGM) return;
     if (syncing.has(actor)) return;
     syncing.add(actor);
     try {
-      await syncActorItems(actor);
-      refreshInventoryForActor(actor);
+      await syncAndRefresh(actor, userId);
     } catch (e) {
       warn('deleteItem sync failed', e);
     } finally {
@@ -52,18 +63,22 @@ export function registerDnd5eHooks() {
   });
 
   Hooks.on('updateActor', async (actor, changes, options, userId) => {
-    if (game.user?.id !== userId) return;
     if (!actor?.isOwner && !game.user?.isGM) return;
-    const changeKeys = Object.keys(changes ?? {});
-    const touchesStrength = changeKeys.some((key) => /^system\.(abilities\.str|attributes\.encumbrance)/.test(key))
+    const keys = Object.keys(changes ?? {});
+    const touchesStrength = keys.some((key) => /^system\.(abilities\.str|attributes\.encumbrance)/.test(key))
       || !!changes?.system?.abilities?.str
       || !!changes?.system?.attributes?.encumbrance;
-    if (!touchesStrength) return;
+    const flagChange = touchesInventoryFlag(changes);
+    if (!touchesStrength && !flagChange) return;
     if (syncing.has(actor)) return;
     syncing.add(actor);
     try {
-      await syncActorItems(actor);
-      refreshInventoryForActor(actor);
+      if (flagChange && game.user?.id !== userId) {
+        // Another client won the revision race; keep its version and reload.
+        notifyRemoteInventoryUpdate(actor);
+      } else if (touchesStrength) {
+        await syncAndRefresh(actor, userId);
+      }
     } catch (e) {
       warn('updateActor sync failed', e);
     } finally {
@@ -74,7 +89,6 @@ export function registerDnd5eHooks() {
   Hooks.on('updateItem', async (item, changes, options, userId) => {
     const actor = item?.parent;
     if (!actor || actor.documentName !== 'Actor') return;
-    if (game.user?.id !== userId) return;
     if (!actor.isOwner && !game.user?.isGM) return;
     const fields = ['quantity', 'attunement', 'uses', 'type', 'rarity', 'damage', 'attack'];
     const touchesData = Object.keys(changes ?? {})
@@ -84,8 +98,7 @@ export function registerDnd5eHooks() {
     if (syncing.has(actor)) return;
     syncing.add(actor);
     try {
-      await syncActorItems(actor);
-      refreshInventoryForActor(actor);
+      await syncAndRefresh(actor, userId);
     } catch (e) {
       warn('updateItem sync failed', e);
     } finally {

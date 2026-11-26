@@ -1,5 +1,7 @@
 // Pure D&D 5e helpers. No Foundry globals, safe to unit-test.
 
+export { canEditInventory, canViewInventory } from './permissions';
+
 /** Maximum carried weight for a dnd5e actor in pounds. */
 export function strengthCapacity(actor: any): number | null {
   const encumbrance = Number(actor?.system?.attributes?.encumbrance?.max);
@@ -81,7 +83,3 @@ export function weaponSummary(item: any): WeaponSummary | null {
   };
 }
 
-/** Inventory mutation is restricted to GM users. */
-export function canEditInventory(user: any): boolean {
-  return !!user?.isGM;
-}

@@ -1,6 +1,6 @@
 # AGENT.md — Guía del agente de desarrollo
 
-> Documento vivo. Define arquitectura, convenciones y reglas de trabajo del módulo **ARPG Inventory** para Foundry VTT v14. Versión del documento: **0.7.7**.
+> Documento vivo. Define arquitectura, convenciones y reglas de trabajo del módulo **ARPG Inventory** para Foundry VTT v14. Versión del documento: **0.8.0**.
 
 ---
 
@@ -58,6 +58,8 @@ src/
 │   ├── container-capacity.ts      # 4 lb por celda, conteo y rejilla cuadrada
 │   ├── containers.ts              # detección de contenedores y límite del GM
 │   ├── inventory-items.ts         # tipos dnd5e permitidos en el inventario
+│   ├── permissions.ts             # GM/dueño/observador (puro, testeable)
+│   ├── inventory-sync.ts          # revisiones y resolución de conflictos (puro)
 │   ├── placeholders.ts            # icons core para slots/armas/zonas vacías
 │   └── ux.ts                      # filtros, opciones, peso y tooltips (puro)
 ├── engine/
@@ -90,7 +92,7 @@ tests/{data,engine}/*.test.ts   # incluye dnd5e.test.ts y ux.test.ts
 - Cadenas visibles al usuario: usar `game.i18n.localize` cuando exista clave en `lang/en.json`.
 - Reglas dnd5e y permisos van en `src/data/dnd5e.ts` (puro, testeable); la UI solo consume esos helpers.
 - Mutar flags del inventario está permitido únicamente al GM (`canEditInventory`); otros usuarios ven la app en solo lectura.
-- Lógica de UX no dependiente de Foundry va en `src/data/ux.ts` (puro, testeable); los icons de placeholders en `src/data/placeholders.ts`; las reglas de contenedores en `src/data/containers.ts`; la capacidad derivada en `src/data/container-capacity.ts`; el filtro de tipos de ítem en `src/data/inventory-items.ts`; el sonido opcional en `src/utils/sound.ts`.
+- Lógica de UX no dependiente de Foundry va en `src/data/ux.ts` (puro, testeable); los icons de placeholders en `src/data/placeholders.ts`; las reglas de contenedores en `src/data/containers.ts`; la capacidad derivada en `src/data/container-capacity.ts`; el filtro de tipos de ítem en `src/data/inventory-items.ts`; los permisos en `src/data/permissions.ts` y las revisiones en `src/data/inventory-sync.ts`; el sonido opcional en `src/utils/sound.ts`.
 - Un placeholder solo se renderiza cuando el slot/arma/zona está vacío; todos usan el mismo filtro grisáreo y opacidad para quedar como fondo. La excepción son las pestañas de zona disponibles (icono a color) y las armas (placeholder a pantalla completa).
 - `backpack` se habilita con cualquier ítem de tipo `container`; `quiver` por nombre (`quiver`/`carcaj`). Si no hay contenedor, la pestaña sigue visible pero inactiva (grisárea, borde discontinuo, `aria-disabled`) y avisa con `ui.notifications.warn` al intentar usarla; sus ítems se reubican en una zona válida.
 - La pestaña de un contenedor disponible usa la imagen del ítem contenedor del actor; si no existe, usa el icono core atenuado.
@@ -115,6 +117,9 @@ Inventory {
     placements: { [itemId]: placement }
   }]
   containerOrder: [zoneId]  // orden elegido por el usuario para las pestañas
+  revision: number          // se incrementa en cada escritura
+  updatedBy: userId | null
+  updatedAt: timestamp | null
 }
 ```
 
@@ -126,6 +131,8 @@ Capacidad `strength`: `system.attributes.encumbrance.max` o `Fuerza × 15` lb. T
 
 Contenedores: una zona por ítem contenedor del actor, con `capacity: { cols, rows, maxWeight, spaces, mode, maxCount }` derivada del ítem. Por peso: 4 lb = 1 celda y rejilla cuadrada. Por conteo: **un slot del tamaño del contenido** (flechas 1×2) y `maxCount` = límite de apilado (quiver 20); no se crea una celda por unidad. `backpack` (6×4, 40) y `quiver` (2×4, 10) se conservan solo como placeholders inactivos cuando no hay ítem dedicado.
 Un item está en **una sola zona**; `removeItemFromInventory` lo saca de todas antes de moverlo. Al arrastrar una bolsa sobre otra bolsa de la misma zona se intercambian sus posiciones (`swapItems`), con ajuste de anclas si difieren en tamaño; el swap está restringido a ítems contenedores. Las pestañas de contenedor se reordenan arrastrando una sobre otra y su orden se guarda en `containerOrder`.
+
+Permisos: el GM edita cualquier actor; un jugador solo edita los actores que posee; los observadores abren el panel en solo lectura. Toda escritura usa `setActorInventory`, que verifica la revisión actual, incrementa `revision` y guarda `updatedBy`/`updatedAt`. Si otra cliente ganó la carrera, se descarta el guardado, se avisa y se recarga la versión ganadora; los hooks de flag remoto refrescan los paneles abiertos.
 
 ---
 
@@ -165,4 +172,4 @@ Un item está en **una sola zona**; `removeItemFromInventory` lo saca de todas a
 
 ---
 
-_Última actualización: 0.7.7 (solo objetos físicos en el inventario; excluidos hechizos, rasgos, clases, especies, etc.)._
+_Última actualización: 0.8.0 (permisos GM/dueño/observador, escrituras con revisión y recuperación de conflictos)._

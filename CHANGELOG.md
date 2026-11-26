@@ -10,6 +10,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - (next milestone in progress)
 
+## [0.8.0] - 2026-11-26
+
+### Added
+- `src/data/permissions.ts`: the GM edits every actor, a player edits only actors they own, and observers get a read-only view. `src/data/inventory-sync.ts`: pure revision helpers (`revisionOf`, `isStaleWrite`, `applyRevision`, `newerInventory`). 8 new tests (total 64).
+
+### Changed
+- Every inventory write bumps `revision` and records `updatedBy`/`updatedAt`. Stale writes are rejected with a warning and the panel reloads the winning copy.
+- Remote flag updates refresh open panels and notify the user; actor/item hooks only normalize inventories from the client that made the change.
+
 ## [0.7.7] - 2026-11-26
 
 ### Added

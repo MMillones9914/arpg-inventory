@@ -58,8 +58,9 @@ describe('dnd5e helpers', () => {
     expect(weaponSummary(null)).toBeNull();
   });
 
-  it('restricts inventory editing to GM users', () => {
+  it('re-exports the shared GM/owner permission rules', () => {
     expect(canEditInventory({ isGM: true })).toBe(true);
-    expect(canEditInventory({ isGM: false, isOwner: true })).toBe(false);
+    expect(canEditInventory({ isGM: false }, { isOwner: true })).toBe(true);
+    expect(canEditInventory({ isGM: false }, { isOwner: false })).toBe(false);
   });
 });

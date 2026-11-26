@@ -2,11 +2,19 @@ import { MODULE_ID } from '../constants';
 import { log, warn } from '../utils/logger';
 import { InventoryApp } from '../apps/inventory-app';
 import { playInventorySound } from '../utils/sound';
+import { canViewInventory } from '../data/permissions';
 
 let appInstance = null;
 
 export function refreshInventoryForActor(actor?: any) {
   if (appInstance?.rendered && (!actor || appInstance.actor === actor)) appInstance.render();
+}
+
+/** A remote flag write won the revision race: refresh and tell the user. */
+export function notifyRemoteInventoryUpdate(actor?: any) {
+  if (!appInstance?.rendered || (actor && appInstance.actor !== actor)) return;
+  ui?.notifications?.info?.('Inventory updated by another user');
+  appInstance.render();
 }
 
 function isTypingTarget(target: any): boolean {
@@ -22,6 +30,10 @@ export function openInventory() {
       if (controlled) actor = controlled;
       else if (game.user?.character) actor = game.user.character;
     } catch (e) {}
+    if (actor && !canViewInventory(game?.user, actor)) {
+      ui?.notifications?.warn?.('You cannot view this inventory');
+      return;
+    }
     if (appInstance?.rendered && (!actor || appInstance.actor === actor)) {
       appInstance.close();
       playInventorySound('close');
