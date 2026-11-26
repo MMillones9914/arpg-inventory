@@ -31,3 +31,8 @@ export function slotPlaceholder(slotId: string): string | null {
 export function zonePlaceholder(zoneId: string): string {
   return ZONE_PLACEHOLDERS[zoneId] ?? ZONE_PLACEHOLDERS.main;
 }
+
+/** Fallback icon for a dynamic container without an image of its own. */
+export function containerPlaceholder(name: string): string {
+  return /quiver|carcaj/i.test(name) ? ZONE_PLACEHOLDERS.quiver : ZONE_PLACEHOLDERS.backpack;
+}

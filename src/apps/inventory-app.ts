@@ -24,11 +24,7 @@ import {
   tooltipLines,
   type ItemFilters
 } from '../data/ux';
-import { slotPlaceholder, zonePlaceholder } from '../data/placeholders';
-import {
-  findContainerItem,
-  isContainerAvailable
-} from '../data/containers';
+import { containerPlaceholder, slotPlaceholder, zonePlaceholder } from '../data/placeholders';
 import { playInventorySound } from '../utils/sound';
 import { pointToCell } from '../engine/grid-geometry';
 import {
@@ -140,7 +136,6 @@ export class InventoryApp extends foundry.applications.api.ApplicationV2 {
    */
   _zoneDefs(inv: any = getActorInventory(this.actor)) {
     if (!inv) return [];
-    const items = [...(this.actor?.items ?? [])];
     const defs = [{
       id: 'main',
       name: this._localize('ARPGINV.App.ZoneMain', 'Main'),
@@ -149,13 +144,14 @@ export class InventoryApp extends foundry.applications.api.ApplicationV2 {
       icon: zonePlaceholder('main')
     }];
     for (const container of inv.containers ?? []) {
-      const item = findContainerItem(container, items);
+      const item = this.actor?.items?.get?.(container.id);
+      const available = container.available !== false && !!item;
       defs.push({
         id: container.id,
         name: container.name,
         zone: container,
-        available: !!item,
-        icon: item?.img || zonePlaceholder(container.id)
+        available,
+        icon: item?.img || containerPlaceholder(container.name)
       });
     }
     return defs;
@@ -250,7 +246,7 @@ export class InventoryApp extends foundry.applications.api.ApplicationV2 {
     // Items left in a container the actor no longer owns are unreachable;
     // release them so the normal placement pass returns them to a usable zone.
     for (const container of inv.containers ?? []) {
-      if (isContainerAvailable(container, items)) continue;
+      if (container.available !== false) continue;
       for (const itemId of Object.keys(container.placements ?? {})) {
         if (container.placements[itemId]) {
           container.placements[itemId] = null;

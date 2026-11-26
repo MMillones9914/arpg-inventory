@@ -1,6 +1,12 @@
 import { describe, it, expect } from 'vitest';
 import { EQUIPMENT_SLOTS } from '../../src/data/grid-model';
-import { SLOT_PLACEHOLDERS, ZONE_PLACEHOLDERS, slotPlaceholder, zonePlaceholder } from '../../src/data/placeholders';
+import {
+  containerPlaceholder,
+  SLOT_PLACEHOLDERS,
+  ZONE_PLACEHOLDERS,
+  slotPlaceholder,
+  zonePlaceholder
+} from '../../src/data/placeholders';
 
 describe('empty-slot placeholders', () => {
   it('has a core icon for every equipment slot', () => {
@@ -27,5 +33,7 @@ describe('empty-slot placeholders', () => {
     expect(zonePlaceholder('backpack')).toBe(ZONE_PLACEHOLDERS.backpack);
     expect(zonePlaceholder('quiver')).toBe(ZONE_PLACEHOLDERS.quiver);
     expect(zonePlaceholder('unknown')).toBe(ZONE_PLACEHOLDERS.main);
+    expect(containerPlaceholder('Quiver')).toBe(ZONE_PLACEHOLDERS.quiver);
+    expect(containerPlaceholder('Waterskin')).toBe(ZONE_PLACEHOLDERS.backpack);
   });
 });

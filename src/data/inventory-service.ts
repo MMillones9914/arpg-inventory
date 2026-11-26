@@ -4,9 +4,12 @@ import {
   normalizeCapacity,
   normalizePlacement,
   defaultItemGrid,
-  defaultItemStackMax
+  defaultItemStackMax,
+  DEFAULT_CONTAINERS
 } from './grid-model';
 import { dnd5eItemType, strengthCapacity } from './dnd5e';
+import { containerCapacity } from './container-capacity';
+import { containerKindMatches, isContainerItem, normalizedContainerLimit } from './containers';
 
 function settingsDefaults() {
   try {
@@ -14,7 +17,8 @@ function settingsDefaults() {
       defaultCapacityMode: game.settings.get(MODULE_ID, 'defaultCapacityMode'),
       defaultCols: game.settings.get(MODULE_ID, 'defaultCols'),
       defaultRows: game.settings.get(MODULE_ID, 'defaultRows'),
-      defaultMaxWeight: game.settings.get(MODULE_ID, 'defaultMaxWeight')
+      defaultMaxWeight: game.settings.get(MODULE_ID, 'defaultMaxWeight'),
+      maxContainers: game.settings.get(MODULE_ID, 'maxContainers')
     };
   } catch (e) {
     return {};
@@ -36,6 +40,53 @@ function normalizeZonePlacements(actor: any, zone: any, settings: any) {
   return zone;
 }
 
+/**
+ * One zone per carried container item, capped by the GM setting. Unused
+ * backpack/quiver definitions remain as inactive placeholders.
+ */
+export function syncDynamicContainers(actor: any, inv: any, settings: any = {}) {
+  const items: any[] = [...(actor?.items ?? [])];
+  const limit = normalizedContainerLimit(settings.maxContainers ?? 1);
+  const dynamic: any[] = [];
+  for (const item of items) {
+    if (!isContainerItem(item)) continue;
+    const id = String(item.id);
+    if (dynamic.some((zone) => zone.id === id)) continue;
+    if (dynamic.length >= limit) break;
+    const saved = inv.containers?.find((c: any) => c.id === id);
+    dynamic.push({
+      id,
+      name: String(item.name ?? 'Container'),
+      itemId: id,
+      img: String(item.img ?? ''),
+      available: true,
+      capacity: { mode: 'manual', ...containerCapacity(item) },
+      placements: saved?.placements ?? {}
+    });
+  }
+  const dynamicIds = new Set(dynamic.map((zone) => zone.id));
+  const placeholders = (inv.containers ?? [])
+    .filter((c: any) => {
+      if (dynamicIds.has(c.id)) return false;
+      if (c.itemId && !dynamicIds.has(String(c.itemId))) return false;
+      return !items.some((item) => dynamicIds.has(String(item.id)) && containerKindMatches(c, item));
+    })
+    .map((c: any) => ({ ...c, available: false, itemId: null }));
+  for (const fallback of DEFAULT_CONTAINERS) {
+    if (placeholders.some((c: any) => c.id === fallback.id) || dynamicIds.has(fallback.id)) continue;
+    if (items.some((item) => dynamicIds.has(String(item.id)) && containerKindMatches(fallback, item))) continue;
+    placeholders.push({ ...fallback, available: false, itemId: null });
+  }
+  placeholders.sort((a: any, b: any) => {
+    const order = (c: any) => {
+      const index = DEFAULT_CONTAINERS.findIndex((def) => def.id === c.id);
+      return index < 0 ? DEFAULT_CONTAINERS.length : index;
+    };
+    return order(a) - order(b);
+  });
+  inv.containers = [...dynamic, ...placeholders];
+}
+
 export function getActorInventory(actor: any) {
   if (!actor) return null;
   const raw = actor.getFlag(MODULE_ID, 'inventory');
@@ -50,6 +101,7 @@ export function getActorInventory(actor: any) {
     if (max !== null) inv.capacity.maxWeight = max;
   }
 
+  syncDynamicContainers(actor, inv, settings);
   normalizeZonePlacements(actor, inv, settings);
   for (const container of inv.containers) normalizeZonePlacements(actor, container, settings);
   return inv;

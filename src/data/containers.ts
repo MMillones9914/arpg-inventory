@@ -23,6 +23,17 @@ function isQuiverItem(item: any): boolean {
   return itemMatchesPattern(item, QUIVER_PATTERN);
 }
 
+/** Any dnd5e container type or a named quiver provides a container zone. */
+export function isContainerItem(item: any): boolean {
+  return !!item && (CONTAINER_TYPE_PATTERN.test(itemType(item)) || isQuiverItem(item));
+}
+
+/** The GM setting controls how many container zones exist; never less than 1. */
+export function normalizedContainerLimit(value: any): number {
+  const limit = Math.floor(Number(value));
+  return Number.isFinite(limit) && limit >= 1 ? limit : 1;
+}
+
 /** True when the actor carries an item that can provide that container zone. */
 export function hasContainer(items: any[] = [], kind: ContainerKind): boolean {
   if (kind === 'quiver') return items.some((item) => isQuiverItem(item));
@@ -46,6 +57,16 @@ export function findContainerItem(container: any, items: any[] = []): any | null
         || String(item.name).toLocaleLowerCase() === String(container.name).toLocaleLowerCase()
       );
   return items.find(matches) ?? null;
+}
+
+/** Whether an item is the dedicated provider of a given placeholder zone. */
+export function containerKindMatches(container: any, item: any): boolean {
+  if (!container || !item) return false;
+  const key = `${container.id ?? ''} ${container.name ?? ''}`;
+  if (BACKPACK_PATTERN.test(key)) return itemMatchesPattern(item, BACKPACK_PATTERN);
+  if (QUIVER_PATTERN.test(key)) return itemMatchesPattern(item, QUIVER_PATTERN);
+  return item.id === container.id
+    || String(item.name).toLocaleLowerCase() === String(container.name).toLocaleLowerCase();
 }
 
 export function isContainerAvailable(container: any, items: any[] = []): boolean {

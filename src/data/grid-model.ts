@@ -27,7 +27,7 @@ export const EQUIPMENT_SLOTS = [
   { id: 'ammo', label: 'Municiones', side: 'weapon' }
 ] as const;
 
-const DEFAULT_CONTAINERS = [
+export const DEFAULT_CONTAINERS = [
   { id: 'backpack', name: 'Backpack', capacity: { cols: 6, rows: 4, maxWeight: 40 } },
   { id: 'quiver', name: 'Quiver', capacity: { cols: 2, rows: 4, maxWeight: 10 } }
 ];

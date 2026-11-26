@@ -1,6 +1,6 @@
 # AGENT.md — Guía del agente de desarrollo
 
-> Documento vivo. Define arquitectura, convenciones y reglas de trabajo del módulo **ARPG Inventory** para Foundry VTT v14. Versión del documento: **0.7.3**.
+> Documento vivo. Define arquitectura, convenciones y reglas de trabajo del módulo **ARPG Inventory** para Foundry VTT v14. Versión del documento: **0.7.4**.
 
 ---
 
@@ -55,7 +55,8 @@ src/
 │   ├── dnd5e.ts                   # reglas 5e puras: capacidad, tipos, attunement, usos, permisos
 │   ├── grid-model.ts              # schema v2, zones, slots, normalización pura
 │   ├── inventory-service.ts       # acceso a flags + grid/stack de items
-│   ├── containers.ts              # disponibilidad de zonas según contenedor poseído
+│   ├── container-capacity.ts      # 4 lb por celda, conteo y rejilla cuadrada
+│   ├── containers.ts              # detección de contenedores y límite del GM
 │   ├── placeholders.ts            # icons core para slots/armas/zonas vacías
 │   └── ux.ts                      # filtros, opciones, peso y tooltips (puro)
 ├── engine/
@@ -88,10 +89,11 @@ tests/{data,engine}/*.test.ts   # incluye dnd5e.test.ts y ux.test.ts
 - Cadenas visibles al usuario: usar `game.i18n.localize` cuando exista clave en `lang/en.json`.
 - Reglas dnd5e y permisos van en `src/data/dnd5e.ts` (puro, testeable); la UI solo consume esos helpers.
 - Mutar flags del inventario está permitido únicamente al GM (`canEditInventory`); otros usuarios ven la app en solo lectura.
-- Lógica de UX no dependiente de Foundry va en `src/data/ux.ts` (puro, testeable); los icons de placeholders en `src/data/placeholders.ts`; las reglas de contenedores disponibles en `src/data/containers.ts`; el sonido opcional en `src/utils/sound.ts`.
+- Lógica de UX no dependiente de Foundry va en `src/data/ux.ts` (puro, testeable); los icons de placeholders en `src/data/placeholders.ts`; las reglas de contenedores en `src/data/containers.ts`; la capacidad derivada en `src/data/container-capacity.ts`; el sonido opcional en `src/utils/sound.ts`.
 - Un placeholder solo se renderiza cuando el slot/arma/zona está vacío; todos usan el mismo filtro grisáreo y opacidad para quedar como fondo. La excepción son las pestañas de zona disponibles (icono a color) y las armas (placeholder a pantalla completa).
 - `backpack` se habilita con cualquier ítem de tipo `container`; `quiver` por nombre (`quiver`/`carcaj`). Si no hay contenedor, la pestaña sigue visible pero inactiva (grisárea, borde discontinuo, `aria-disabled`) y avisa con `ui.notifications.warn` al intentar usarla; sus ítems se reubican en una zona válida.
 - La pestaña de un contenedor disponible usa la imagen del ítem contenedor del actor; si no existe, usa el icono core atenuado.
+- Cada ítem contenedor crea su propia zona (id = item id) con rejilla cuadrada exacta: 4 lb equivalen a 1 celda y `capacity.count` cuenta como celdas. El setting `maxContainers` limita el número de zonas; mínimo 1.
 - Los temas son variables CSS en `.arpg-inventory` con clases `arpginv-theme--light|dark|highContrast`; la app añade la clase activa a la raíz.
 - El tooltip propio vive en `document.body`; se oculta al salir del objetivo y se elimina al cerrar la app.
 - Layout de la app: flex horizontal; `.window-content` sin padding y raíz con padding 7px arriba/izquierda y 5px abajo/derecha. El resto de separaciones usan `--arpginv-space` (5px). Equipo 9:16 a la izquierda con `actor.img` de fondo, inventario a la derecha con espacios de armas encima del grid; panel con ancho fijo igual al grid principal; ventana 710×620.
@@ -120,7 +122,7 @@ Slots (14):
 
 Capacidad `strength`: `system.attributes.encumbrance.max` o `Fuerza × 15` lb. Tamaños por tipo dnd5e en `ITEM_GRID_DEFAULTS` (armadura 2×3, herramienta 1×2, munición stack 20, etc.).
 
-Contenedores por defecto: `backpack` (6×4, 40) y `quiver` (2×4, 10).
+Contenedores: una zona por ítem contenedor del actor, con `capacity: { cols, rows, maxWeight, spaces, mode }` derivada del ítem (4 lb/celda o `count`). `backpack` (6×4, 40) y `quiver` (2×4, 10) se conservan solo como placeholders inactivos cuando no hay ítem dedicado.
 Un item está en **una sola zona**; `removeItemFromInventory` lo saca de todas antes de moverlo.
 
 ---
@@ -161,4 +163,4 @@ Un item está en **una sola zona**; `removeItemFromInventory` lo saca de todas a
 
 ---
 
-_Última actualización: 0.7.3 (backpack por tipo `container`, pestañas inactivas visibles con alerta e icono del contenedor)._
+_Última actualización: 0.7.4 (zonas dinámicas por contenedor, capacidad 4 lb/celda y límite `maxContainers`)._

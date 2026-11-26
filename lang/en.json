@@ -7,6 +7,10 @@
         "ChoiceStrength": "By Strength (D&D 5e)",
         "ChoiceManual": "Manual (GM-defined)"
       },
+      "MaxContainers": {
+        "Name": "Maximum container zones",
+        "Hint": "How many carried containers get their own inventory zone. Minimum 1."
+      },
       "DefaultCols": {
         "Name": "Default columns",
         "Hint": "Default number of grid columns for new inventories."

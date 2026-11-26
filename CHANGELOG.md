@@ -10,6 +10,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - (next milestone in progress)
 
+## [0.7.4] - 2026-11-26
+
+### Added
+- Zona de inventario **por cada contenedor que lleva el actor**: se crea una pestaña extra por ítem (tipo `container` o quiver por nombre), con el icono del ítem y su capacidad propia. 9 tests nuevos (total 48).
+- Setting mundial `maxContainers` (mínimo 1, por defecto 5): el GM limita cuántas zonas de contenedor pueden mostrarse.
+- `src/data/container-capacity.ts`: 4 lb = 1 celda; `capacity.weight` / legacy `capacity.type: "weight"` por peso y `capacity.count` por conteo; rejilla cuadrada exacta (40 lb -> 5×2, 20 flechas -> 5×4, 4 lb -> 1×1).
+
+### Changed
+- Las definiciones `backpack`/`quiver` sin ítem propio quedan como placeholders inactivos; si existe un ítem dedicado, su pestaña dinámica sustituye al placeholder.
+- Los ítems guardados en un contenedor que desaparece (o queda fuera del límite del GM) se liberan y se recolocan en una zona válida.
+
 ## [0.7.3] - 2026-11-26
 
 ### Added

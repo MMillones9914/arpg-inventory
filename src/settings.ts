@@ -42,6 +42,15 @@ export function registerSettings() {
     default: 100
   });
 
+  game.settings.register(MODULE_ID, 'maxContainers', {
+    name: 'ARPGINV.Settings.MaxContainers.Name',
+    hint: 'ARPGINV.Settings.MaxContainers.Hint',
+    scope: 'world',
+    config: true,
+    type: Number,
+    default: 5
+  });
+
   // M7 — UX, accessibility & theming.
   game.settings.register(MODULE_ID, 'theme', {
     name: 'ARPGINV.Settings.Theme.Name',
