@@ -10,6 +10,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - (next milestone in progress)
 
+## [0.7.6] - 2026-11-26
+
+### Added
+- Container tabs can be reordered by dragging one tab onto another; the chosen order persists in `inventory.containerOrder` and survives container syncs.
+- Drop-target outline and drag feedback for tabs; help panel lists both tab reordering and bag swapping.
+
 ## [0.7.5] - 2026-11-26
 
 ### Added

@@ -92,6 +92,7 @@ export class InventoryApp extends foundry.applications.api.ApplicationV2 {
   actor: any;
   activeZone = 'main';
   dragItemId: string | null = null;
+  dragTabId: string | null = null;
   dragRotated = false;
   dragSource: any = null;
   filters: ItemFilters = { ...EMPTY_FILTERS };
@@ -258,6 +259,23 @@ export class InventoryApp extends foundry.applications.api.ApplicationV2 {
       stack,
       stackKey: dragged?.name ?? draggedId
     });
+  }
+
+  /** Reorder container tabs by dragging one tab onto another. */
+  async _reorderContainerTab(draggedId: string, targetId: string) {
+    if (!this.editable || !draggedId || draggedId === targetId) return false;
+    if (draggedId === 'main' || targetId === 'main') return false;
+    const inv = getActorInventory(this.actor);
+    const ids = (inv.containers ?? []).map((c: any) => String(c.id));
+    const from = ids.indexOf(draggedId);
+    const to = ids.indexOf(targetId);
+    if (from < 0 || to < 0) return false;
+    [ids[from], ids[to]] = [ids[to], ids[from]];
+    inv.containerOrder = ids;
+    await setActorInventory(this.actor, inv);
+    playInventorySound('place');
+    this.render(true);
+    return true;
   }
 
   async _autoPlaceAll(inv: any) {
@@ -718,7 +736,27 @@ export class InventoryApp extends foundry.applications.api.ApplicationV2 {
       icon.alt = '';
       icon.setAttribute('aria-hidden', 'true');
       btn.appendChild(icon);
+      btn.draggable = true;
       btn.addEventListener('click', () => this._switchZone(def.id));
+      btn.addEventListener('dragstart', (ev) => {
+        ev.stopPropagation();
+        this.dragTabId = def.id;
+        ev.dataTransfer?.setData('text/plain', `tab:${def.id}`);
+        if (ev.dataTransfer) ev.dataTransfer.effectAllowed = 'move';
+        btn.classList.add('dragging');
+      });
+      btn.addEventListener('dragend', () => {
+        this.dragTabId = null;
+        btn.classList.remove('dragging');
+        tabs.querySelectorAll('.arpginv-tab--drop-target')
+          .forEach((el) => el.classList.remove('arpginv-tab--drop-target'));
+      });
+      btn.addEventListener('dragenter', (ev) => {
+        if (!this.dragTabId || this.dragTabId === def.id) return;
+        ev.preventDefault();
+        btn.classList.add('arpginv-tab--drop-target');
+      });
+      btn.addEventListener('dragleave', () => btn.classList.remove('arpginv-tab--drop-target'));
       btn.addEventListener('dragover', (ev) => {
         ev.preventDefault();
         ev.stopPropagation();
@@ -726,6 +764,13 @@ export class InventoryApp extends foundry.applications.api.ApplicationV2 {
       btn.addEventListener('drop', async (ev) => {
         ev.preventDefault();
         ev.stopPropagation();
+        btn.classList.remove('arpginv-tab--drop-target');
+        if (this.dragTabId) {
+          const draggedTab = this.dragTabId;
+          this.dragTabId = null;
+          await this._reorderContainerTab(draggedTab, def.id);
+          return;
+        }
         await this._moveDraggedToZone(def.id);
       });
       tabs.appendChild(btn);

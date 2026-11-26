@@ -168,7 +168,8 @@ export function createEmptyInventory(settings: any = {}) {
     capacity: defaultCapacity(settings),
     placements: {},
     equipment: normalizeEquipment({}),
-    containers: DEFAULT_CONTAINERS.map((c, i) => normalizeContainer(c, i, settings))
+    containers: DEFAULT_CONTAINERS.map((c, i) => normalizeContainer(c, i, settings)),
+    containerOrder: []
   };
 }
 
@@ -204,6 +205,9 @@ export function migrateInventory(raw: any, settings: any = {}) {
   data.equipment = normalizeEquipment(data.equipment);
   const savedContainers = Array.isArray(data.containers) ? data.containers : DEFAULT_CONTAINERS;
   data.containers = savedContainers.map((c: any, i: number) => normalizeContainer(c, i, settings));
+  data.containerOrder = Array.isArray(data.containerOrder)
+    ? data.containerOrder.map((id: any) => String(id))
+    : [];
   data.version = INVENTORY_SCHEMA_VERSION;
   return data;
 }

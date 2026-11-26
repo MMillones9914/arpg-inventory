@@ -97,5 +97,7 @@ export const SHORTCUTS: Shortcut[] = [
   { keys: 'Esc', action: 'Close inventory' },
   { keys: '1 / 2 / 3', action: 'Switch inventory zone' },
   { keys: 'Tab', action: 'Move focus between slots and items' },
-  { keys: 'Enter', action: 'Move focused item / unequip focused slot' }
+  { keys: 'Enter', action: 'Move focused item / unequip focused slot' },
+  { keys: 'Drag tab', action: 'Reorder container tabs' },
+  { keys: 'Drag bag', action: 'Swap two bags in the grid' }
 ];

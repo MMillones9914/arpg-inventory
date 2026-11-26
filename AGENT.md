@@ -1,6 +1,6 @@
 # AGENT.md — Guía del agente de desarrollo
 
-> Documento vivo. Define arquitectura, convenciones y reglas de trabajo del módulo **ARPG Inventory** para Foundry VTT v14. Versión del documento: **0.7.5**.
+> Documento vivo. Define arquitectura, convenciones y reglas de trabajo del módulo **ARPG Inventory** para Foundry VTT v14. Versión del documento: **0.7.6**.
 
 ---
 
@@ -109,10 +109,11 @@ Inventory {
   placements: { [itemId]: placement | null }  // zona "main"
   equipment: { [slotId]: itemId | null }
   containers: [{
-    id, name,
-    capacity: { cols, rows, maxWeight },
+    id, name, itemId?, img?, available?,
+    capacity: { cols, rows, maxWeight, spaces, mode, maxCount },
     placements: { [itemId]: placement }
   }]
+  containerOrder: [zoneId]  // orden elegido por el usuario para las pestañas
 }
 ```
 
@@ -123,7 +124,7 @@ Slots (14):
 Capacidad `strength`: `system.attributes.encumbrance.max` o `Fuerza × 15` lb. Tamaños por tipo dnd5e en `ITEM_GRID_DEFAULTS` (armadura 2×3, herramienta 1×2, munición 1×2 stack 20, contenedor 2×2, etc.).
 
 Contenedores: una zona por ítem contenedor del actor, con `capacity: { cols, rows, maxWeight, spaces, mode, maxCount }` derivada del ítem. Por peso: 4 lb = 1 celda y rejilla cuadrada. Por conteo: **un slot del tamaño del contenido** (flechas 1×2) y `maxCount` = límite de apilado (quiver 20); no se crea una celda por unidad. `backpack` (6×4, 40) y `quiver` (2×4, 10) se conservan solo como placeholders inactivos cuando no hay ítem dedicado.
-Un item está en **una sola zona**; `removeItemFromInventory` lo saca de todas antes de moverlo. Al arrastrar una bolsa sobre otra bolsa de la misma zona se intercambian sus posiciones (`swapItems`), con ajuste de anclas si difieren en tamaño; el swap está restringido a ítems contenedores.
+Un item está en **una sola zona**; `removeItemFromInventory` lo saca de todas antes de moverlo. Al arrastrar una bolsa sobre otra bolsa de la misma zona se intercambian sus posiciones (`swapItems`), con ajuste de anclas si difieren en tamaño; el swap está restringido a ítems contenedores. Las pestañas de contenedor se reordenan arrastrando una sobre otra y su orden se guarda en `containerOrder`.
 
 ---
 
@@ -163,4 +164,4 @@ Un item está en **una sola zona**; `removeItemFromInventory` lo saca de todas a
 
 ---
 
-_Última actualización: 0.7.5 (quiver como slot 1×2 con límite 20, munición 1×2 e intercambio de posiciones entre bolsas)._
+_Última actualización: 0.7.6 (reordenación de pestañas de contenedor por arrastre, con orden persistente)._

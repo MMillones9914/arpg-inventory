@@ -85,6 +85,18 @@ export function syncDynamicContainers(actor: any, inv: any, settings: any = {}) 
     return order(a) - order(b);
   });
   inv.containers = [...dynamic, ...placeholders];
+
+  // Tab order is user-defined and survives later syncs of dynamic zones.
+  const order: string[] = Array.isArray(inv.containerOrder)
+    ? inv.containerOrder.map((id: any) => String(id))
+    : [];
+  if (order.length) {
+    const rank = (id: string) => {
+      const index = order.indexOf(id);
+      return index < 0 ? order.length : index;
+    };
+    inv.containers.sort((a: any, b: any) => rank(String(a.id)) - rank(String(b.id)));
+  }
 }
 
 export function getActorInventory(actor: any) {

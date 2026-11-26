@@ -36,6 +36,16 @@ describe('dynamic container zones', () => {
     expect(containers.map((c) => c.available)).toEqual([true, false, false]);
   });
 
+  it('keeps the user-defined tab order across syncs', () => {
+    const inv = createEmptyInventory();
+    const items = [backpack, waterskin, quiver];
+    syncDynamicContainers({ items }, inv, { maxContainers: 5 });
+    (inv as any).containerOrder = ['quiver-item', 'bag-item', 'skin-item'];
+    syncDynamicContainers({ items }, inv, { maxContainers: 5 });
+    const containers = inv.containers as any[];
+    expect(containers.map((c) => c.id)).toEqual(['quiver-item', 'bag-item', 'skin-item']);
+  });
+
   it('drops zones when the container item disappears', () => {
     const inv = createEmptyInventory();
     syncDynamicContainers({ items: [backpack] }, inv, { maxContainers: 5 });
