@@ -5,6 +5,9 @@
 
 export const POUNDS_PER_SPACE = 4;
 
+/** All zones share the same maximum width; only rows grow. */
+export const MAX_GRID_COLS = 10;
+
 export type CapacityMode = 'weight' | 'count';
 
 export interface DerivedCapacity {
@@ -90,6 +93,9 @@ export function containerSpaces(item: any): {
 /** Full grid capacity derived from a dnd5e container item. */
 export function containerCapacity(item: any): DerivedCapacity {
   const { spaces, mode, maxWeight, maxCount } = containerSpaces(item);
-  const grid = mode === 'count' ? countSlot(item) : squareGrid(spaces);
+  let grid = mode === 'count' ? countSlot(item) : squareGrid(spaces);
+  if (grid.cols > MAX_GRID_COLS) {
+    grid = { cols: MAX_GRID_COLS, rows: Math.max(1, Math.ceil(spaces / MAX_GRID_COLS)) };
+  }
   return { ...grid, maxWeight, spaces, mode, maxCount };
 }

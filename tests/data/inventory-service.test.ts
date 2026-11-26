@@ -58,7 +58,8 @@ describe('dynamic container zones', () => {
     const inv: any = getActorInventory(actor);
     expect(inv.capacity.maxWeight).toBe(300);
     expect(inv.capacity.spaces).toBe(75);
-    expect(inv.capacity.cols * inv.capacity.rows).toBe(75);
+    expect(inv.capacity.cols).toBe(10);
+    expect(inv.capacity.rows).toBe(8);
   });
 
   it('reflows placements that no longer fit the weight-derived grid', () => {
@@ -73,9 +74,9 @@ describe('dynamic container zones', () => {
     };
     actor.items.get = (id: string) => actor.items.find((item: any) => item.id === id);
     const inv: any = getActorInventory(actor);
-    expect(inv.capacity.cols).toBe(5);
-    expect(inv.capacity.rows).toBe(2);
-    expect(inv.placements.sword).toMatchObject({ x: 3, y: 1, w: 2, h: 1 });
+    expect(inv.capacity.cols).toBe(10);
+    expect(inv.capacity.rows).toBe(1);
+    expect(inv.placements.sword).toMatchObject({ x: 8, y: 0, w: 2, h: 1 });
     expect(inv.placements.sword.x + inv.placements.sword.w).toBeLessThanOrEqual(inv.capacity.cols);
   });
 

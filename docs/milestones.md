@@ -91,6 +91,7 @@ Leyenda de estado: 🔲 To do · 🔄 In progress · ✅ Done
 - [x] Sync sin race conditions: revisión monótona en cada escritura (`revision`/`updatedBy`/`updatedAt`) y hooks que solo normalizan desde el cliente que hizo el cambio (0.8.0)
 - [x] Manejo de conflictos: escritura rezagada se rechaza con aviso y se recarga la versión ganadora (0.8.0)
 - [x] Corrección de peso: el grid principal se deriva de la capacidad de carga a 4 lb/celda (300 lb → 75 espacios), con reflow de colocaciones (0.8.1)
+- [x] Grid de ancho fijo: 10 columnas siempre, filas según capacidad; ancho del panel estabilizado para que nada se oculte (0.8.2)
 
 ## M9 — Public API & extensibility (0.9.0) 🔲
 - [ ] API pública documentada

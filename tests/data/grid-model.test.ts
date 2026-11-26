@@ -18,8 +18,8 @@ describe('grid-model', () => {
   it('creates empty inventory with defaults, slots and containers', () => {
     const inv = createEmptyInventory({ defaultCols: 5, defaultRows: 4 });
     expect(inv.version).toBe(2);
-    expect(inv.capacity.cols).toBe(5);
-    expect(inv.capacity.rows).toBe(5);
+    expect(inv.capacity.cols).toBe(10);
+    expect(inv.capacity.rows).toBe(3);
     expect(inv.capacity.spaces).toBe(25);
     expect(inv.placements).toEqual({});
     expect(Object.keys(inv.equipment)).toEqual(EQUIPMENT_SLOTS.map((s) => s.id));
@@ -82,14 +82,14 @@ describe('grid-model', () => {
   });
 
   it('normalizes capacity values saved as strings', () => {
-    // 250 lb / 4 = 62 spaces -> closest factor pair is 31x2.
+    // 250 lb / 4 = 62 spaces -> 10 columns, 7 rows.
     expect(normalizeCapacity({ mode: 'strength', cols: '8', rows: '4', maxWeight: '250' }))
-      .toEqual({ mode: 'strength', cols: 31, rows: 2, maxWeight: 250, spaces: 62 });
+      .toEqual({ mode: 'strength', cols: 10, rows: 7, maxWeight: 250, spaces: 62 });
   });
 
   it('derives one cell per 4 lb of carry weight', () => {
     expect(normalizeCapacity({ mode: 'strength', maxWeight: 300 })).toMatchObject({
-      cols: 15, rows: 5, maxWeight: 300, spaces: 75
+      cols: 10, rows: 8, maxWeight: 300, spaces: 75
     });
     expect(normalizeCapacity({ mode: 'manual', maxWeight: 40 })).toMatchObject({
       cols: 5, rows: 2, spaces: 10

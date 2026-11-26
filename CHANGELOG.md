@@ -10,6 +10,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - (next milestone in progress)
 
+## [0.8.2] - 2026-11-26
+
+### Fixed
+- The main grid always uses **10 columns**; only rows grow with capacity (300 lb / 4 = 75 spaces → 10×8). Container zones are capped to the same width.
+- The inventory pane now has a fixed width derived from those 10 columns, so its contents no longer overflow or get clipped by the window. Added `max-width`/`overflow` guards in CSS.
+
 ## [0.8.1] - 2026-11-26
 
 ### Fixed

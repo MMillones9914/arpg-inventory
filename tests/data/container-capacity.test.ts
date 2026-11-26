@@ -13,6 +13,11 @@ describe('container capacity', () => {
     });
   });
 
+  it('caps large containers to the shared 10-column width', () => {
+    const huge = { system: { capacity: { weight: { value: 300, units: 'lb' } } } };
+    expect(containerCapacity(huge)).toMatchObject({ cols: 10, rows: 8, spaces: 75 });
+  });
+
   it('uses one item-sized slot for count capacity, not one cell per item', () => {
     const quiver = {
       name: 'Quiver',

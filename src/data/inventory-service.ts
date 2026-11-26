@@ -4,6 +4,7 @@ import {
   normalizeCapacity,
   normalizePlacement,
   capacityFromWeight,
+  MAIN_GRID_COLS,
   defaultItemGrid,
   defaultItemStackMax,
   DEFAULT_CONTAINERS
@@ -142,7 +143,7 @@ export function getActorInventory(actor: any) {
   const settings = settingsDefaults();
   const itemIds = inventoryItemIds([...(actor?.items ?? [])]);
   const inv = normalizeActorInventory(raw, itemIds, settings);
-  inv.capacity = normalizeCapacity(inv.capacity, settings);
+  inv.capacity = normalizeCapacity(inv.capacity, settings, MAIN_GRID_COLS);
 
   // Strength-based capacity: dnd5e encumbrance max, then STR x 15 lb.
   // Re-derive the grid so 4 lb always equals one available space.

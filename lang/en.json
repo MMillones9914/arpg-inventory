@@ -13,11 +13,11 @@
       },
       "DefaultCols": {
         "Name": "Fallback columns",
-        "Hint": "Used only when no carry weight is declared; otherwise the grid comes from weight / 4 lb."
+        "Hint": "Legacy zones without a declared weight only. The main grid is always 10 columns."
       },
       "DefaultRows": {
         "Name": "Fallback rows",
-        "Hint": "Used only when no carry weight is declared; otherwise the grid comes from weight / 4 lb."
+        "Hint": "Legacy zones without a declared weight only. Main rows come from weight / 4 lb."
       },
       "DefaultMaxWeight": {
         "Name": "Default max weight",

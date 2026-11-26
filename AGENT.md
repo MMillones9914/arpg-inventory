@@ -1,6 +1,6 @@
 # AGENT.md — Guía del agente de desarrollo
 
-> Documento vivo. Define arquitectura, convenciones y reglas de trabajo del módulo **ARPG Inventory** para Foundry VTT v14. Versión del documento: **0.8.1**.
+> Documento vivo. Define arquitectura, convenciones y reglas de trabajo del módulo **ARPG Inventory** para Foundry VTT v14. Versión del documento: **0.8.2**.
 
 ---
 
@@ -127,7 +127,7 @@ Slots (14):
 - Panel de equipo (silueta vertical, 11): izquierda `head`, `neck`, `shoulders`, `body`, `back`, `hands`; derecha `wrist`, `waist`, `feet`, `ring1`, `ring2`. `legs` fue eliminado.
 - Espacios de armas encima del grid del inventario (3): `mainhand` y `offhand` alargados verticalmente (112×150) con imagen `cover` que rellena el slot, `ammo` como cuadro pequeño (44×44) centrado junto a la secundaria. Espacios de datos a la derecha de `mainhand` y a la izquierda de `offhand` (implementados en M6); `ammo` sin espacio. `ranged` fue eliminado.
 
-Capacidad `strength`: `system.attributes.encumbrance.max` o `Fuerza × 15` lb. **Regla universal: 4 lb = 1 space**; el grid se deriva de `suelo(maxWeight / 4)` con `squareGrid` (300 lb → 75 celdas, 15×5). `cols`/`rows` guardados solo se usan si no hay peso declarado. Al cambiar el tamaño del grid se recolocan las colocaciones válidas más cercanas (`reflowZonePlacements`). Tamaños por tipo dnd5e en `ITEM_GRID_DEFAULTS` (armadura 2×3, herramienta 1×2, munición 1×2 stack 20, contenedor 2×2, etc.).
+Capacidad `strength`: `system.attributes.encumbrance.max` o `Fuerza × 15` lb. **Regla universal: 4 lb = 1 space**; `spaces = suelo(maxWeight / 4)`. El grid usa **10 columnas fijas** y `filas = techo(spaces / 10)` (300 lb → 75 espacios → 10×8). `cols`/`rows` guardados solo se usan en zonas legacy sin peso declarado. Los contenedores grandes también se limitan a 10 columnas para no desbordar el panel. Al cambiar el tamaño del grid se recolocan las colocaciones válidas más cercanas (`reflowZonePlacements`). Tamaños por tipo dnd5e en `ITEM_GRID_DEFAULTS` (armadura 2×3, herramienta 1×2, munición 1×2 stack 20, contenedor 2×2, etc.).
 
 Contenedores: una zona por ítem contenedor del actor, con `capacity: { cols, rows, maxWeight, spaces, mode, maxCount }` derivada del ítem. Por peso: 4 lb = 1 celda y rejilla cuadrada. Por conteo: **un slot del tamaño del contenido** (flechas 1×2) y `maxCount` = límite de apilado (quiver 20); no se crea una celda por unidad. `backpack` (6×4, 40) y `quiver` (2×4, 10) se conservan solo como placeholders inactivos cuando no hay ítem dedicado.
 Un item está en **una sola zona**; `removeItemFromInventory` lo saca de todas antes de moverlo. Al arrastrar una bolsa sobre otra bolsa de la misma zona se intercambian sus posiciones (`swapItems`), con ajuste de anclas si difieren en tamaño; el swap está restringido a ítems contenedores. Las pestañas de contenedor se reordenan arrastrando una sobre otra y su orden se guarda en `containerOrder`.
@@ -172,4 +172,4 @@ Permisos: el GM edita cualquier actor; un jugador solo edita los actores que pos
 
 ---
 
-_Última actualización: 0.8.1 (capacidad de carga convertida a espacios a razón de 4 lb/celda, con reflow)._
+_Última actualización: 0.8.2 (grid de 10 columnas fijas, filas derivadas del peso y ancho del panel estabilizado)._

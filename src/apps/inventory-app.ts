@@ -3,6 +3,7 @@ import {
   EQUIPMENT_SLOTS,
   findItemLocation,
   getInventoryZone,
+  MAIN_GRID_COLS,
   normalizePlacement,
   removeItemFromInventory,
   zoneUsedCells
@@ -654,10 +655,10 @@ export class InventoryApp extends foundry.applications.api.ApplicationV2 {
     layout.className = 'arpginv-layout';
     const inventoryPane = document.createElement('div');
     inventoryPane.className = 'arpginv-inventory-pane';
-    // Keep pane width tied to the main grid so the weight bar and weapon row
-    // stay the same size when switching to smaller container zones.
-    const mainCols = Math.max(1, Number(inv.capacity.cols) || 10);
-    inventoryPane.style.width = `${mainCols * CELL_SIZE + (mainCols - 1) * 2 + 12}px`;
+    // Fixed width for every actor: rows may grow, the panel never does.
+    // Container zones are capped to the same column count by the model.
+    const paneWidth = MAIN_GRID_COLS * CELL_SIZE + (MAIN_GRID_COLS - 1) * 2 + 12;
+    inventoryPane.style.width = `${paneWidth}px`;
     const paneTitle = document.createElement('div');
     paneTitle.className = 'arpginv-inventory-pane__title';
     paneTitle.textContent = 'Inventario';

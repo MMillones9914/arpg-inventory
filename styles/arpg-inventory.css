@@ -50,6 +50,9 @@
   padding: 7px var(--arpginv-space) var(--arpginv-space) 7px;
   margin: 0;
   background: var(--arpginv-surface);
+  box-sizing: border-box;
+  max-width: 100%;
+  overflow-x: hidden;
 }
 
 .arpginv-weight {
@@ -92,7 +95,10 @@
 
 .arpginv-grid {
   display: grid;
+  box-sizing: border-box;
   width: max-content;
+  max-width: 100%;
+  overflow-x: auto;
   gap: 2px;
   background: var(--arpginv-grid-bg);
   padding: var(--arpginv-space);
@@ -184,8 +190,9 @@
 }
 
 .arpginv-inventory-pane {
-  flex: 0 0 auto;
+  flex: 0 1 auto;
   min-width: 0;
+  max-width: 100%;
 }
 
 .arpginv-inventory-pane__title {

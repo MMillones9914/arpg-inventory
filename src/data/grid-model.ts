@@ -1,9 +1,12 @@
 // Pure data model for the ARPG Inventory.
 // No Foundry globals. Safe to unit-test.
 
-import { spacesFromWeight, squareGrid } from './container-capacity';
+import { MAX_GRID_COLS, spacesFromWeight, squareGrid } from './container-capacity';
 
 export const INVENTORY_SCHEMA_VERSION = 2;
+
+/** Every grid keeps the same width; only the number of rows changes. */
+export const MAIN_GRID_COLS = MAX_GRID_COLS;
 
 const DEFAULT_CAPACITY = {
   mode: 'manual',
@@ -71,7 +74,21 @@ function clampInt(value: any, min: number, max: number): number {
   return Math.min(Math.max(n, min), max);
 }
 
-export function normalizeCapacity(raw: any = {}, settings: any = {}) {
+/** Fixed-width layout: only rows grow to fit the spaces. */
+function gridForSpaces(spaces: number, fixedCols = 0) {
+  if (fixedCols > 0) {
+    const cols = Math.min(fixedCols, MAIN_GRID_COLS);
+    return { cols, rows: Math.max(1, Math.ceil(spaces / cols)) };
+  }
+  const square = squareGrid(spaces);
+  if (square.cols <= MAIN_GRID_COLS) return square;
+  return {
+    cols: MAIN_GRID_COLS,
+    rows: Math.max(1, Math.ceil(spaces / MAIN_GRID_COLS))
+  };
+}
+
+export function normalizeCapacity(raw: any = {}, settings: any = {}, fixedCols = 0) {
   const source = raw && typeof raw === 'object' ? raw : {};
   const mode = source.mode ?? settings.defaultCapacityMode ?? DEFAULT_CAPACITY.mode;
   const maxWeight = Math.max(0, finiteNumber(source.maxWeight ?? settings.defaultMaxWeight, DEFAULT_CAPACITY.maxWeight));
@@ -79,9 +96,9 @@ export function normalizeCapacity(raw: any = {}, settings: any = {}) {
   // One cell per 4 lb: the declared carry weight always defines the grid.
   // Saved cols/rows are only a fallback when no weight was declared.
   const grid = spaces > 0
-    ? squareGrid(spaces)
+    ? gridForSpaces(spaces, fixedCols)
     : {
-        cols: positiveInt(source.cols ?? settings.defaultCols, DEFAULT_CAPACITY.cols),
+        cols: Math.min(MAIN_GRID_COLS, positiveInt(source.cols ?? settings.defaultCols, DEFAULT_CAPACITY.cols)),
         rows: positiveInt(source.rows ?? settings.defaultRows, DEFAULT_CAPACITY.rows)
       };
   return {
@@ -100,11 +117,11 @@ export function capacityFromWeight(maxWeight: number, fallback: any = {}) {
     maxWeight,
     cols: fallback.cols,
     rows: fallback.rows
-  });
+  }, {}, MAIN_GRID_COLS);
 }
 
 export function defaultCapacity(settings: any = {}) {
-  return normalizeCapacity({}, settings);
+  return normalizeCapacity({}, settings, MAIN_GRID_COLS);
 }
 
 export function defaultItemGrid(itemType = 'default') {
@@ -226,7 +243,7 @@ export function migrateInventory(raw: any, settings: any = {}) {
     data.containers = data.containers ?? DEFAULT_CONTAINERS;
   }
 
-  data.capacity = normalizeCapacity(data.capacity, settings);
+  data.capacity = normalizeCapacity(data.capacity, settings, MAIN_GRID_COLS);
   if (!data.placements || typeof data.placements !== 'object') data.placements = {};
   data.equipment = normalizeEquipment(data.equipment);
   const savedContainers = Array.isArray(data.containers) ? data.containers : DEFAULT_CONTAINERS;
