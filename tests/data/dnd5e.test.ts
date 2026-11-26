@@ -73,12 +73,18 @@ describe('dnd5e helpers', () => {
         mastery: 'graze',
         properties: new Set(['two', 'rch']),
         type: { baseItem: 'glaive' },
+        attack: { bonus: 7 },
+        range: { value: 10 },
         damage: { base: { formula: '1d10', bonus: '', types: new Set(['slashing']) } }
       }
     };
     const actor = { system: { traits: { weaponProf: { mastery: { value: new Set(['glaive']) } } } } };
     const info = equippedInfo(weapon, actor);
     expect(info?.damage).toBe('1d10');
+    expect(info?.damageTypes).toEqual(['slashing']);
+    expect(info?.attack).toBe('+7');
+    expect(info?.range).toBe('10');
+    expect(info?.rarity).toBe('rare');
     expect(info?.mastery).toBe('graze');
     expect(info?.hasMastery).toBe(true);
     expect(info?.properties).toEqual(['two', 'rch']);

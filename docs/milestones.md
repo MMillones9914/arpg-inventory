@@ -97,6 +97,7 @@ Leyenda de estado: 🔲 To do · 🔄 In progress · ✅ Done
 - [x] Equipamiento sincronizado: `system.equipped` se refleja en los slots y los objetos equipados salen del inventario (0.8.5)
 - [x] Panel único de información de armas/escudos/reliquias entre manos; maestría resaltada, daño y propiedades (0.8.6)
 - [x] Armas de dos manos ocupan ambos slots; versátiles conmutan entre 1 y 2 manos (0.8.6)
+- [x] Réplica en plomo del arma a dos manos en la secundaria; botón de manos sobre la imagen y panel de datos completo con scroll (0.8.7)
 
 ## M9 — Public API & extensibility (0.9.0) 🔲
 - [ ] API pública documentada

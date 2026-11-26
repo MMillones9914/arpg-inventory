@@ -154,12 +154,18 @@ export function weaponSummary(item: any): WeaponSummary | null {
 
 export interface EquippedInfo {
   name: string;
+  itemType: string;
   rarity: string;
   damage: string | null;
+  damageTypes: string[];
   altDamage: string | null;
+  attack: string | null;
+  range: string | null;
   mastery: string | null;
   hasMastery: boolean;
   ac: string | null;
+  attunement: AttunementState;
+  uses: string | null;
   properties: string[];
   hands: WeaponHands;
 }
@@ -172,25 +178,53 @@ function damageFormula(raw: any): string | null {
   return formula || null;
 }
 
-/** Everything the compact equipment-info panel needs, in pure data form. */
+function damageTypeKeys(raw: any): string[] {
+  if (raw instanceof Set) return [...raw].map((value) => String(value).toLowerCase());
+  if (Array.isArray(raw)) return raw.map((value) => String(value).toLowerCase());
+  return [];
+}
+
+function rangeLabel(system: any): string | null {
+  const range = system?.range;
+  if (!range) return null;
+  if (typeof range !== 'object') return String(range);
+  const value = Number(range.value);
+  const long = Number(range.long);
+  const reach = Number(range.reach);
+  if (Number.isFinite(value) && value > 0) {
+    if (Number.isFinite(long) && long > value) return `${value}/${long}`;
+    return String(value);
+  }
+  if (Number.isFinite(reach) && reach > 0) return `≤${reach}`;
+  return null;
+}
+
+/** Everything the equipment-info panel needs, in pure data form. */
 export function equippedInfo(item: any, actor: any): EquippedInfo | null {
   if (!item) return null;
   const system = item.system ?? {};
   const parts = Array.isArray(system.damage?.parts) ? system.damage.parts : [];
   const type = dnd5eItemType(item).toLowerCase();
-  const hands = weaponHands(item);
+  const baseDamage = system.damage?.base ?? parts[0];
+  const attack = Number(system.attack?.bonus);
   return {
     name: String(item.name ?? ''),
-    rarity: String(system.rarity ?? ''),
-    damage: type === 'weapon'
-      ? (damageFormula(system.damage?.base) ?? damageFormula(parts[0]) ?? null)
-      : null,
+    itemType: String(item.type ?? ''),
+    rarity: String(system.rarity ?? item.rarity ?? ''),
+    damage: type === 'weapon' ? (damageFormula(baseDamage) ?? null) : null,
+    damageTypes: type === 'weapon'
+      ? damageTypeKeys(system.damage?.base?.types ?? (Array.isArray(parts[0]) ? parts[0][1] : null))
+      : [],
     altDamage: type === 'weapon' ? damageFormula(system.damage?.versatile) : null,
+    attack: Number.isFinite(attack) ? signed(attack) : null,
+    range: type === 'weapon' ? rangeLabel(system) : null,
     mastery: type === 'weapon' ? (String(system.mastery ?? '') || null) : null,
     hasMastery: type === 'weapon' ? hasWeaponMastery(item, actor) : false,
     ac: system.armor?.value ? `${system.armor.value} AC` : null,
+    attunement: attunementState(item),
+    uses: usesLabel(item),
     properties: itemProperties(item),
-    hands
+    hands: weaponHands(item)
   };
 }
 

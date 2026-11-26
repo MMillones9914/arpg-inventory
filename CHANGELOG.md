@@ -10,6 +10,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - (next milestone in progress)
 
+## [0.8.7] - 2026-11-26
+
+### Changed
+- The offhand copy of a two-handed weapon now shows the same equipped weapon art in muted lead-grey, making it clear both hands hold one weapon.
+- The hands toggle moved off the info panel onto the equipped weapon image (bottom-right) and uses `icons/skills/melee/hand-grip-staff-blue.webp`.
+- Equipment info panel now shows every available field with labelled rows: rarity, mastery, base/versatile damage with damage type, attack, AC, range, attunement, uses, hands and all dnd5e properties. It scrolls instead of hiding data. Weapon slots were slightly narrowed to give the panel more room.
+
 ## [0.8.6] - 2026-11-26
 
 ### Added

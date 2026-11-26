@@ -48,6 +48,7 @@ import {
 } from '../engine/grid-engine';
 
 const CELL_SIZE = 34;
+const TWO_HANDS_ICON = 'icons/skills/melee/hand-grip-staff-blue.webp';
 
 function rarityClass(item: any) {
   const raw = String(item?.system?.rarity ?? item?.rarity ?? 'common');
@@ -254,15 +255,34 @@ export class InventoryApp extends foundry.applications.api.ApplicationV2 {
     return true;
   }
 
-  _configLabel(path: 'weaponProperties' | 'equipmentProperties' | 'weaponMasteries', key: string) {
+  _configLabel(
+    path: 'weaponProperties' | 'equipmentProperties' | 'weaponMasteries' | 'damageTypes' | 'itemRarity',
+    key: string
+  ) {
     try {
       const config = (game as any)?.dnd5e?.config;
-      const label = config?.[path]?.[key]?.label;
-      if (label) return game.i18n?.localize?.(label) || label;
+      const entry = config?.[path]?.[key];
+      if (typeof entry === 'string' && entry) return game.i18n?.localize?.(entry) || entry;
+      if (entry?.label) return game.i18n?.localize?.(entry.label) || entry.label;
     } catch (e) {
       // Foundry/CONFIG may be absent in tests.
     }
     return key;
+  }
+
+  /** One labelled line in the equipment info panel. */
+  _infoRow(parent: HTMLElement, label: string, value: string, extraClass = '') {
+    const row = document.createElement('div');
+    row.className = `arpginv-weapon-info__row ${extraClass}`.trim();
+    const key = document.createElement('span');
+    key.className = 'arpginv-weapon-info__key';
+    key.textContent = label;
+    const text = document.createElement('span');
+    text.className = 'arpginv-weapon-info__value';
+    text.textContent = value;
+    text.title = value;
+    row.append(key, text);
+    parent.appendChild(row);
   }
 
   /** Rebuild the single compact info panel for the selected weapon slot. */
@@ -287,57 +307,53 @@ export class InventoryApp extends foundry.applications.api.ApplicationV2 {
       panel.textContent = '—';
       return;
     }
+
     const name = document.createElement('div');
     name.className = 'arpginv-weapon-info__name';
     name.textContent = info.name;
+    name.title = info.name;
     panel.appendChild(name);
 
+    if (info.rarity) {
+      this._infoRow(panel, 'Rareza', this._configLabel('itemRarity', info.rarity));
+    }
     if (info.mastery) {
-      const mastery = document.createElement('div');
-      mastery.className = `arpginv-weapon-info__mastery ${info.hasMastery ? 'arpginv-weapon-info__mastery--active' : ''}`;
-      mastery.textContent = this._configLabel('weaponMasteries', info.mastery);
-      mastery.title = info.hasMastery ? 'Maestría del arma' : 'Sin maestría';
-      panel.appendChild(mastery);
+      this._infoRow(
+        panel,
+        'Maestría',
+        this._configLabel('weaponMasteries', info.mastery),
+        `arpginv-weapon-info__mastery${info.hasMastery ? ' arpginv-weapon-info__mastery--active' : ''}`
+      );
     }
-
-    const damage = info.altDamage ? `${info.damage ?? ''} / ${info.altDamage}` : info.damage;
-    if (damage) {
-      const line = document.createElement('div');
-      line.className = 'arpginv-weapon-info__damage';
-      line.textContent = damage;
-      panel.appendChild(line);
+    const damageTypes = info.damageTypes
+      .map((key) => this._configLabel('damageTypes', key))
+      .join(', ');
+    if (info.damage) {
+      const damage = damageTypes ? `${info.damage} · ${damageTypes}` : info.damage;
+      this._infoRow(panel, 'Daño', damage, 'arpginv-weapon-info__damage');
+      if (info.altDamage) this._infoRow(panel, 'Versátil', info.altDamage);
     }
-    if (info.ac) {
-      const line = document.createElement('div');
-      line.className = 'arpginv-weapon-info__damage';
-      line.textContent = info.ac;
-      panel.appendChild(line);
+    if (info.attack) this._infoRow(panel, 'Ataque', info.attack);
+    if (info.ac) this._infoRow(panel, 'CA', info.ac, 'arpginv-weapon-info__damage');
+    if (info.range) this._infoRow(panel, 'Alcance', info.range);
+    if (info.attunement !== 'none') {
+      this._infoRow(panel, 'Sintonía', info.attunement === 'attuned' ? 'Sintonizado' : 'Requerida');
+    }
+    if (info.uses) this._infoRow(panel, 'Usos', info.uses);
+    if (info.hands) {
+      const hands = info.hands === 'two' ? '2 manos'
+        : info.hands === 'versatile' ? (this._usesTwoHands(item) ? '2 manos' : '1 o 2 manos')
+          : '1 mano';
+      this._infoRow(panel, 'Manos', hands);
     }
     if (info.properties.length) {
-      const type = String(item?.type ?? '');
-      const path = type === 'weapon' ? 'weaponProperties' : 'equipmentProperties';
-      const props = document.createElement('div');
-      props.className = 'arpginv-weapon-info__props';
-      props.textContent = info.properties
-        .slice(0, 6)
-        .map((key) => this._configLabel(path, key))
-        .join(' · ');
-      props.title = props.textContent;
-      panel.appendChild(props);
-    }
-
-    if (weaponHands(item) === 'versatile') {
-      const toggle = document.createElement('button');
-      toggle.type = 'button';
-      toggle.className = 'arpginv-weapon-info__toggle';
-      toggle.textContent = this._usesTwoHands(item) ? '1 mano' : '2 manos';
-      toggle.title = 'Alternar uso a dos manos';
-      toggle.addEventListener('click', (ev) => {
-        ev.preventDefault();
-        ev.stopPropagation();
-        this._toggleTwoHanded(String(item.id));
-      });
-      panel.appendChild(toggle);
+      const path = info.itemType === 'weapon' ? 'weaponProperties' : 'equipmentProperties';
+      this._infoRow(
+        panel,
+        'Propiedades',
+        info.properties.map((key) => this._configLabel(path, key)).join(' · '),
+        'arpginv-weapon-info__props'
+      );
     }
   }
 
@@ -877,6 +893,44 @@ export class InventoryApp extends foundry.applications.api.ApplicationV2 {
         slotEl.setAttribute('aria-label', itemTooltip(item, slot.label));
         appendImage(slotEl, item);
         appendAttunement(slotEl, item);
+
+        // A two-handed weapon appears in both hands. The offhand copy is a
+        // muted mirror: same image, greyed out, with the real weapon in main.
+        const mirror = slot.id === 'offhand'
+          && String(inv.equipment?.mainhand ?? '') === String(item.id)
+          && this._usesTwoHands(item);
+        if (mirror) {
+          slotEl.classList.add('arpginv-slot--mirror-hand');
+          slotEl.setAttribute('aria-label', `${itemTooltip(item, slot.label)} · 2 manos`);
+        }
+
+        // Hands toggle lives on the equipped image, bottom-right corner.
+        if (slot.side === 'weapon' && this.editable && weaponHands(item) === 'versatile') {
+          const primary = slot.id === 'mainhand'
+            || (slot.id === 'offhand' && String(inv.equipment?.mainhand ?? '') !== String(item.id));
+          if (primary) {
+            const toggle = document.createElement('button');
+            toggle.type = 'button';
+            toggle.className = 'arpginv-slot__hands-toggle';
+            toggle.draggable = false;
+            toggle.title = this._usesTwoHands(item) ? 'Volver a una mano' : 'Usar a dos manos';
+            toggle.setAttribute('aria-label', toggle.title);
+            const toggleIcon = document.createElement('img');
+            toggleIcon.src = TWO_HANDS_ICON;
+            toggleIcon.alt = '';
+            toggleIcon.setAttribute('aria-hidden', 'true');
+            toggle.appendChild(toggleIcon);
+            toggle.addEventListener('click', async (ev) => {
+              ev.preventDefault();
+              ev.stopPropagation();
+              await this._toggleTwoHanded(String(item.id));
+            });
+            toggle.addEventListener('dragstart', (ev) => ev.stopPropagation());
+            slotEl.classList.add('arpginv-slot--hands-toggle');
+            slotEl.appendChild(toggle);
+          }
+        }
+
         slotEl.addEventListener('dragstart', (ev) => {
           this._beginDrag(ev, item.id, { kind: 'equipment', slot: slot.id });
         });
