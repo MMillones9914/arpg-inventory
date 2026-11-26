@@ -1,6 +1,6 @@
 # AGENT.md — Guía del agente de desarrollo
 
-> Documento vivo. Define arquitectura, convenciones y reglas de trabajo del módulo **ARPG Inventory** para Foundry VTT v14. Versión del documento: **0.8.8**.
+> Documento vivo. Define arquitectura, convenciones y reglas de trabajo del módulo **ARPG Inventory** para Foundry VTT v14. Versión del documento: **0.8.9**.
 
 ---
 
@@ -125,7 +125,8 @@ Inventory {
 
 Slots (14):
 - Panel de equipo (silueta vertical, 11): izquierda `head`, `neck`, `shoulders`, `body`, `back`, `hands`; derecha `wrist`, `waist`, `feet`, `ring1`, `ring2`. `legs` fue eliminado.
-- Espacios de armas encima del grid del inventario (3): `mainhand` y `offhand` alargados verticalmente (96×150) con imagen `cover` que rellena el slot, `ammo` como cuadro pequeño (44×44) centrado junto a la secundaria. Un único panel de datos entre `mainhand` y `offhand`: clic en `mainhand`, `offhand` o `ammo` elige qué objeto describe. Filas etiquetadas con rareza, maestría (resaltada si el actor la posee), daño (el dado cambia al alternar manos), tipo de daño, ataque, CA, alcance, sintonía, manos y todas las propiedades dnd5e; con scroll en vez de recortar. No se muestran usos. Las propiedades y los tipos de daño se listan cuando hay más de uno, y cada propiedad, maestría, tipo y fila de daño tiene descripción al pasar el mouse. `ranged` fue eliminado.
+- Espacios de armas encima del grid del inventario (3): `mainhand` y `offhand` alargados verticalmente (96×150) con imagen `cover` que rellena el slot, `ammo` como cuadro pequeño (44×44) centrado junto a la secundaria. Un único panel de datos entre `mainhand` y `offhand`: clic en `mainhand`, `offhand` o `ammo` elige qué objeto describe. Filas etiquetadas con rareza, maestría (resaltada si el actor la posee), daño (el dado cambia al alternar manos), tipo de daño, ataque, CA, alcance y sintonía; con scroll en vez de recortar. No se muestran usos ni fila de manos. `Propiedades` y `Tipo de daño` son bloques con la etiqueta encima y una entrada por línea cuando hay más de una; cada propiedad, maestría, tipo y fila de daño tiene descripción al pasar el mouse. `ranged` fue eliminado.
+- Las armas arrojadizas muestran sus dos distancias juntas en la propiedad `thr` (`Arrojadiza 20/60 ft`), mientras `Alcance` muestra el alcance normal cuerpo a cuerpo. Las distancias usan `system.range.units` y la abreviatura localizada de dnd5e. El ataque se lee de `system.activities[].attack.bonus` (dnd5e 6.x), con compatibilidad con `system.attack.bonus` legacy.
 - `weaponHands()` lee `system.properties` (`two`, `ver`); `equipmentSlotsForItem()` y `enforceFoundryPlacement()` asignan dos manos a las armas con `two` (glaive, greatsword) y a las versátiles con el flag `twoHanded` del módulo. `_equipSlotsFor()` y `_toggleTwoHanded()` aplican la misma regla al equipar desde la UI. La copia de `offhand` de un arma a dos manos muestra la misma imagen en plomo (`arpginv-slot--mirror-hand`). El botón para alternar manos va sobre la imagen equipada, abajo a la derecha, con `icons/skills/melee/hand-grip-staff-blue.webp`, y su icono es cuadrado y llena el botón.
 - `syncAttackMode()` refleja la forma de empuñar en el flag nativo de dnd5e `dnd5e.last.<activityId>.attackMode` de cada actividad de ataque. Al pasar una versátil a dos manos, Foundry usa automáticamente `system.damage.versatile` en las tiradas de ataque/daño; al volver a una mano, vuelve al dado base. El hook `updateItem` también sincroniza cuando cambia el flag del módulo.
 
@@ -174,4 +175,4 @@ Permisos: el GM edita cualquier actor; un jugador solo edita los actores que pos
 
 ---
 
-_Última actualización: 0.8.8 (descripciones en hover, sin usos, dado versátil y modo de ataque de dnd5e sincronizados)._
+_Última actualización: 0.8.9 (bloque de propiedades, distancias de arrojo, sin fila de manos y lectura correcta del ataque en dnd5e 6.x)._

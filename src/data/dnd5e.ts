@@ -161,12 +161,12 @@ export interface EquippedInfo {
   altDamage: string | null;
   attack: string | null;
   range: string | null;
+  throwRange: string | null;
   mastery: string | null;
   hasMastery: boolean;
   ac: string | null;
   attunement: AttunementState;
   properties: string[];
-  hands: WeaponHands;
 }
 
 function damageFormula(raw: any): string | null {
@@ -183,19 +183,44 @@ function damageTypeKeys(raw: any): string[] {
   return [];
 }
 
-function rangeLabel(system: any): string | null {
+function rangeUnits(system: any): string {
+  return String(system?.range?.units ?? '').trim();
+}
+
+function distanceLabel(value: number, long: number, units: string): string | null {
+  if (!Number.isFinite(value) || value <= 0) return null;
+  const suffix = units ? ` ${units}` : '';
+  return Number.isFinite(long) && long > value ? `${value}/${long}${suffix}` : `${value}${suffix}`;
+}
+
+/** Normal reach/attack range; thrown weapons use their melee reach here. */
+function rangeLabel(system: any, thrown: boolean): string | null {
   const range = system?.range;
   if (!range) return null;
   if (typeof range !== 'object') return String(range);
-  const value = Number(range.value);
-  const long = Number(range.long);
-  const reach = Number(range.reach);
-  if (Number.isFinite(value) && value > 0) {
-    if (Number.isFinite(long) && long > value) return `${value}/${long}`;
-    return String(value);
-  }
-  if (Number.isFinite(reach) && reach > 0) return `≤${reach}`;
-  return null;
+  const units = rangeUnits(system);
+  if (thrown) return distanceLabel(Number(range.reach), 0, units);
+  return distanceLabel(Number(range.value), Number(range.long), units)
+    ?? distanceLabel(Number(range.reach), 0, units);
+}
+
+/** The two distances of a thrown weapon, shown next to the `thr` property. */
+function thrownRangeLabel(system: any): string | null {
+  return distanceLabel(Number(system?.range?.value), Number(system?.range?.long), rangeUnits(system));
+}
+
+/** dnd5e 6.x keeps the attack bonus on activities, not on `system.attack`. */
+function attackBonusLabel(item: any): string | null {
+  const activities = item?.system?.activities ?? [];
+  const activity = [...activities].find((entry: any) =>
+    !!entry && (!entry.type || entry.type === 'attack') && entry.attack?.bonus !== undefined
+  );
+  const raw = item?.system?.attack?.bonus ?? activity?.attack?.bonus;
+  if (raw === undefined || raw === null || raw === '') return null;
+  if (typeof raw === 'number' && Number.isFinite(raw)) return signed(raw);
+  const text = String(raw).trim();
+  if (/^[+-]?\d+(?:\.\d+)?$/.test(text)) return signed(Number(text));
+  return text || null;
 }
 
 /** Everything the equipment-info panel needs, in pure data form. */
@@ -205,7 +230,8 @@ export function equippedInfo(item: any, actor: any): EquippedInfo | null {
   const parts = Array.isArray(system.damage?.parts) ? system.damage.parts : [];
   const type = dnd5eItemType(item).toLowerCase();
   const baseDamage = system.damage?.base ?? parts[0];
-  const attack = Number(system.attack?.bonus);
+  const properties = itemProperties(item);
+  const thrown = type === 'weapon' && properties.includes('thr');
   return {
     name: String(item.name ?? ''),
     itemType: String(item.type ?? ''),
@@ -215,14 +241,14 @@ export function equippedInfo(item: any, actor: any): EquippedInfo | null {
       ? damageTypeKeys(system.damage?.base?.types ?? (Array.isArray(parts[0]) ? parts[0][1] : null))
       : [],
     altDamage: type === 'weapon' ? damageFormula(system.damage?.versatile) : null,
-    attack: Number.isFinite(attack) ? signed(attack) : null,
-    range: type === 'weapon' ? rangeLabel(system) : null,
+    attack: attackBonusLabel(item),
+    range: type === 'weapon' ? rangeLabel(system, thrown) : null,
+    throwRange: thrown ? thrownRangeLabel(system) : null,
     mastery: type === 'weapon' ? (String(system.mastery ?? '') || null) : null,
     hasMastery: type === 'weapon' ? hasWeaponMastery(item, actor) : false,
     ac: system.armor?.value ? `${system.armor.value} AC` : null,
     attunement: attunementState(item),
-    properties: itemProperties(item),
-    hands: weaponHands(item)
+    properties
   };
 }
 

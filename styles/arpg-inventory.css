@@ -414,10 +414,19 @@
 .arpginv-weapon-info__damage { color: #f3f3f3; }
 .arpginv-weapon-info__props { opacity: 0.8; }
 
-.arpginv-weapon-info__row--list { align-items: flex-start; }
+.arpginv-weapon-info__row--list {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0;
+}
+
+.arpginv-weapon-info__row--list .arpginv-weapon-info__key {
+  width: 100%;
+  padding-bottom: 1px;
+}
 
 .arpginv-weapon-info__list {
-  flex: 1 1 auto;
+  width: 100%;
   min-width: 0;
   margin: 0;
   padding-left: 13px;

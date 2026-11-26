@@ -76,8 +76,8 @@ describe('dnd5e helpers', () => {
         mastery: 'graze',
         properties: new Set(['two', 'rch']),
         type: { baseItem: 'glaive' },
-        attack: { bonus: 7 },
-        range: { value: 10 },
+        activities: [{ id: 'atk', type: 'attack', attack: { bonus: '7' } }],
+        range: { value: 10, units: 'ft' },
         damage: { base: { formula: '1d10', bonus: '', types: new Set(['slashing']) } }
       }
     };
@@ -86,13 +86,13 @@ describe('dnd5e helpers', () => {
     expect(info?.damage).toBe('1d10');
     expect(info?.damageTypes).toEqual(['slashing']);
     expect(info?.attack).toBe('+7');
-    expect(info?.range).toBe('10');
+    expect(info?.range).toBe('10 ft');
     expect(info?.rarity).toBe('rare');
     expect(info?.mastery).toBe('graze');
     expect(info?.hasMastery).toBe(true);
     expect(info?.properties).toEqual(['two', 'rch']);
-    expect(info?.hands).toBe('two');
     expect(info).not.toHaveProperty('uses');
+    expect(info).not.toHaveProperty('hands');
 
     const shield = {
       name: 'Shield', type: 'equipment',
@@ -101,6 +101,33 @@ describe('dnd5e helpers', () => {
     expect(equippedInfo(shield, actor)?.ac).toBe('2 AC');
     expect(equippedInfo(shield, actor)?.damage).toBeNull();
     expect(hasWeaponMastery(weapon, {})).toBe(false);
+  });
+
+  it('reads thrown distance separately from normal reach', () => {
+    const dart = {
+      name: 'Dart',
+      type: 'weapon',
+      system: {
+        properties: new Set(['thr', 'lgt']),
+        range: { value: 20, long: 60, reach: 5, units: 'ft' },
+        damage: { base: { formula: '1d4', types: new Set(['piercing']) } }
+      }
+    };
+    const info = equippedInfo(dart, {});
+    expect(info?.range).toBe('5 ft');
+    expect(info?.throwRange).toBe('20/60 ft');
+    expect(info?.properties).toEqual(['thr', 'lgt']);
+
+    const bow = {
+      name: 'Shortbow',
+      type: 'weapon',
+      system: {
+        properties: new Set([]),
+        range: { value: 80, long: 320, units: 'ft' }
+      }
+    };
+    expect(equippedInfo(bow, {})?.range).toBe('80/320 ft');
+    expect(equippedInfo(bow, {})?.throwRange).toBeNull();
   });
 
   it('maps holding mode to the dnd5e attack mode used by rolls', async () => {

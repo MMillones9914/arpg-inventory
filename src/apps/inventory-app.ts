@@ -276,6 +276,30 @@ export class InventoryApp extends foundry.applications.api.ApplicationV2 {
     return key;
   }
 
+  /** Short localized unit (ft, m, mi, km) used in range labels. */
+  _unitLabel(unit: string) {
+    const paths: Record<string, string> = {
+      ft: 'DND5E.UNITS.DISTANCE.Foot.Abbreviation',
+      m: 'DND5E.UNITS.DISTANCE.Meter.Abbreviation',
+      mi: 'DND5E.UNITS.DISTANCE.Mile.Abbreviation',
+      km: 'DND5E.UNITS.DISTANCE.Kilometer.Abbreviation'
+    };
+    const path = paths[unit];
+    if (path) {
+      try {
+        return game.i18n?.localize?.(path) || unit;
+      } catch (e) {
+        return unit;
+      }
+    }
+    return unit;
+  }
+
+  /** Replace a raw unit suffix with its translated abbreviation when possible. */
+  _distanceLabel(label: string) {
+    return label.replace(/\b(ft|m|mi|km)\b$/, (unit) => this._unitLabel(unit));
+  }
+
   /** One labelled line in the equipment info panel. */
   _infoRow(parent: HTMLElement, label: string, value: string, extraClass = '', description = '') {
     const row = document.createElement('div');
@@ -389,21 +413,20 @@ export class InventoryApp extends foundry.applications.api.ApplicationV2 {
     }
     if (info.attack) this._infoRow(panel, 'Ataque', info.attack);
     if (info.ac) this._infoRow(panel, 'CA', info.ac, 'arpginv-weapon-info__damage');
-    if (info.range) this._infoRow(panel, 'Alcance', info.range);
+    if (info.range) this._infoRow(panel, 'Alcance', this._distanceLabel(info.range));
     if (info.attunement !== 'none') {
       this._infoRow(panel, 'Sintonía', info.attunement === 'attuned' ? 'Sintonizado' : 'Requerida');
     }
-    if (info.hands) {
-      const hands = info.hands === 'two' ? '2 manos'
-        : info.hands === 'versatile' ? (twoHanded ? '2 manos' : '1 o 2 manos')
-          : '1 mano';
-      this._infoRow(panel, 'Manos', hands);
-    }
     if (info.properties.length) {
-      this._infoList(panel, 'Propiedades', info.properties.map((key) => ({
-        label: this._configLabel('itemProperties', key),
-        description: infoDescription('property', key)
-      })), 'arpginv-weapon-info__props');
+      this._infoList(panel, 'Propiedades', info.properties.map((key) => {
+        const label = this._configLabel('itemProperties', key);
+        return {
+          label: key === 'thr' && info.throwRange
+            ? `${label} ${this._distanceLabel(info.throwRange)}`
+            : label,
+          description: infoDescription('property', key)
+        };
+      }), 'arpginv-weapon-info__props');
     }
   }
 

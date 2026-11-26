@@ -10,6 +10,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - (next milestone in progress)
 
+## [0.8.9] - 2026-11-26
+
+### Added
+- Thrown weapons now show their two distances on the `thr` property (for example `Arrojadiza 20/60 ft`) while `Alcance` keeps the normal melee reach.
+- Ranges use the weapon's dnd5e units and localized abbreviations.
+
+### Changed
+- Properties now render as a block: the `Propiedades` label sits above the list, with one property per line.
+- Removed the `Manos` row from the info panel.
+- Attack bonus is now read from dnd5e 6.x attack activities instead of the legacy `system.attack`.
+
 ## [0.8.8] - 2026-11-26
 
 ### Added
