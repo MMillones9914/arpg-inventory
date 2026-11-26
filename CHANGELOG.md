@@ -10,6 +10,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - (next milestone in progress)
 
+## [0.8.3] - 2026-11-26
+
+### Changed
+- Removed the "Inventario" pane heading; its row is no longer wasted vertical space.
+- The window content is a flex column and the root scrolls vertically, so tall grids (e.g. 10×8 at 300 lb) are reachable instead of being clipped at the bottom.
+
 ## [0.8.2] - 2026-11-26
 
 ### Fixed

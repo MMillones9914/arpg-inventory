@@ -1,6 +1,6 @@
 # AGENT.md — Guía del agente de desarrollo
 
-> Documento vivo. Define arquitectura, convenciones y reglas de trabajo del módulo **ARPG Inventory** para Foundry VTT v14. Versión del documento: **0.8.2**.
+> Documento vivo. Define arquitectura, convenciones y reglas de trabajo del módulo **ARPG Inventory** para Foundry VTT v14. Versión del documento: **0.8.3**.
 
 ---
 
@@ -172,4 +172,4 @@ Permisos: el GM edita cualquier actor; un jugador solo edita los actores que pos
 
 ---
 
-_Última actualización: 0.8.2 (grid de 10 columnas fijas, filas derivadas del peso y ancho del panel estabilizado)._
+_Última actualización: 0.8.3 (sin encabezado "Inventario"; contenido con scroll vertical para grids altos)._

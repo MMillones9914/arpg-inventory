@@ -659,9 +659,6 @@ export class InventoryApp extends foundry.applications.api.ApplicationV2 {
     // Container zones are capped to the same column count by the model.
     const paneWidth = MAIN_GRID_COLS * CELL_SIZE + (MAIN_GRID_COLS - 1) * 2 + 12;
     inventoryPane.style.width = `${paneWidth}px`;
-    const paneTitle = document.createElement('div');
-    paneTitle.className = 'arpginv-inventory-pane__title';
-    paneTitle.textContent = 'Inventario';
     const weaponBar = document.createElement('div');
     weaponBar.className = 'arpginv-weapon-bar';
     const mainInfo = document.createElement('div');
@@ -927,7 +924,7 @@ export class InventoryApp extends foundry.applications.api.ApplicationV2 {
     }
 
     const ux = this._buildFilterBar();
-    inventoryPane.append(paneTitle, weaponBar, weightBar, tabs, ux, info, grid);
+    inventoryPane.append(weaponBar, weightBar, tabs, ux, info, grid);
     layout.append(equipment, inventoryPane);
     root.append(layout);
 

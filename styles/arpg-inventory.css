@@ -43,7 +43,9 @@
 .window-app.arpg-inventory > .window-content,
 .arpg-inventory > .window-content {
   padding: 0 !important;
-  display: block;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
 
 .arpg-inventory__root {
@@ -52,7 +54,10 @@
   background: var(--arpginv-surface);
   box-sizing: border-box;
   max-width: 100%;
+  flex: 1 1 auto;
+  min-height: 0;
   overflow-x: hidden;
+  overflow-y: auto;
 }
 
 .arpginv-weight {
@@ -193,13 +198,6 @@
   flex: 0 1 auto;
   min-width: 0;
   max-width: 100%;
-}
-
-.arpginv-inventory-pane__title {
-  font-size: 12px;
-  font-weight: bold;
-  letter-spacing: 0.5px;
-  margin-bottom: var(--arpginv-space);
 }
 
 .arpginv-equipment {
