@@ -8,7 +8,9 @@ import {
   findFirstAvailable,
   placeOrStack,
   splitStack,
-  dimensions
+  dimensions,
+  itemIdAt,
+  swapItems
 } from '../../src/engine/grid-engine';
 
 describe('grid-engine', () => {
@@ -68,6 +70,38 @@ describe('grid-engine', () => {
     expect(res).not.toBeNull();
     expect(res.state.placements.a.stack.current).toBe(3);
     expect(res.state.placements.b.stack.current).toBe(2);
+  });
+
+  it('swaps two container positions and reports the item under a cell', () => {
+    const bag = { w: 2, h: 2, rotatable: true };
+    let state = createGridState(6, 6);
+    state = placeItem(state, { id: 'bag-a', grid: bag }, 0, 0);
+    state = placeItem(state, { id: 'bag-b', grid: bag }, 3, 1);
+    expect(itemIdAt(state, 4, 2)).toBe('bag-b');
+    const swapped = swapItems(state, 'bag-a', 'bag-b', { grid: bag, rotated: false });
+    expect(swapped).not.toBeNull();
+    expect(swapped.placements['bag-a']).toMatchObject({ x: 3, y: 1, w: 2, h: 2 });
+    expect(swapped.placements['bag-b']).toMatchObject({ x: 0, y: 0, w: 2, h: 2 });
+    expect(itemIdAt(swapped, 0, 0)).toBe('bag-b');
+    expect(Object.keys(swapped.placements)).toHaveLength(2);
+  });
+
+  it('clamps swapped bags when their sizes differ', () => {
+    let state = createGridState(6, 6);
+    state = placeItem(state, { id: 'big', grid: { w: 2, h: 2 } }, 0, 0);
+    state = placeItem(state, { id: 'small', grid: { w: 1, h: 2 } }, 5, 4);
+    const swapped = swapItems(state, 'big', 'small', { grid: { w: 2, h: 2 }, rotated: false });
+    expect(swapped).not.toBeNull();
+    expect(swapped.placements.big).toMatchObject({ x: 4, y: 4 });
+    expect(swapped.placements.small).toMatchObject({ x: 0, y: 0 });
+  });
+
+  it('rejects swaps that cannot fit and swaps of the same item', () => {
+    let state = createGridState(2, 2);
+    state = placeItem(state, { id: 'a', grid: { w: 2, h: 2 } }, 0, 0);
+    expect(swapItems(state, 'a', 'a')).toBeNull();
+    expect(swapItems(state, 'a', 'missing')).toBeNull();
+    expect(itemIdAt(state, 0, 0)).toBe('a');
   });
 
   it('dimensions helper', () => {

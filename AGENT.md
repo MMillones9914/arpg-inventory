@@ -1,6 +1,6 @@
 # AGENT.md — Guía del agente de desarrollo
 
-> Documento vivo. Define arquitectura, convenciones y reglas de trabajo del módulo **ARPG Inventory** para Foundry VTT v14. Versión del documento: **0.7.4**.
+> Documento vivo. Define arquitectura, convenciones y reglas de trabajo del módulo **ARPG Inventory** para Foundry VTT v14. Versión del documento: **0.7.5**.
 
 ---
 
@@ -60,7 +60,7 @@ src/
 │   ├── placeholders.ts            # icons core para slots/armas/zonas vacías
 │   └── ux.ts                      # filtros, opciones, peso y tooltips (puro)
 ├── engine/
-│   ├── grid-engine.ts             # occupación, colisión, rotación, stacking
+│   ├── grid-engine.ts             # ocupación, colisión, rotación, stacking e intercambio de bolsas
 │   └── grid-geometry.ts           # viewport -> celda (puro, testeable)
 ├── hooks/
 │   ├── dnd5e-hooks.ts             # sync de items/actores
@@ -120,10 +120,10 @@ Slots (14):
 - Panel de equipo (silueta vertical, 11): izquierda `head`, `neck`, `shoulders`, `body`, `back`, `hands`; derecha `wrist`, `waist`, `feet`, `ring1`, `ring2`. `legs` fue eliminado.
 - Espacios de armas encima del grid del inventario (3): `mainhand` y `offhand` alargados verticalmente (112×150) con imagen `cover` que rellena el slot, `ammo` como cuadro pequeño (44×44) centrado junto a la secundaria. Espacios de datos a la derecha de `mainhand` y a la izquierda de `offhand` (implementados en M6); `ammo` sin espacio. `ranged` fue eliminado.
 
-Capacidad `strength`: `system.attributes.encumbrance.max` o `Fuerza × 15` lb. Tamaños por tipo dnd5e en `ITEM_GRID_DEFAULTS` (armadura 2×3, herramienta 1×2, munición stack 20, etc.).
+Capacidad `strength`: `system.attributes.encumbrance.max` o `Fuerza × 15` lb. Tamaños por tipo dnd5e en `ITEM_GRID_DEFAULTS` (armadura 2×3, herramienta 1×2, munición 1×2 stack 20, contenedor 2×2, etc.).
 
-Contenedores: una zona por ítem contenedor del actor, con `capacity: { cols, rows, maxWeight, spaces, mode }` derivada del ítem (4 lb/celda o `count`). `backpack` (6×4, 40) y `quiver` (2×4, 10) se conservan solo como placeholders inactivos cuando no hay ítem dedicado.
-Un item está en **una sola zona**; `removeItemFromInventory` lo saca de todas antes de moverlo.
+Contenedores: una zona por ítem contenedor del actor, con `capacity: { cols, rows, maxWeight, spaces, mode, maxCount }` derivada del ítem. Por peso: 4 lb = 1 celda y rejilla cuadrada. Por conteo: **un slot del tamaño del contenido** (flechas 1×2) y `maxCount` = límite de apilado (quiver 20); no se crea una celda por unidad. `backpack` (6×4, 40) y `quiver` (2×4, 10) se conservan solo como placeholders inactivos cuando no hay ítem dedicado.
+Un item está en **una sola zona**; `removeItemFromInventory` lo saca de todas antes de moverlo. Al arrastrar una bolsa sobre otra bolsa de la misma zona se intercambian sus posiciones (`swapItems`), con ajuste de anclas si difieren en tamaño; el swap está restringido a ítems contenedores.
 
 ---
 
@@ -163,4 +163,4 @@ Un item está en **una sola zona**; `removeItemFromInventory` lo saca de todas a
 
 ---
 
-_Última actualización: 0.7.4 (zonas dinámicas por contenedor, capacidad 4 lb/celda y límite `maxContainers`)._
+_Última actualización: 0.7.5 (quiver como slot 1×2 con límite 20, munición 1×2 e intercambio de posiciones entre bolsas)._

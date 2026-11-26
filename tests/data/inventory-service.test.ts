@@ -24,7 +24,7 @@ describe('dynamic container zones', () => {
     expect(containers.map((c) => c.available)).toEqual([true, true, true]);
     expect(containers[0].capacity).toMatchObject({ cols: 5, rows: 2, maxWeight: 40, spaces: 10 });
     expect(containers[1].capacity).toMatchObject({ cols: 1, rows: 1, maxWeight: 4, spaces: 1 });
-    expect(containers[2].capacity).toMatchObject({ cols: 5, rows: 4, maxWeight: 20, spaces: 20 });
+    expect(containers[2].capacity).toMatchObject({ cols: 1, rows: 2, maxCount: 20, spaces: 1, mode: 'count' });
     expect(containers[0].img).toBe('icons/bag.webp');
   });
 

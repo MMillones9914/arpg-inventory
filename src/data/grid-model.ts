@@ -41,7 +41,7 @@ const ITEM_GRID_DEFAULTS: Record<string, { w: number; h: number }> = {
   tool: { w: 1, h: 2 },
   loot: { w: 1, h: 1 },
   treasure: { w: 1, h: 1 },
-  ammo: { w: 1, h: 1 },
+  ammo: { w: 1, h: 2 },
   container: { w: 2, h: 2 },
   backpack: { w: 2, h: 2 },
   spellcastingFocus: { w: 1, h: 1 },

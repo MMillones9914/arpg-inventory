@@ -62,6 +62,7 @@ describe('grid-model', () => {
 
   it('defaults item grid by type', () => {
     expect(defaultItemGrid('weapon')).toEqual({ w: 2, h: 1, rotatable: true });
+    expect(defaultItemGrid('ammo')).toEqual({ w: 1, h: 2, rotatable: true });
     expect(defaultItemGrid('unknown')).toEqual({ w: 1, h: 1, rotatable: true });
   });
 

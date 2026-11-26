@@ -55,6 +55,55 @@ export function placeItem(state, token, x, y, rotated = false) {
   return next;
 }
 
+export function itemIdAt(state, x, y) {
+  return state.cells?.[cellKey(x, y)] ?? null;
+}
+
+/** Keep an item's anchor inside the grid after a size/rotation change. */
+function clampAnchor(x, y, state, grid) {
+  return {
+    x: Math.min(Math.max(0, x), Math.max(0, state.cols - grid.w)),
+    y: Math.min(Math.max(0, y), Math.max(0, state.rows - grid.h))
+  };
+}
+
+/**
+ * Exchange the anchors of two items. `firstMove` carries the dragged item's
+ * effective grid and desired rotation, so rotating while swapping stays valid.
+ * Returns a new state or null when either item would not fit after the swap.
+ */
+export function swapItems(state, firstId, secondId, firstMove: any = {}) {
+  if (!state?.placements || !firstId || !secondId || firstId === secondId) return null;
+  const firstCurrent = state.placements[firstId];
+  const secondCurrent = state.placements[secondId];
+  if (!firstCurrent || !secondCurrent) return null;
+
+  const firstGrid = firstMove.grid ?? { w: firstCurrent.w, h: firstCurrent.h };
+  const secondGrid = { w: secondCurrent.w, h: secondCurrent.h };
+  const cleared = removeItem(removeItem(state, firstId), secondId);
+
+  const firstSpot = clampAnchor(secondCurrent.x, secondCurrent.y, cleared, firstGrid);
+  const afterFirst = placeItem(cleared, {
+    id: firstId,
+    grid: firstGrid,
+    stack: firstMove.stack ?? firstCurrent.stack ?? { current: 1, max: 1 },
+    stackKey: firstMove.stackKey ?? firstCurrent.stackKey ?? firstId
+  }, firstSpot.x, firstSpot.y, false);
+  if (!afterFirst) return null;
+  afterFirst.placements[firstId].rotated = firstMove.rotated === true;
+
+  const secondSpot = clampAnchor(firstCurrent.x, firstCurrent.y, afterFirst, secondGrid);
+  const afterSecond = placeItem(afterFirst, {
+    id: secondId,
+    grid: secondGrid,
+    stack: secondCurrent.stack ?? { current: 1, max: 1 },
+    stackKey: secondCurrent.stackKey ?? secondId
+  }, secondSpot.x, secondSpot.y, false);
+  if (!afterSecond) return null;
+  afterSecond.placements[secondId].rotated = secondCurrent.rotated === true;
+  return afterSecond;
+}
+
 export function removeItem(state, id) {
   const placement = state.placements[id];
   if (!placement) return state;

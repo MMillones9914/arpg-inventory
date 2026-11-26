@@ -25,14 +25,17 @@ import {
   type ItemFilters
 } from '../data/ux';
 import { containerPlaceholder, slotPlaceholder, zonePlaceholder } from '../data/placeholders';
+import { isContainerItem } from '../data/containers';
 import { playInventorySound } from '../utils/sound';
 import { pointToCell } from '../engine/grid-geometry';
 import {
   createGridState,
+  itemIdAt,
   placeItem,
   removeItem,
   placeOrStack,
-  findFirstAvailable
+  findFirstAvailable,
+  swapItems
 } from '../engine/grid-engine';
 
 const CELL_SIZE = 34;
@@ -235,6 +238,28 @@ export class InventoryApp extends foundry.applications.api.ApplicationV2 {
     return state;
   }
 
+  /** Count containers cap a stack at their declared capacity (20 arrows, etc.). */
+  _zoneStack(item: any, zone: any) {
+    const stack = getItemStack(item);
+    const maxCount = Number(zone?.capacity?.maxCount);
+    if (zone?.capacity?.mode !== 'count' || !Number.isFinite(maxCount) || maxCount < 1) return stack;
+    return { current: Math.min(stack.current, maxCount), max: Math.min(stack.max, maxCount) };
+  }
+
+  /** Exchange positions when a bag is dropped onto another bag in the same zone. */
+  _bagSwap(state: any, zone: any, draggedId: string, targetId: string, grid: any, stack: any) {
+    if (!targetId || targetId === draggedId || !zone?.placements?.[draggedId]) return null;
+    const dragged = this.actor?.items?.get?.(draggedId);
+    const target = this.actor?.items?.get?.(targetId);
+    if (!isContainerItem(dragged) || !isContainerItem(target)) return null;
+    return swapItems(state, draggedId, targetId, {
+      grid,
+      rotated: this.dragRotated,
+      stack,
+      stackKey: dragged?.name ?? draggedId
+    });
+  }
+
   async _autoPlaceAll(inv: any) {
     if (!this.editable) return;
     const items = [...(this.actor?.items ?? [])];
@@ -260,6 +285,7 @@ export class InventoryApp extends foundry.applications.api.ApplicationV2 {
       const stack = getItemStack(item);
       const token = { id: item.id, grid, stack, stackKey: item.name };
       for (const z of zones) {
+        if (z.zone.capacity.mode === 'count' && stack.current > z.zone.capacity.maxCount) continue;
         const spot = findFirstAvailable(states.get(z.id), grid, false);
         if (!spot) continue;
         const placed = placeItem(states.get(z.id), token, spot.x, spot.y, false);
@@ -711,7 +737,12 @@ export class InventoryApp extends foundry.applications.api.ApplicationV2 {
     const usedCells = zoneUsedCells(zone);
     const totalCells = zone.capacity.cols * zone.capacity.rows;
     const zoneLoad = zoneWeight(this.actor, zone);
-    info.textContent = `Cells ${usedCells}/${totalCells} · Weight ${zoneLoad.toFixed(1)}/${zone.capacity.maxWeight}`;
+    const capacityLabel = zone.capacity.mode === 'count'
+      ? `Loaded ${Object.values(zone.placements).reduce(
+          (sum: number, p: any) => sum + (p?.stack?.current ?? 1), 0
+        )}/${zone.capacity.maxCount}`
+      : `Weight ${zoneLoad.toFixed(1)}/${zone.capacity.maxWeight}`;
+    info.textContent = `Cells ${usedCells}/${totalCells} · ${capacityLabel}`;
 
     // Active-zone grid. Cells are explicitly positioned so data-x/y always
     // matches the visible cell (CSS auto-placement used to shift them).
@@ -782,10 +813,14 @@ export class InventoryApp extends foundry.applications.api.ApplicationV2 {
       const token = {
         id: this.dragItemId,
         grid: gridDims,
-        stack: getItemStack(item),
+        stack: this._zoneStack(item, zone),
         stackKey: item.name
       };
-      const valid = !!placeOrStack(working, token, cell.x, cell.y);
+      const placed = placeOrStack(working, token, cell.x, cell.y);
+      const swap = placed ? null : this._bagSwap(
+        state, zone, this.dragItemId, itemIdAt(working, cell.x, cell.y), gridDims, token.stack
+      );
+      const valid = !!placed || !!swap;
       this._highlightCells(grid, cell.x, cell.y, gridDims, valid);
       this._setDropHighlight(grid, valid);
     });
@@ -875,34 +910,54 @@ export class InventoryApp extends foundry.applications.api.ApplicationV2 {
     if (!item) return false;
 
     const inv = getActorInventory(this.actor);
-    removeItemFromInventory(inv, draggedId);
     const zone = getInventoryZone(inv, zoneId);
     if (!zone) return false;
 
-    const gridDims = this._effectiveGrid(item, this.dragRotated);
-    const state = this._buildEngineState(zone);
-    const token = { id: draggedId, grid: gridDims, stack: getItemStack(item), stackKey: item.name };
-    const res = placeOrStack(state, token, x, y);
-    if (!res) {
-      ui.notifications?.warn('Cannot place item here');
+    if (zone.capacity.mode === 'count' && getItemStack(item).current > zone.capacity.maxCount) {
+      ui.notifications?.warn('Container capacity exceeded');
       playInventorySound('invalid');
       return false;
     }
+    const gridDims = this._effectiveGrid(item, this.dragRotated);
+    const stack = this._zoneStack(item, zone);
+    const state = this._buildEngineState(zone);
+    const token = { id: draggedId, grid: gridDims, stack, stackKey: item.name };
 
-    const placements = res.state.placements;
-    if (!res.consumed && placements[draggedId]) {
-      placements[draggedId] = normalizePlacement(
-        { ...placements[draggedId], rotated: this.dragRotated },
-        gridDims,
-        zone.capacity.cols,
-        zone.capacity.rows
-      );
+    // Build the state before clearing the source: a bag swapped in this zone
+    // keeps its previous anchor, which the swap helper then exchanges.
+    const swapped = this._bagSwap(state, zone, draggedId, itemIdAt(state, x, y), gridDims, stack);
+    removeItemFromInventory(inv, draggedId);
+
+    let placements: any;
+    let consumed = false;
+    let targetId = draggedId;
+    if (swapped) {
+      placements = swapped.placements;
+    } else {
+      const working = removeItem(state, draggedId);
+      const res = placeOrStack(working, token, x, y);
+      if (!res) {
+        ui.notifications?.warn('Cannot place item here');
+        playInventorySound('invalid');
+        return false;
+      }
+      placements = res.state.placements;
+      consumed = res.consumed;
+      targetId = res.targetId;
+      if (!consumed && placements[draggedId]) {
+        placements[draggedId] = normalizePlacement(
+          { ...placements[draggedId], rotated: this.dragRotated },
+          gridDims,
+          zone.capacity.cols,
+          zone.capacity.rows
+        );
+      }
     }
     if (zoneId === 'main') inv.placements = placements;
     else zone.placements = placements;
 
-    if (res.consumed) {
-      await this._consumeStackedItem(inv, res.targetId, placements);
+    if (consumed) {
+      await this._consumeStackedItem(inv, targetId, placements);
       await setActorInventory(this.actor, inv);
       await this.actor.deleteEmbeddedDocuments('Item', [draggedId]);
       playInventorySound('stack');

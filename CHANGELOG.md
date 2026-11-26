@@ -10,6 +10,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - (next milestone in progress)
 
+## [0.7.5] - 2026-11-26
+
+### Added
+- `swapItems()` in `src/engine/grid-engine.ts`: dragging a bag onto another bag in the same zone exchanges their positions (clamped when their sizes differ). 4 new tests (total 52).
+- `_bagSwap()` in the inventory app: swap preview and drop handling, restricted to items detected as containers.
+
+### Changed
+- Count-capacity containers no longer create one cell per item. A quiver is now a single **1×2 slot** (arrow-sized) with a declared stack limit of 20; count containers for other contents use a 1×1 slot. Weight-capacity containers keep the 4 lb per cell rule.
+- Ammo items default to a **1×2** grid size, matching the quiver slot.
+- Zone info shows `Loaded n/max` for count containers instead of a meaningless weight limit; stacks larger than the declared count are rejected.
+
 ## [0.7.4] - 2026-11-26
 
 ### Added
