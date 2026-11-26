@@ -10,6 +10,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - (next milestone in progress)
 
+## [0.8.8] - 2026-11-26
+
+### Added
+- Hover descriptions for every equipment property, mastery, damage type and damage row. Properties and damage types render as a labelled list when there is more than one entry.
+
+### Changed
+- Removed the uses row from the equipment info panel.
+- Switching a versatile weapon to two hands now shows the versatile damage die in the panel. Foundry's own per-activity attack mode is kept in sync, so attack and damage rolls use that die automatically.
+- The 1/2-hands toggle image is square and fills the whole button.
+
 ## [0.8.7] - 2026-11-26
 
 ### Changed

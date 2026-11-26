@@ -11,7 +11,10 @@ import {
   weaponHands,
   isTwoHandedWeapon,
   hasWeaponMastery,
-  equippedInfo
+  equippedInfo,
+  infoDescription,
+  attackModeForItem,
+  syncAttackMode
 } from '../../src/data/dnd5e';
 import { defaultItemGrid, defaultItemStackMax } from '../../src/data/grid-model';
 
@@ -89,6 +92,7 @@ describe('dnd5e helpers', () => {
     expect(info?.hasMastery).toBe(true);
     expect(info?.properties).toEqual(['two', 'rch']);
     expect(info?.hands).toBe('two');
+    expect(info).not.toHaveProperty('uses');
 
     const shield = {
       name: 'Shield', type: 'equipment',
@@ -97,6 +101,41 @@ describe('dnd5e helpers', () => {
     expect(equippedInfo(shield, actor)?.ac).toBe('2 AC');
     expect(equippedInfo(shield, actor)?.damage).toBeNull();
     expect(hasWeaponMastery(weapon, {})).toBe(false);
+  });
+
+  it('maps holding mode to the dnd5e attack mode used by rolls', async () => {
+    const versatile = { type: 'weapon', system: { properties: new Set(['ver']) } };
+    const glaive = { type: 'weapon', system: { properties: new Set(['two']) } };
+    const dagger = { type: 'weapon', system: { properties: new Set(['fin']) } };
+    expect(attackModeForItem(versatile, false)).toBe('oneHanded');
+    expect(attackModeForItem(versatile, true)).toBe('twoHanded');
+    expect(attackModeForItem(glaive, false)).toBe('twoHanded');
+    expect(attackModeForItem(dagger, true)).toBe('oneHanded');
+    expect(attackModeForItem({ type: 'consumable' }, true)).toBeNull();
+
+    const flags: string[] = [];
+    const item = {
+      ...versatile,
+      setFlag: async (scope: string, key: string, value: string) => {
+        flags.push(`${scope}.${key}=${value}`);
+      },
+      system: {
+        ...versatile.system,
+        activities: [
+          { id: 'atk1', type: 'attack' },
+          { id: 'dmg1', type: 'damage' }
+        ]
+      }
+    };
+    await syncAttackMode(item, true);
+    expect(flags).toEqual(['dnd5e.last.atk1.attackMode=twoHanded']);
+  });
+
+  it('exposes hover descriptions for properties, masteries and damage', () => {
+    expect(infoDescription('property', 'two')).toContain('dos manos');
+    expect(infoDescription('mastery', 'graze')).toContain('fallas');
+    expect(infoDescription('damageType', 'slashing')).toContain('cortante');
+    expect(infoDescription('versatileDamage', 'base')).toContain('versátil');
   });
 
   it('reads attunement and uses', () => {

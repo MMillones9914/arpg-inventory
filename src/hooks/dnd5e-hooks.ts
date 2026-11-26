@@ -1,6 +1,7 @@
 import { MODULE_ID } from '../constants';
 import { warn } from '../utils/logger';
 import { canEditInventory } from '../data/permissions';
+import { syncAttackMode } from '../data/dnd5e';
 import { syncActorItems } from '../data/inventory-service';
 import { notifyRemoteInventoryUpdate, refreshInventoryForActor } from '../input/keybindings';
 
@@ -91,10 +92,15 @@ export function registerDnd5eHooks() {
     if (!actor || actor.documentName !== 'Actor') return;
     if (!actor.isOwner && !game.user?.isGM) return;
     const fields = ['container', 'equipped', 'quantity', 'attunement', 'uses', 'type', 'rarity', 'damage', 'attack'];
-    const touchesData = Object.keys(changes ?? {})
+    const keys = Object.keys(changes ?? {});
+    const touchesData = keys
       .some((key) => fields.some((field) => key === `system.${field}` || key.startsWith(`system.${field}.`)))
       || fields.some((field) => field in (changes?.system ?? {}));
-    if (!touchesData) return;
+    const touchesHands = keys.some((key) => key === `flags.${MODULE_ID}.twoHanded`);
+    if (!touchesData && !touchesHands) return;
+    if (touchesHands && ownsChange(actor, userId)) {
+      await syncAttackMode(item, item.getFlag?.(MODULE_ID, 'twoHanded') === true);
+    }
     if (syncing.has(actor)) return;
     syncing.add(actor);
     try {

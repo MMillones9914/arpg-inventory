@@ -18,7 +18,9 @@ import {
 import {
   attunementState,
   equippedInfo,
+  infoDescription,
   isTwoHandedWeapon,
+  syncAttackMode,
   weaponHands
 } from '../data/dnd5e';
 import { canEditInventory } from '../data/permissions';
@@ -193,6 +195,7 @@ export class InventoryApp extends foundry.applications.api.ApplicationV2 {
     if (!this._supportsItemField(item, 'equipped')) return;
     const changes: any = { 'system.equipped': equipped };
     if (equipped && this._supportsItemField(item, 'container')) changes['system.container'] = null;
+    if (equipped) await syncAttackMode(item, item.getFlag?.(MODULE_ID, 'twoHanded') === true);
     if (item.system.equipped === equipped && !changes['system.container']) return;
     await item.update(changes);
   }
@@ -245,6 +248,9 @@ export class InventoryApp extends foundry.applications.api.ApplicationV2 {
     if (!isMain && !isOff) return false;
     const next = item.getFlag?.(MODULE_ID, 'twoHanded') !== true;
     await item.setFlag(MODULE_ID, 'twoHanded', next);
+    // Foundry's own attack mode follows the holding mode, so attack and damage
+    // rolls use the versatile die without asking the player again.
+    await syncAttackMode(item, next);
     const slots = next ? ['mainhand', 'offhand'] : ['mainhand'];
     const displaced = this._assignEquipmentSlots(inv, itemId, slots);
     if (!(await this._saveInventory(inv))) return false;
@@ -256,7 +262,7 @@ export class InventoryApp extends foundry.applications.api.ApplicationV2 {
   }
 
   _configLabel(
-    path: 'weaponProperties' | 'equipmentProperties' | 'weaponMasteries' | 'damageTypes' | 'itemRarity',
+    path: 'itemProperties' | 'weaponMasteries' | 'damageTypes' | 'itemRarity',
     key: string
   ) {
     try {
@@ -271,7 +277,7 @@ export class InventoryApp extends foundry.applications.api.ApplicationV2 {
   }
 
   /** One labelled line in the equipment info panel. */
-  _infoRow(parent: HTMLElement, label: string, value: string, extraClass = '') {
+  _infoRow(parent: HTMLElement, label: string, value: string, extraClass = '', description = '') {
     const row = document.createElement('div');
     row.className = `arpginv-weapon-info__row ${extraClass}`.trim();
     const key = document.createElement('span');
@@ -280,8 +286,36 @@ export class InventoryApp extends foundry.applications.api.ApplicationV2 {
     const text = document.createElement('span');
     text.className = 'arpginv-weapon-info__value';
     text.textContent = value;
-    text.title = value;
+    text.title = description || value;
     row.append(key, text);
+    parent.appendChild(row);
+  }
+
+  /** Labelled list; each entry carries its own hover description. */
+  _infoList(
+    parent: HTMLElement,
+    label: string,
+    entries: { label: string; description: string }[],
+    extraClass = ''
+  ) {
+    if (entries.length === 1) {
+      this._infoRow(parent, label, entries[0].label, extraClass, entries[0].description);
+      return;
+    }
+    const row = document.createElement('div');
+    row.className = `arpginv-weapon-info__row arpginv-weapon-info__row--list ${extraClass}`.trim();
+    const key = document.createElement('span');
+    key.className = 'arpginv-weapon-info__key';
+    key.textContent = label;
+    const list = document.createElement('ul');
+    list.className = 'arpginv-weapon-info__list';
+    for (const entry of entries) {
+      const item = document.createElement('li');
+      item.textContent = entry.label;
+      item.title = entry.description;
+      list.appendChild(item);
+    }
+    row.append(key, list);
     parent.appendChild(row);
   }
 
@@ -322,16 +356,36 @@ export class InventoryApp extends foundry.applications.api.ApplicationV2 {
         panel,
         'Maestría',
         this._configLabel('weaponMasteries', info.mastery),
-        `arpginv-weapon-info__mastery${info.hasMastery ? ' arpginv-weapon-info__mastery--active' : ''}`
+        `arpginv-weapon-info__mastery${info.hasMastery ? ' arpginv-weapon-info__mastery--active' : ''}`,
+        infoDescription('mastery', info.mastery)
       );
     }
-    const damageTypes = info.damageTypes
-      .map((key) => this._configLabel('damageTypes', key))
-      .join(', ');
-    if (info.damage) {
-      const damage = damageTypes ? `${info.damage} · ${damageTypes}` : info.damage;
-      this._infoRow(panel, 'Daño', damage, 'arpginv-weapon-info__damage');
-      if (info.altDamage) this._infoRow(panel, 'Versátil', info.altDamage);
+
+    const twoHanded = this._usesTwoHands(item);
+    const damage = twoHanded && info.altDamage ? info.altDamage : info.damage;
+    if (damage) {
+      this._infoRow(
+        panel,
+        twoHanded && info.altDamage ? 'Daño (2 manos)' : 'Daño',
+        damage,
+        'arpginv-weapon-info__damage',
+        infoDescription(twoHanded && info.altDamage ? 'versatileDamage' : 'damage', 'base')
+      );
+    }
+    if (info.damageTypes.length) {
+      this._infoList(panel, 'Tipo de daño', info.damageTypes.map((key) => ({
+        label: this._configLabel('damageTypes', key),
+        description: infoDescription('damageType', key)
+      })), 'arpginv-weapon-info__props');
+    }
+    if (info.altDamage) {
+      this._infoRow(
+        panel,
+        twoHanded ? 'A 1 mano' : 'A 2 manos',
+        twoHanded ? (info.damage ?? '') : info.altDamage,
+        '',
+        infoDescription(twoHanded ? 'damage' : 'versatileDamage', 'base')
+      );
     }
     if (info.attack) this._infoRow(panel, 'Ataque', info.attack);
     if (info.ac) this._infoRow(panel, 'CA', info.ac, 'arpginv-weapon-info__damage');
@@ -339,21 +393,17 @@ export class InventoryApp extends foundry.applications.api.ApplicationV2 {
     if (info.attunement !== 'none') {
       this._infoRow(panel, 'Sintonía', info.attunement === 'attuned' ? 'Sintonizado' : 'Requerida');
     }
-    if (info.uses) this._infoRow(panel, 'Usos', info.uses);
     if (info.hands) {
       const hands = info.hands === 'two' ? '2 manos'
-        : info.hands === 'versatile' ? (this._usesTwoHands(item) ? '2 manos' : '1 o 2 manos')
+        : info.hands === 'versatile' ? (twoHanded ? '2 manos' : '1 o 2 manos')
           : '1 mano';
       this._infoRow(panel, 'Manos', hands);
     }
     if (info.properties.length) {
-      const path = info.itemType === 'weapon' ? 'weaponProperties' : 'equipmentProperties';
-      this._infoRow(
-        panel,
-        'Propiedades',
-        info.properties.map((key) => this._configLabel(path, key)).join(' · '),
-        'arpginv-weapon-info__props'
-      );
+      this._infoList(panel, 'Propiedades', info.properties.map((key) => ({
+        label: this._configLabel('itemProperties', key),
+        description: infoDescription('property', key)
+      })), 'arpginv-weapon-info__props');
     }
   }
 

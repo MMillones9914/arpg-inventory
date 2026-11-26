@@ -165,7 +165,6 @@ export interface EquippedInfo {
   hasMastery: boolean;
   ac: string | null;
   attunement: AttunementState;
-  uses: string | null;
   properties: string[];
   hands: WeaponHands;
 }
@@ -222,9 +221,104 @@ export function equippedInfo(item: any, actor: any): EquippedInfo | null {
     hasMastery: type === 'weapon' ? hasWeaponMastery(item, actor) : false,
     ac: system.armor?.value ? `${system.armor.value} AC` : null,
     attunement: attunementState(item),
-    uses: usesLabel(item),
     properties: itemProperties(item),
     hands: weaponHands(item)
   };
+}
+
+/** dnd5e attack mode that matches how the module is holding this weapon. */
+export function attackModeForItem(item: any, twoHandedFlag = false): 'oneHanded' | 'twoHanded' | null {
+  const hands = weaponHands(item);
+  if (!hands) return null;
+  if (hands === 'two') return 'twoHanded';
+  if (hands === 'versatile') return twoHandedFlag ? 'twoHanded' : 'oneHanded';
+  return 'oneHanded';
+}
+
+/**
+ * Mirror the holding mode into dnd5e's own per-activity attack-mode flag so a
+ * subsequent attack/damage roll uses the versatile die automatically.
+ */
+export async function syncAttackMode(item: any, twoHandedFlag = false) {
+  if (!item?.setFlag) return;
+  const mode = attackModeForItem(item, twoHandedFlag);
+  if (!mode) return;
+  const validModes = new Set((item.system?.attackModes ?? []).map((option: any) => option?.value));
+  const activities = item.system?.activities ?? [];
+  for (const activity of activities) {
+    if (!activity || (activity.type && activity.type !== 'attack') || !activity.id) continue;
+    if (validModes.size && !validModes.has(mode)) continue;
+    await item.setFlag('dnd5e', `last.${activity.id}.attackMode`, mode);
+  }
+}
+
+type DescriptionKind = 'property' | 'mastery' | 'damageType' | 'damage' | 'versatileDamage';
+
+const DESCRIPTIONS: Record<DescriptionKind, Record<string, string>> = {
+  property: {
+    ada: 'Ignora resistencias e inmunidades al daño de armas no mágicas.',
+    amm: 'Necesita munición para realizar el ataque.',
+    fin: 'Puedes usar Fuerza o Destreza para las tiradas de ataque y daño.',
+    fir: 'Arma de fuego: requiere munición y sigue las reglas de armas de fuego.',
+    foc: 'Puede servir como foco de conjuro.',
+    gear: 'Equipo utilizable fuera del combate.',
+    hvy: 'Con desventaja en ataques si eres Pequeño o Mediano.',
+    lgt: 'Arma ligera: puedes empuñar otra arma ligera en la otra mano.',
+    lod: 'Solo puedes disparar una vez por acción o reacción antes de recargar.',
+    mgc: 'Arma mágica: supera resistencias al daño no mágico.',
+    rch: 'Alcance: suma 10 pies a tu alcance cuerpo a cuerpo con esta arma.',
+    rel: 'Requiere una acción para recargarla.',
+    ret: 'Tras lanzarla, el arma vuelve mágicamente a tu mano.',
+    sil: 'Arma de plata: ignora resistencias al daño de plata.',
+    spc: 'Tiene una regla especial descrita en el objeto.',
+    stealthDisadvantage: 'Impone desventaja en las tiradas de Sigilo mientras la llevas.',
+    thr: 'Puedes lanzarla para hacer un ataque a distancia.',
+    two: 'Requiere dos manos para empuñarla y atacar.',
+    ver: 'Puede usarse con una o dos manos; a dos manos usa el dado versátil.',
+    shl: 'Escudo: otorga +2 a la Clase de Armadura cuando está equipado.'
+  },
+  mastery: {
+    cleave: 'Tras golpear a una criatura, puedes atacar a otra criatura adyacente.',
+    graze: 'Si fallas el ataque, infliges daño de arma a la criatura.',
+    nick: 'Tras atacar con esta arma, puedes hacer un ataque con arma ligera como acción de bonificación.',
+    push: 'Tras golpear, puedes empujar al objetivo 5 pies directamente alejándolo de ti.',
+    sap: 'El objetivo tiene desventaja en su próxima tirada de ataque.',
+    slow: 'Reduce la velocidad del objetivo 10 pies hasta el final de tu próximo turno.',
+    topple: 'Puedes derribar al objetivo tumbado si falla su salvación.',
+    vex: 'Tu siguiente ataque contra el objetivo tiene ventaja.'
+  },
+  damageType: {
+    acid: 'Daño ácido: disuelve materiales y afecta a criaturas vulnerables al ácido.',
+    bludgeoning: 'Daño contundente: golpes, martillazos y caídas.',
+    cold: 'Daño de frío: congela y ralentiza.',
+    fire: 'Daño de fuego: quemaduras y calor intenso.',
+    force: 'Daño de fuerza: energía mágica pura.',
+    lightning: 'Daño de rayo: descargas eléctricas.',
+    necrotic: 'Daño necrótico: energía de la no-muerte.',
+    piercing: 'Daño perforante: puntas, flechas y dagas.',
+    poison: 'Daño de veneno: toxinas y ponzoñas.',
+    psychic: 'Daño psíquico: ataques mentales.',
+    radiant: 'Daño radiante: luz sagrada y energía solar.',
+    slashing: 'Daño cortante: hojas y garras.',
+    thunder: 'Daño de trueno: ondas de sonido ensordecedoras.'
+  },
+  damage: {
+    base: 'Daño base del arma. Con un arma versátil empuñada a dos manos, Foundry usa automáticamente el dado versátil.'
+  },
+  versatileDamage: {
+    base: 'Dado que sustituye al daño base cuando empuñas el arma versátil con dos manos.'
+  }
+};
+
+/** Spanish hover text for item properties, masteries and damage. */
+export function infoDescription(kind: DescriptionKind, key = ''): string {
+  const fallback: Record<DescriptionKind, string> = {
+    property: 'Propiedad de dnd5e sin descripción adicional.',
+    mastery: 'Maestría de dnd5e sin descripción adicional.',
+    damageType: 'Tipo de daño de dnd5e.',
+    damage: 'Daño del arma.',
+    versatileDamage: 'Daño alternativo del arma.'
+  };
+  return DESCRIPTIONS[kind][key] ?? fallback[kind];
 }
 
