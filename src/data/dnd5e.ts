@@ -164,7 +164,6 @@ export interface EquippedInfo {
   throwRange: string | null;
   mastery: string | null;
   hasMastery: boolean;
-  ac: string | null;
   attunement: AttunementState;
   properties: string[];
 }
@@ -246,7 +245,6 @@ export function equippedInfo(item: any, actor: any): EquippedInfo | null {
     throwRange: thrown ? thrownRangeLabel(system) : null,
     mastery: type === 'weapon' ? (String(system.mastery ?? '') || null) : null,
     hasMastery: type === 'weapon' ? hasWeaponMastery(item, actor) : false,
-    ac: system.armor?.value ? `${system.armor.value} AC` : null,
     attunement: attunementState(item),
     properties
   };

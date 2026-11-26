@@ -322,10 +322,6 @@ export class InventoryApp extends foundry.applications.api.ApplicationV2 {
     entries: { label: string; description: string }[],
     extraClass = ''
   ) {
-    if (entries.length === 1) {
-      this._infoRow(parent, label, entries[0].label, extraClass, entries[0].description);
-      return;
-    }
     const row = document.createElement('div');
     row.className = `arpginv-weapon-info__row arpginv-weapon-info__row--list ${extraClass}`.trim();
     const key = document.createElement('span');
@@ -395,17 +391,7 @@ export class InventoryApp extends foundry.applications.api.ApplicationV2 {
         description: infoDescription('damageType', key)
       })), 'arpginv-weapon-info__props');
     }
-    if (info.altDamage) {
-      this._infoRow(
-        panel,
-        twoHanded ? 'A 1 mano' : 'A 2 manos',
-        twoHanded ? (info.damage ?? '') : info.altDamage,
-        '',
-        infoDescription(twoHanded ? 'damage' : 'versatileDamage', 'base')
-      );
-    }
     if (info.range) this._infoRow(panel, 'Alcance', this._distanceLabel(info.range));
-    if (info.ac) this._infoRow(panel, 'CA', info.ac, 'arpginv-weapon-info__ac');
     if (info.mastery) {
       this._infoRow(
         panel,

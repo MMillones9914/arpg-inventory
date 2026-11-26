@@ -10,6 +10,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - (next milestone in progress)
 
+## [0.8.11] - 2026-11-26
+
+### Changed
+- Removed the AC row from the equipment info panel and dropped AC from `EquippedInfo`.
+- Melee reach stays in the `Alcance` row; ranged range is unchanged.
+- Removed the extra 1-hand/2-hands damage row; the main `Daño` row already shows the active die.
+- Every field is now a vertical block: bold title on top, value underneath. Single properties also render inside their list block instead of beside the label.
+
 ## [0.8.10] - 2026-11-26
 
 ### Changed

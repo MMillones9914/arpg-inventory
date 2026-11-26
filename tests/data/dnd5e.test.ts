@@ -98,7 +98,7 @@ describe('dnd5e helpers', () => {
       name: 'Shield', type: 'equipment',
       system: { equipped: true, armor: { value: 2 }, properties: new Set(['shl']) }
     };
-    expect(equippedInfo(shield, actor)?.ac).toBe('2 AC');
+    expect(equippedInfo(shield, actor)).not.toHaveProperty('ac');
     expect(equippedInfo(shield, actor)?.damage).toBeNull();
     expect(hasWeaponMastery(weapon, {})).toBe(false);
   });

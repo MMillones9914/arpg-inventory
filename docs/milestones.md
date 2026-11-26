@@ -101,6 +101,7 @@ Leyenda de estado: 🔲 To do · 🔄 In progress · ✅ Done
 - [x] Descripciones al pasar el mouse por propiedades, maestría y daño; lista de propiedades; sin usos; dado versátil y modo de ataque de dnd5e sincronizados al cambiar de manos (0.8.8)
 - [x] Bloque de propiedades una por línea, distancia de arrojo en `thr`, alcance normal separado, sin fila de manos y lectura de ataque desde actividades de dnd5e 6.x (0.8.9)
 - [x] Información ordenada y contrastes corregidos en temas light/dark/high-contrast: daño, AC y maestría legibles, scrollbar visible (0.8.10)
+- [x] Sin CA ni fila extra de daño alternativo; alcance cuerpo a cuerpo, bloques verticales con títulos en negrita y una sola propiedad también debajo del título (0.8.11)
 
 ## M9 — Public API & extensibility (0.9.0) 🔲
 - [ ] API pública documentada

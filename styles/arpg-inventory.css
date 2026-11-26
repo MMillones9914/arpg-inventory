@@ -401,22 +401,25 @@
 
 .arpginv-weapon-info__row {
   display: flex;
-  align-items: flex-start;
-  gap: 3px;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0;
   flex: 0 0 auto;
 }
 
 .arpginv-weapon-info__key {
-  flex: 0 0 auto;
+  width: 100%;
   font-size: 7px;
+  font-weight: bold;
   letter-spacing: 0.03em;
   text-transform: uppercase;
-  color: var(--arpginv-info-muted);
+  color: var(--arpginv-info-text);
 }
 
 .arpginv-weapon-info__value {
-  flex: 1 1 auto;
+  width: 100%;
   min-width: 0;
+  padding-left: 6px;
 }
 
 .arpginv-weapon-info__mastery {
@@ -433,13 +436,12 @@
   font-weight: bold;
 }
 
-.arpginv-weapon-info__damage,
-.arpginv-weapon-info__ac {
+.arpginv-weapon-info__damage {
   color: var(--arpginv-info-text);
   font-weight: bold;
 }
 
-.arpginv-weapon-info__props { color: var(--arpginv-info-muted); }
+.arpginv-weapon-info__props { color: var(--arpginv-info-text); }
 
 .arpginv-weapon-info__row--list {
   flex-direction: column;
