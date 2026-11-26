@@ -7,6 +7,7 @@ import {
   MAIN_GRID_COLS,
   defaultItemGrid,
   defaultItemStackMax,
+  normalizeItemGrid,
   DEFAULT_CONTAINERS,
   EQUIPMENT_SLOTS,
   getInventoryZone,
@@ -261,17 +262,22 @@ export async function syncActorItems(actor: any) {
 
 export function getItemGrid(item: any) {
   if (!item) return defaultItemGrid();
+  const fallback = defaultItemGrid(dnd5eItemType(item));
   const stored = item.getFlag(MODULE_ID, 'grid');
-  if (stored && typeof stored === 'object') {
-    const w = Number(stored.w);
-    const h = Number(stored.h);
-    return {
-      w: Number.isFinite(w) && w > 0 ? Math.floor(w) : 1,
-      h: Number.isFinite(h) && h > 0 ? Math.floor(h) : 1,
-      rotatable: stored.rotatable !== false
-    };
-  }
-  return defaultItemGrid(dnd5eItemType(item));
+  return stored && typeof stored === 'object' ? normalizeItemGrid(stored, fallback) : fallback;
+}
+
+/** Persist edited dimensions on the Item; the updateItem hook reflows the grids. */
+export async function setItemGrid(item: any, grid: any): Promise<boolean> {
+  if (!item || typeof item.setFlag !== 'function') return false;
+  if (!canEditInventory(game?.user, item?.parent ?? item)) return false;
+  const next = normalizeItemGrid(grid, getItemGrid(item));
+  await item.setFlag(MODULE_ID, 'grid', {
+    w: next.w,
+    h: next.h,
+    rotatable: next.rotatable
+  });
+  return true;
 }
 
 export function getItemStack(item: any) {

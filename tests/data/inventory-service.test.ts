@@ -1,5 +1,11 @@
-import { describe, it, expect } from 'vitest';
-import { getActorInventory, itemContainerId, syncDynamicContainers } from '../../src/data/inventory-service';
+import { afterEach, describe, it, expect, vi } from 'vitest';
+import {
+  getActorInventory,
+  getItemGrid,
+  itemContainerId,
+  setItemGrid,
+  syncDynamicContainers
+} from '../../src/data/inventory-service';
 import { createEmptyInventory } from '../../src/data/grid-model';
 
 const backpack = {
@@ -201,5 +207,37 @@ describe('dynamic container zones', () => {
     const containers = inv.containers as any[];
     expect(containers.map((c) => c.id)).toEqual(['backpack', 'quiver']);
     expect(containers.every((c) => c.available === false)).toBe(true);
+  });
+});
+
+describe('item dimensions', () => {
+  const previousGame = (globalThis as any).game;
+  afterEach(() => {
+    (globalThis as any).game = previousGame;
+  });
+
+  it('reads grid flags and clamps them to the usable grid', () => {
+    const item = { type: 'weapon', getFlag: () => ({ w: 20, h: 4, rotatable: false }) };
+    expect(getItemGrid(item)).toEqual({ w: 10, h: 4, rotatable: false });
+    expect(getItemGrid({ type: 'weapon', getFlag: () => null }))
+      .toEqual({ w: 2, h: 1, rotatable: true });
+  });
+
+  it('saves edited dimensions on the item only when permitted', async () => {
+    const setFlag = vi.fn();
+    const item = {
+      type: 'weapon',
+      parent: { isOwner: true },
+      getFlag: () => null,
+      setFlag
+    };
+    (globalThis as any).game = { user: { isGM: false, id: 'u1' } };
+    expect(await setItemGrid(item, { w: 2, h: 4 })).toBe(true);
+    expect(setFlag).toHaveBeenCalledWith('arpg-inventory', 'grid', { w: 2, h: 4, rotatable: true });
+
+    setFlag.mockClear();
+    item.parent = { isOwner: false };
+    expect(await setItemGrid(item, { w: 3, h: 3 })).toBe(false);
+    expect(setFlag).not.toHaveBeenCalled();
   });
 });

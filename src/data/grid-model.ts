@@ -129,6 +129,39 @@ export function defaultItemGrid(itemType = 'default') {
   return { w: size.w, h: size.h, rotatable: true };
 }
 
+/** Items can never be wider or taller than the fixed 10-column grid. */
+export const MAX_ITEM_DIMENSION = MAIN_GRID_COLS;
+
+/** Normalize a saved or typed grid, keeping it inside the usable grid. */
+export function normalizeItemGrid(raw: any, fallback: any = {}) {
+  const clamp = (value: any, alt: any) => {
+    const n = positiveInt(value, positiveInt(alt, 1));
+    return Math.min(Math.max(n, 1), MAX_ITEM_DIMENSION);
+  };
+  return {
+    w: clamp(raw?.w, fallback?.w),
+    h: clamp(raw?.h, fallback?.h),
+    rotatable: raw?.rotatable !== false
+  };
+}
+
+/** Parse a single `WxH` field (also accepts `x`, `×` or `,`). */
+export function parseItemDimensions(value: any): { w: number; h: number } | null {
+  const text = String(value ?? '').trim().toLocaleLowerCase();
+  const match = text.match(/^(\d{1,2})\s*(?:x|×|\*|,)\s*(\d{1,2})$/);
+  if (!match) return null;
+  const w = Number(match[1]);
+  const h = Number(match[2]);
+  if (w < 1 || h < 1 || w > MAX_ITEM_DIMENSION || h > MAX_ITEM_DIMENSION) return null;
+  return { w, h };
+}
+
+/** Current dimensions in the same `WxH` format used by the editor. */
+export function itemDimensionsLabel(grid: any): string {
+  const size = normalizeItemGrid(grid);
+  return `${size.w}x${size.h}`;
+}
+
 export function defaultItemStackMax(itemType = 'default') {
   return ITEM_STACK_MAX[itemType] ?? ITEM_STACK_MAX.default;
 }

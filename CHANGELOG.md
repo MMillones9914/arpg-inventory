@@ -10,6 +10,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - (next milestone in progress)
 
+## [0.8.14] - 2026-11-26
+
+### Added
+- Foundry item sheets now show a `Dimensiones` button in their header, next to where actor sheets get `Inventory (B)`.
+- Clicking it opens a small window where the item's grid size can be typed as `WxH` (for example `2x4`), saved on the Item and applied to every inventory zone.
+- Item dimension editing is permission-aware and accepts `x`, `×` or `,` as the separator; values are limited to 1–10 per side.
+
+### Changed
+- Grid flags and typed dimensions are normalized through a single helper, so oversized saved grids no longer break placement.
+
 ## [0.8.13] - 2026-11-26
 
 ### Added

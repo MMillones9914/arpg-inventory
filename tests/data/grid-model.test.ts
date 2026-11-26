@@ -11,7 +11,11 @@ import {
   findItemLocation,
   removeItemFromInventory,
   zoneUsedCells,
-  EQUIPMENT_SLOTS
+  EQUIPMENT_SLOTS,
+  MAX_ITEM_DIMENSION,
+  normalizeItemGrid,
+  parseItemDimensions,
+  itemDimensionsLabel
 } from '../../src/data/grid-model';
 
 describe('grid-model', () => {
@@ -116,5 +120,25 @@ describe('grid-model', () => {
 
     inv.placements.a = null;
     expect(findItemLocation(inv, 'a')).toBeNull();
+  });
+
+  it('parses the WxH dimensions field', () => {
+    expect(parseItemDimensions('2x4')).toEqual({ w: 2, h: 4 });
+    expect(parseItemDimensions(' 3 × 1 ')).toEqual({ w: 3, h: 1 });
+    expect(parseItemDimensions('1,5')).toEqual({ w: 1, h: 5 });
+    expect(parseItemDimensions('llave')).toBeNull();
+    expect(parseItemDimensions('0x2')).toBeNull();
+    expect(parseItemDimensions('11x2')).toBeNull();
+    expect(parseItemDimensions('2x0')).toBeNull();
+    expect(parseItemDimensions('2x11')).toBeNull();
+    expect(MAX_ITEM_DIMENSION).toBe(10);
+  });
+
+  it('normalizes saved grids and formats them back as WxH', () => {
+    expect(normalizeItemGrid({ w: 2, h: 4 }, { w: 1, h: 1 })).toEqual({ w: 2, h: 4, rotatable: true });
+    expect(normalizeItemGrid({ w: 20, h: -3, rotatable: false }, { w: 1, h: 1 }))
+      .toEqual({ w: 10, h: 1, rotatable: false });
+    expect(itemDimensionsLabel({ w: 2, h: 4 })).toBe('2x4');
+    expect(itemDimensionsLabel(null)).toBe('1x1');
   });
 });

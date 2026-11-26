@@ -97,7 +97,8 @@ export function registerDnd5eHooks() {
       .some((key) => fields.some((field) => key === `system.${field}` || key.startsWith(`system.${field}.`)))
       || fields.some((field) => field in (changes?.system ?? {}));
     const touchesHands = keys.some((key) => key === `flags.${MODULE_ID}.twoHanded`);
-    if (!touchesData && !touchesHands) return;
+    const touchesGrid = keys.some((key) => key === `flags.${MODULE_ID}.grid`);
+    if (!touchesData && !touchesHands && !touchesGrid) return;
     if (touchesHands && ownsChange(actor, userId)) {
       await syncAttackMode(item, item.getFlag?.(MODULE_ID, 'twoHanded') === true);
     }

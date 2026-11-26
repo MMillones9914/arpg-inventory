@@ -104,6 +104,7 @@ Leyenda de estado: 🔲 To do · 🔄 In progress · ✅ Done
 - [x] Sin CA ni fila extra de daño alternativo; alcance cuerpo a cuerpo, bloques verticales con títulos en negrita y una sola propiedad también debajo del título (0.8.11)
 - [x] Sin fila de ataque: el daño incluye modificadores del actor; listas sin viñetas ni puntitos y valores con color más claro (0.8.12)
 - [x] Tooltip mínimo (nombre, rareza con color, tipo, equipado y cantidad) y doble clic para abrir la ficha del objeto en Foundry (0.8.13)
+- [x] Botón `Dimensiones` en la ficha de cada objeto con ventana para editar el tamaño en formato `WxH`; el cambio se guarda en el flag del item y reubica el objeto en todas las zonas (0.8.14)
 
 ## M9 — Public API & extensibility (0.9.0) 🔲
 - [ ] API pública documentada

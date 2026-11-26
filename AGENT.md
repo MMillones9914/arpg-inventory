@@ -1,6 +1,6 @@
 # AGENT.md — Guía del agente de desarrollo
 
-> Documento vivo. Define arquitectura, convenciones y reglas de trabajo del módulo **ARPG Inventory** para Foundry VTT v14. Versión del documento: **0.8.13**.
+> Documento vivo. Define arquitectura, convenciones y reglas de trabajo del módulo **ARPG Inventory** para Foundry VTT v14. Versión del documento: **0.8.14**.
 
 ---
 
@@ -49,7 +49,9 @@ Idioma con el usuario: **español**. Código/comentarios técnicos: **inglés**.
 
 ```
 src/
-├── apps/inventory-app.ts          # UI, DnD, equipment slots, zone tabs
+├── apps/
+│   ├── inventory-app.ts           # UI, DnD, equipment slots, zone tabs
+│   └── dimensions-app.ts          # ventana para editar el grid del item (WxH)
 ├── constants.ts                   # MODULE_ID / MODULE_TITLE
 ├── data/
 │   ├── dnd5e.ts                   # reglas 5e puras: capacidad, tipos, attunement, usos, permisos
@@ -67,7 +69,7 @@ src/
 │   └── grid-geometry.ts           # viewport -> celda (puro, testeable)
 ├── hooks/
 │   ├── dnd5e-hooks.ts             # sync de items/actores
-│   └── ui-hooks.ts                # botón "Inventory (B)" en ficha
+│   └── ui-hooks.ts                # "Inventory (B)" en actores y "Dimensiones" en objetos
 ├── input/keybindings.ts           # tecla B (abrir/cerrar, oficial + fallback)
 ├── module.ts                      # init/ready
 ├── settings.ts                    # capacidad, tema y sonidos
@@ -99,6 +101,7 @@ tests/{data,engine}/*.test.ts   # incluye dnd5e.test.ts y ux.test.ts
 - Cada ítem contenedor crea su propia zona (id = item id) con rejilla cuadrada exacta: 4 lb equivalen a 1 celda y `capacity.count` cuenta como celdas. El setting `maxContainers` limita el número de zonas; mínimo 1.
 - Los temas son variables CSS en `.arpg-inventory` con clases `arpginv-theme--light|dark|highContrast`; la app añade la clase activa a la raíz.
 - El tooltip propio vive en `document.body`; se oculta al salir del objetivo y se elimina al cerrar la app. Solo muestra nombre, rareza (coloreada), tipo de objeto, estado `Equipado` cuando el campo existe y cantidad. El doble clic sobre cualquier objeto (grid o slot de equipo) abre su ficha real de Foundry con `item.sheet.render(true)`; el botón de manos se excluye de ese doble clic.
+- Las fichas de objetos Foundry reciben un botón `Dimensiones` en la cabecera (las fichas de actor mantienen `Inventory (B)`). Abre `DimensionsApp`, donde se escribe el tamaño como `WxH` (p. ej. `2x4`; también acepta `×` y `,`). `setItemGrid()` guarda `w`, `h` y `rotatable` en `flags.arpg-inventory.grid` solo si el usuario tiene permiso; el hook `updateItem` detecta ese flag, sincroniza el inventario del actor y reubica el objeto en todas las zonas. Ambos lados se limitan a 1–10 celdas porque el grid principal tiene 10 columnas fijas.
 - Layout de la app: flex horizontal; `.window-content` sin padding y raíz con padding 7px arriba/izquierda y 5px abajo/derecha. El resto de separaciones usan `--arpginv-space` (5px). Equipo 9:16 a la izquierda con `actor.img` de fondo, inventario a la derecha con espacios de armas encima del grid; panel con ancho fijo igual al grid principal; ventana 710×620.
 
 ---
@@ -176,4 +179,4 @@ Permisos: el GM edita cualquier actor; un jugador solo edita los actores que pos
 
 ---
 
-_Última actualización: 0.8.13 (tooltip mínimo y doble clic para abrir la ficha de Foundry)._
+_Última actualización: 0.8.14 (editor de dimensiones desde la ficha de cada objeto)._
