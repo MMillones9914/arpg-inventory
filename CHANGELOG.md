@@ -10,6 +10,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - (next milestone in progress)
 
+## [0.7.7] - 2026-11-26
+
+### Added
+- `src/data/inventory-items.ts`: pure allowlist/denylist for carryable dnd5e items. Non-physical types (`background`, `class`, `facility`, `feat`/`feature`, `race`/`species`, `renown`, `spell`, `subclass`) are excluded; unknown module types stay allowed. 3 new tests (total 56).
+
+### Changed
+- Only inventory-eligible items are rendered, auto-placed, equipped, filtered or counted toward carried weight. Stale placements of excluded items are removed on the next actor sync.
+
 ## [0.7.6] - 2026-11-26
 
 ### Added

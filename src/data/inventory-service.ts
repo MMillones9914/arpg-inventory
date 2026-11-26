@@ -10,6 +10,7 @@ import {
 import { dnd5eItemType, strengthCapacity } from './dnd5e';
 import { containerCapacity } from './container-capacity';
 import { containerKindMatches, isContainerItem, normalizedContainerLimit } from './containers';
+import { inventoryItemIds, isInventoryItem } from './inventory-items';
 
 function settingsDefaults() {
   try {
@@ -49,7 +50,7 @@ export function syncDynamicContainers(actor: any, inv: any, settings: any = {}) 
   const limit = normalizedContainerLimit(settings.maxContainers ?? 1);
   const dynamic: any[] = [];
   for (const item of items) {
-    if (!isContainerItem(item)) continue;
+    if (!isInventoryItem(item) || !isContainerItem(item)) continue;
     const id = String(item.id);
     if (dynamic.some((zone) => zone.id === id)) continue;
     if (dynamic.length >= limit) break;
@@ -103,7 +104,7 @@ export function getActorInventory(actor: any) {
   if (!actor) return null;
   const raw = actor.getFlag(MODULE_ID, 'inventory');
   const settings = settingsDefaults();
-  const itemIds = actor.items?.map((i: any) => i.id) ?? [];
+  const itemIds = inventoryItemIds([...(actor?.items ?? [])]);
   const inv = normalizeActorInventory(raw, itemIds, settings);
   inv.capacity = normalizeCapacity(inv.capacity, settings);
 

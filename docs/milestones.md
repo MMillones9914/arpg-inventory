@@ -84,6 +84,7 @@ Leyenda de estado: 🔲 To do · 🔄 In progress · ✅ Done
 - [x] Zonas dinámicas por contenedor con capacidad derivada (4 lb/celda) y límite configurable del GM (0.7.4)
 - [x] Quiver como slot 1×2 con capacidad de 20 flechas, munición 1×2 e intercambio de posiciones entre bolsas (0.7.5)
 - [x] Reordenación de pestañas de contenedores arrastrando una sobre otra, con orden persistente (0.7.6)
+- [x] Filtro de tipos: hechizos, rasgos, clases, subclases, especies, antecedentes y demás objetos no físicos quedan fuera del inventario (0.7.7)
 
 ## M8 — Multiplayer, permissions & sync (0.8.0) 🔲
 - [ ] Permisos GM/Jugador

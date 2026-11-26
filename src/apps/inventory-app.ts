@@ -26,6 +26,7 @@ import {
 } from '../data/ux';
 import { containerPlaceholder, slotPlaceholder, zonePlaceholder } from '../data/placeholders';
 import { isContainerItem } from '../data/containers';
+import { isInventoryItem } from '../data/inventory-items';
 import { playInventorySound } from '../utils/sound';
 import { pointToCell } from '../engine/grid-geometry';
 import {
@@ -52,7 +53,9 @@ function rarityClass(item: any) {
 
 function actorWeight(actor: any) {
   let total = 0;
-  for (const item of actor?.items ?? []) total += itemWeight(item);
+  for (const item of actor?.items ?? []) {
+    if (isInventoryItem(item)) total += itemWeight(item);
+  }
   return total;
 }
 
@@ -280,7 +283,7 @@ export class InventoryApp extends foundry.applications.api.ApplicationV2 {
 
   async _autoPlaceAll(inv: any) {
     if (!this.editable) return;
-    const items = [...(this.actor?.items ?? [])];
+    const items = [...(this.actor?.items ?? [])].filter(isInventoryItem);
     const zones = this._availableZoneDefs(inv).map((def) => ({ id: def.id, zone: def.zone }));
     const states = new Map<string, any>();
     for (const z of zones) states.set(z.id, this._buildEngineState(z.zone));
@@ -326,7 +329,10 @@ export class InventoryApp extends foundry.applications.api.ApplicationV2 {
   _applyFilters(root?: HTMLElement) {
     const scope: ParentNode = root ?? this.element ?? document;
     const active = this._hasActiveFilters();
-    const matches = new Set(matchingItemIds(this.actor?.items ?? [], this.filters));
+    const matches = new Set(matchingItemIds(
+      [...(this.actor?.items ?? [])].filter(isInventoryItem),
+      this.filters
+    ));
     let total = 0;
     let shown = 0;
     scope.querySelectorAll<HTMLElement>('.arpginv-item, .arpginv-slot[data-item-id]').forEach((el) => {
@@ -402,7 +408,7 @@ export class InventoryApp extends foundry.applications.api.ApplicationV2 {
     panel.className = 'arpginv-filterpanel';
     panel.hidden = true;
 
-    const items = [...(this.actor?.items ?? [])];
+    const items = [...(this.actor?.items ?? [])].filter(isInventoryItem);
     const makeSelect = (
       className: string,
       allLabel: string,
@@ -811,6 +817,7 @@ export class InventoryApp extends foundry.applications.api.ApplicationV2 {
     }
 
     for (const item of this.actor.items ?? []) {
+      if (!isInventoryItem(item)) continue;
       const p = this._normalizePlacement(item.id, zone);
       if (!p) continue;
       const stack = getItemStack(item);
@@ -952,7 +959,7 @@ export class InventoryApp extends foundry.applications.api.ApplicationV2 {
     const draggedId = this.dragItemId;
     if (!draggedId) return false;
     const item = this.actor?.items?.get?.(draggedId);
-    if (!item) return false;
+    if (!item || !isInventoryItem(item)) return false;
 
     const inv = getActorInventory(this.actor);
     const zone = getInventoryZone(inv, zoneId);
@@ -1018,7 +1025,8 @@ export class InventoryApp extends foundry.applications.api.ApplicationV2 {
   async _equipDragged(slotId: string) {
     if (!this.editable) return false;
     const draggedId = this.dragItemId;
-    if (!draggedId || !this.actor?.items?.get?.(draggedId)) return false;
+    const dragged = this.actor?.items?.get?.(draggedId);
+    if (!draggedId || !dragged || !isInventoryItem(dragged)) return false;
     const inv = getActorInventory(this.actor);
     removeItemFromInventory(inv, draggedId);
     inv.equipment[slotId] = draggedId;
@@ -1039,7 +1047,7 @@ export class InventoryApp extends foundry.applications.api.ApplicationV2 {
       return false;
     }
     const item = this.actor?.items?.get?.(itemId);
-    if (!item) return false;
+    if (!item || !isInventoryItem(item)) return false;
 
     const inv = getActorInventory(this.actor);
     removeItemFromInventory(inv, itemId);

@@ -1,6 +1,6 @@
 # AGENT.md — Guía del agente de desarrollo
 
-> Documento vivo. Define arquitectura, convenciones y reglas de trabajo del módulo **ARPG Inventory** para Foundry VTT v14. Versión del documento: **0.7.6**.
+> Documento vivo. Define arquitectura, convenciones y reglas de trabajo del módulo **ARPG Inventory** para Foundry VTT v14. Versión del documento: **0.7.7**.
 
 ---
 
@@ -57,6 +57,7 @@ src/
 │   ├── inventory-service.ts       # acceso a flags + grid/stack de items
 │   ├── container-capacity.ts      # 4 lb por celda, conteo y rejilla cuadrada
 │   ├── containers.ts              # detección de contenedores y límite del GM
+│   ├── inventory-items.ts         # tipos dnd5e permitidos en el inventario
 │   ├── placeholders.ts            # icons core para slots/armas/zonas vacías
 │   └── ux.ts                      # filtros, opciones, peso y tooltips (puro)
 ├── engine/
@@ -89,7 +90,7 @@ tests/{data,engine}/*.test.ts   # incluye dnd5e.test.ts y ux.test.ts
 - Cadenas visibles al usuario: usar `game.i18n.localize` cuando exista clave en `lang/en.json`.
 - Reglas dnd5e y permisos van en `src/data/dnd5e.ts` (puro, testeable); la UI solo consume esos helpers.
 - Mutar flags del inventario está permitido únicamente al GM (`canEditInventory`); otros usuarios ven la app en solo lectura.
-- Lógica de UX no dependiente de Foundry va en `src/data/ux.ts` (puro, testeable); los icons de placeholders en `src/data/placeholders.ts`; las reglas de contenedores en `src/data/containers.ts`; la capacidad derivada en `src/data/container-capacity.ts`; el sonido opcional en `src/utils/sound.ts`.
+- Lógica de UX no dependiente de Foundry va en `src/data/ux.ts` (puro, testeable); los icons de placeholders en `src/data/placeholders.ts`; las reglas de contenedores en `src/data/containers.ts`; la capacidad derivada en `src/data/container-capacity.ts`; el filtro de tipos de ítem en `src/data/inventory-items.ts`; el sonido opcional en `src/utils/sound.ts`.
 - Un placeholder solo se renderiza cuando el slot/arma/zona está vacío; todos usan el mismo filtro grisáreo y opacidad para quedar como fondo. La excepción son las pestañas de zona disponibles (icono a color) y las armas (placeholder a pantalla completa).
 - `backpack` se habilita con cualquier ítem de tipo `container`; `quiver` por nombre (`quiver`/`carcaj`). Si no hay contenedor, la pestaña sigue visible pero inactiva (grisárea, borde discontinuo, `aria-disabled`) y avisa con `ui.notifications.warn` al intentar usarla; sus ítems se reubican en una zona válida.
 - La pestaña de un contenedor disponible usa la imagen del ítem contenedor del actor; si no existe, usa el icono core atenuado.
@@ -164,4 +165,4 @@ Un item está en **una sola zona**; `removeItemFromInventory` lo saca de todas a
 
 ---
 
-_Última actualización: 0.7.6 (reordenación de pestañas de contenedor por arrastre, con orden persistente)._
+_Última actualización: 0.7.7 (solo objetos físicos en el inventario; excluidos hechizos, rasgos, clases, especies, etc.)._
