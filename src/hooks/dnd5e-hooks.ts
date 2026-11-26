@@ -90,7 +90,7 @@ export function registerDnd5eHooks() {
     const actor = item?.parent;
     if (!actor || actor.documentName !== 'Actor') return;
     if (!actor.isOwner && !game.user?.isGM) return;
-    const fields = ['container', 'quantity', 'attunement', 'uses', 'type', 'rarity', 'damage', 'attack'];
+    const fields = ['container', 'equipped', 'quantity', 'attunement', 'uses', 'type', 'rarity', 'damage', 'attack'];
     const touchesData = Object.keys(changes ?? {})
       .some((key) => fields.some((field) => key === `system.${field}` || key.startsWith(`system.${field}.`)))
       || fields.some((field) => field in (changes?.system ?? {}));

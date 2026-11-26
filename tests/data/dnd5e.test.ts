@@ -5,7 +5,9 @@ import {
   attunementState,
   usesLabel,
   weaponSummary,
-  canEditInventory
+  canEditInventory,
+  equipmentSlotsForItem,
+  equipmentSlotForItem
 } from '../../src/data/dnd5e';
 import { defaultItemGrid, defaultItemStackMax } from '../../src/data/grid-model';
 
@@ -22,6 +24,20 @@ describe('dnd5e helpers', () => {
     expect(dnd5eItemType({ type: 'armor' })).toBe('armor');
     expect(defaultItemGrid('armor')).toEqual({ w: 2, h: 3, rotatable: true });
     expect(defaultItemStackMax('ammo')).toBe(20);
+  });
+
+  it('maps equipped items to our equipment slots', () => {
+    const weapon = { id: 'w', type: 'weapon', name: 'Longsword', system: { equipped: true } };
+    expect(equipmentSlotsForItem(weapon)).toEqual(['mainhand', 'offhand']);
+    expect(equipmentSlotForItem(weapon, {})).toBe('mainhand');
+    expect(equipmentSlotForItem(weapon, { mainhand: 'other' })).toBe('offhand');
+    expect(equipmentSlotsForItem({ ...weapon, system: { equipped: false } })).toEqual([]);
+
+    const shield = { id: 's', type: 'equipment', name: 'Shield', system: { equipped: true, type: { value: 'shield' } } };
+    expect(equipmentSlotsForItem(shield)).toEqual(['offhand', 'mainhand']);
+
+    const armor = { id: 'a', type: 'equipment', name: 'Plate', system: { equipped: true, type: { value: 'heavy' } } };
+    expect(equipmentSlotForItem(armor, {})).toBe('body');
   });
 
   it('reads attunement and uses', () => {

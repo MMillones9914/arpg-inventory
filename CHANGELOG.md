@@ -10,6 +10,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - (next milestone in progress)
 
+## [0.8.5] - 2026-11-26
+
+### Added
+- Dropping an item into an equipment slot now sets dnd5e's real `system.equipped` flag and clears `system.container`, so Foundry shows it as equipped and it disappears from every inventory grid.
+- Equipping an item in Foundry is detected by the `updateItem` hook and mirrored into the matching equipment slot (weapon → mainhand/offhand, shield → offhand, armor → body, rings, neck, boots, etc.). A slot chosen in our UI is preserved.
+- Dragging an equipped item back to a grid or container clears `system.equipped`. Unequipping in Foundry returns the item to the inventory.
+
 ## [0.8.4] - 2026-11-26
 
 ### Fixed

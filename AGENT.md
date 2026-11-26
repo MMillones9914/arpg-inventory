@@ -1,6 +1,6 @@
 # AGENT.md — Guía del agente de desarrollo
 
-> Documento vivo. Define arquitectura, convenciones y reglas de trabajo del módulo **ARPG Inventory** para Foundry VTT v14. Versión del documento: **0.8.4**.
+> Documento vivo. Define arquitectura, convenciones y reglas de trabajo del módulo **ARPG Inventory** para Foundry VTT v14. Versión del documento: **0.8.5**.
 
 ---
 
@@ -130,7 +130,7 @@ Slots (14):
 Capacidad `strength`: `system.attributes.encumbrance.max` o `Fuerza × 15` lb. **Regla universal: 4 lb = 1 space**; `spaces = suelo(maxWeight / 4)`. El grid usa **10 columnas fijas** y `filas = techo(spaces / 10)` (300 lb → 75 espacios → 10×8). `cols`/`rows` guardados solo se usan en zonas legacy sin peso declarado. Los contenedores grandes también se limitan a 10 columnas para no desbordar el panel. Al cambiar el tamaño del grid se recolocan las colocaciones válidas más cercanas (`reflowZonePlacements`). Tamaños por tipo dnd5e en `ITEM_GRID_DEFAULTS` (armadura 2×3, herramienta 1×2, munición 1×2 stack 20, contenedor 2×2, etc.).
 
 Contenedores: una zona por ítem contenedor del actor, con `capacity: { cols, rows, maxWeight, spaces, mode, maxCount }` derivada del ítem. Por peso: 4 lb = 1 celda y rejilla cuadrada. Por conteo: **un slot del tamaño del contenido** (flechas 1×2) y `maxCount` = límite de apilado (quiver 20); no se crea una celda por unidad. `backpack` (6×4, 40) y `quiver` (2×4, 10) se conservan solo como placeholders inactivos cuando no hay ítem dedicado.
-Un item está en **una sola zona**; `removeItemFromInventory` lo saca de todas antes de moverlo. dnd5e es la fuente de verdad: el campo real del Item es `system.container` (id del contenedor o `null`); `enforceFoundryContainerMembership()` refleja esa pertenencia al cargar el flag y `_autoPlaceAll()` solo coloca el objeto en su zona dueña. Mover a un contenedor, volver a `main`, equipar o desequipar llama a `_syncItemContainer()` para actualizar el documento de Foundry, y el hook `updateItem` detecta cambios de `container` hechos fuera del módulo. Al arrastrar una bolsa sobre otra bolsa de la misma zona se intercambian sus posiciones (`swapItems`), con ajuste de anclas si difieren en tamaño; el swap está restringido a ítems contenedores. Las pestañas de contenedor se reordenan arrastrando una sobre otra y su orden se guarda en `containerOrder`.
+Un item está en **una sola zona**; `removeItemFromInventory` lo saca de todas antes de moverlo. dnd5e es la fuente de verdad: `system.container` (id del contenedor o `null`) y `system.equipped`. `enforceFoundryPlacement()` refleja ambos al cargar el flag: un objeto equipado va a un slot (el elegido en la UI si ya existe, si no `equipmentSlotsForItem()` lo infiere) y sale de todo grid; si no está equipado vuelve a su contenedor o a `main`. `_autoPlaceAll()` solo coloca el objeto en su zona dueña. Soltar en un slot llama a `_syncItemEquipped(true)`; soltar en un grid/contenedor llama a `_syncItemPlacement()` (que desequipa y ajusta `system.container`). El hook `updateItem` detecta cambios externos de `container`/`equipped`. Al arrastrar una bolsa sobre otra bolsa de la misma zona se intercambian sus posiciones (`swapItems`), con ajuste de anclas si difieren en tamaño; el swap está restringido a ítems contenedores. Las pestañas de contenedor se reordenan arrastrando una sobre otra y su orden se guarda en `containerOrder`.
 
 Permisos: el GM edita cualquier actor; un jugador solo edita los actores que posee; los observadores abren el panel en solo lectura. Toda escritura usa `setActorInventory`, que verifica la revisión actual, incrementa `revision` y guarda `updatedBy`/`updatedAt`. Si otra cliente ganó la carrera, se descarta el guardado, se avisa y se recarga la versión ganadora; los hooks de flag remoto refrescan los paneles abiertos.
 
@@ -172,4 +172,4 @@ Permisos: el GM edita cualquier actor; un jugador solo edita los actores que pos
 
 ---
 
-_Última actualización: 0.8.4 (pertenencia real a contenedores vía `system.container`, sin copias duplicadas)._
+_Última actualización: 0.8.5 (equipamiento real vía `system.equipped`, sincronizado en ambos sentidos con Foundry)._

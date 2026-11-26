@@ -161,15 +161,33 @@ export class InventoryApp extends foundry.applications.api.ApplicationV2 {
     return container ? owner : 'main';
   }
 
-  /** Persist the move on the Foundry item itself, not only in our flag. */
-  async _syncItemContainer(item: any, zoneId: string) {
+  /** dnd5e fields supported by this Item document. */
+  _supportsItemField(item: any, field: 'container' | 'equipped') {
+    return item?.system?.[field] !== undefined || !!item?.system?.schema?.fields?.[field];
+  }
+
+  /** Persist a grid move on the Foundry item: unequipped and in the right zone. */
+  async _syncItemPlacement(item: any, zoneId: string) {
     if (!item || !this.editable) return;
-    const supportsContainer = item.system?.container !== undefined
-      || !!item.system?.schema?.fields?.container;
-    if (!supportsContainer) return;
-    const containerId = zoneId === 'main' ? null : zoneId;
-    if (itemContainerId(item) === containerId) return;
-    await item.update({ 'system.container': containerId });
+    const changes: any = {};
+    if (this._supportsItemField(item, 'equipped') && item.system.equipped === true) {
+      changes['system.equipped'] = false;
+    }
+    if (this._supportsItemField(item, 'container')) {
+      const containerId = zoneId === 'main' ? null : zoneId;
+      if (itemContainerId(item) !== containerId) changes['system.container'] = containerId;
+    }
+    if (Object.keys(changes).length) await item.update(changes);
+  }
+
+  /** Persist an equipment-slot drop as a real dnd5e equipped item. */
+  async _syncItemEquipped(item: any, equipped: boolean) {
+    if (!item || !this.editable) return;
+    if (!this._supportsItemField(item, 'equipped')) return;
+    const changes: any = { 'system.equipped': equipped };
+    if (equipped && this._supportsItemField(item, 'container')) changes['system.container'] = null;
+    if (item.system.equipped === equipped && !changes['system.container']) return;
+    await item.update(changes);
   }
 
   /** Apply a merged stack to its item after the inventory flag was saved. */
@@ -630,7 +648,7 @@ export class InventoryApp extends foundry.applications.api.ApplicationV2 {
     if (!placed) return false;
     inv.placements = placed.placements;
     if (!(await this._saveInventory(inv))) return false;
-    await this._syncItemContainer(item, 'main');
+    await this._syncItemPlacement(item, 'main');
     playInventorySound('place');
     this.render(true);
     return true;
@@ -1060,12 +1078,12 @@ export class InventoryApp extends foundry.applications.api.ApplicationV2 {
     }
     if (consumed) {
       await this._persistStack(targetId, placements);
-      await this._syncItemContainer(this.actor.items.get(targetId), zoneId);
+      await this._syncItemPlacement(this.actor.items.get(targetId), zoneId);
       await this.actor.deleteEmbeddedDocuments('Item', [draggedId]);
       playInventorySound('stack');
     } else {
       // The same Item document now lives in the target zone in Foundry too.
-      await this._syncItemContainer(item, zoneId);
+      await this._syncItemPlacement(item, zoneId);
       playInventorySound('place');
     }
     this._endDrag();
@@ -1082,7 +1100,7 @@ export class InventoryApp extends foundry.applications.api.ApplicationV2 {
     removeItemFromInventory(inv, draggedId);
     inv.equipment[slotId] = draggedId;
     if (!(await this._saveInventory(inv))) return false;
-    await this._syncItemContainer(dragged, 'main');
+    await this._syncItemEquipped(dragged, true);
     playInventorySound('equip');
     this._endDrag();
     this.render(true);
@@ -1119,7 +1137,7 @@ export class InventoryApp extends foundry.applications.api.ApplicationV2 {
     if (zoneId === 'main') inv.placements = placed.placements;
     else zone.placements = placed.placements;
     if (!(await this._saveInventory(inv))) return false;
-    await this._syncItemContainer(item, zoneId);
+    await this._syncItemPlacement(item, zoneId);
     playInventorySound('place');
     this._endDrag();
     this.render(true);

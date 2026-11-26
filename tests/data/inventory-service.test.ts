@@ -86,6 +86,44 @@ describe('dynamic container zones', () => {
     expect(inv.placements.sword.x + inv.placements.sword.w).toBeLessThanOrEqual(inv.capacity.cols);
   });
 
+  it('moves an equipped item out of every grid and into its equipment slot', () => {
+    const armor = {
+      id: 'armor', name: 'Plate', type: 'equipment',
+      system: { equipped: true, type: { value: 'heavy' } }, getFlag: () => null
+    };
+    const actor: any = {
+      getFlag: () => ({
+        capacity: { mode: 'manual', maxWeight: 100, cols: 10, rows: 6 },
+        placements: { armor: { x: 0, y: 0, w: 2, h: 1, rotated: false, stack: { current: 1, max: 1 } } },
+        equipment: {}, containers: []
+      }),
+      items: [armor]
+    };
+    actor.items.get = (id: string) => actor.items.find((item: any) => item.id === id);
+    const inv: any = getActorInventory(actor);
+    expect(inv.equipment.body).toBe('armor');
+    expect(inv.placements.armor).toBeUndefined();
+  });
+
+  it('returns an unequipped item to the main grid', () => {
+    const sword = {
+      id: 'sword', name: 'Sword', type: 'weapon',
+      system: { equipped: false }, getFlag: () => null
+    };
+    const actor: any = {
+      getFlag: () => ({
+        capacity: { mode: 'manual', maxWeight: 100, cols: 10, rows: 6 },
+        placements: {},
+        equipment: { mainhand: 'sword' }, containers: []
+      }),
+      items: [sword]
+    };
+    actor.items.get = (id: string) => actor.items.find((item: any) => item.id === id);
+    const inv: any = getActorInventory(actor);
+    expect(inv.equipment.mainhand).toBeNull();
+    expect(inv.placements.sword).toBeUndefined();
+  });
+
   it('keeps an item only in the zone dnd5e says contains it', () => {
     const bag = { ...backpack, getFlag: () => null };
     const sword = {

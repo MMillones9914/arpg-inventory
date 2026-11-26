@@ -12,7 +12,7 @@ import {
   getInventoryZone,
   removeItemFromInventory
 } from './grid-model';
-import { dnd5eItemType, strengthCapacity } from './dnd5e';
+import { dnd5eItemType, equipmentSlotForItem, strengthCapacity } from './dnd5e';
 import { containerCapacity } from './container-capacity';
 import { containerKindMatches, isContainerItem, normalizedContainerLimit } from './containers';
 import { inventoryItemIds, isInventoryItem } from './inventory-items';
@@ -61,11 +61,10 @@ export function itemContainerId(item: any): string | null {
 }
 
 /**
- * Foundry is the source of truth for which container holds an item. Keep a
- * single placement in that zone so the ARPG flag can never show the same item
- * in both the main grid and a container.
+ * Foundry is the source of truth for both container membership and equipped
+ * state. An item gets exactly one home: an equipment slot or one grid zone.
  */
-function enforceFoundryContainerMembership(actor: any, inv: any, itemIds: string[]) {
+function enforceFoundryPlacement(actor: any, inv: any, itemIds: string[]) {
   const available = new Set(
     (inv.containers ?? [])
       .filter((zone: any) => zone.available !== false && itemIds.includes(String(zone.id)))
@@ -77,14 +76,23 @@ function enforceFoundryContainerMembership(actor: any, inv: any, itemIds: string
     if (!isInventoryItem(item)) continue;
     const id = String(item.id);
     if (!known.has(id)) continue;
+
+    if (item?.system?.equipped === true) {
+      // A slot chosen in our UI wins; otherwise infer one from the dnd5e item.
+      const currentSlot = EQUIPMENT_SLOTS.find((slot) => inv.equipment?.[slot.id] === id)?.id ?? null;
+      const slot = currentSlot ?? equipmentSlotForItem(item, inv.equipment ?? {});
+      removeItemFromInventory(inv, id);
+      if (slot && !inv.equipment[slot]) inv.equipment[slot] = id;
+      else inv.placements[id] = null; // Equipped elsewhere: keep it out of every grid.
+      continue;
+    }
+
     const owner = itemContainerId(item);
     const zoneId = owner && owner !== id && available.has(owner) ? owner : 'main';
     const zone = getInventoryZone(inv, zoneId);
     if (!zone) continue;
     const kept = zone.placements?.[id] ?? null;
-    const equippedIn = EQUIPMENT_SLOTS.find((slot) => inv.equipment?.[slot.id] === id)?.id ?? null;
-    removeItemFromInventory(inv, id);
-    if (zoneId === 'main' && equippedIn) inv.equipment[equippedIn] = id;
+    removeItemFromInventory(inv, id); // Also clears any stale equipment slot.
     zone.placements[id] = kept;
   }
 }
@@ -196,7 +204,7 @@ export function getActorInventory(actor: any) {
   }
 
   syncDynamicContainers(actor, inv, settings);
-  enforceFoundryContainerMembership(actor, inv, itemIds);
+  enforceFoundryPlacement(actor, inv, itemIds);
   normalizeZonePlacements(actor, inv, settings);
   for (const container of inv.containers) normalizeZonePlacements(actor, container, settings);
   reflowZonePlacements(actor, inv);

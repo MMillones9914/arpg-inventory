@@ -20,6 +20,38 @@ export function dnd5eItemType(item: any): string {
   return type;
 }
 
+/** Candidate equipment slots for an item equipped in Foundry, in priority order. */
+export function equipmentSlotsForItem(item: any): string[] {
+  if (item?.system?.equipped !== true) return [];
+  const type = dnd5eItemType(item).toLowerCase();
+  const subtype = String(item?.system?.type?.value ?? '').toLowerCase();
+  const name = String(item?.name ?? '').toLowerCase();
+  const label = `${subtype} ${name}`;
+
+  if (type === 'ammo') return ['ammo'];
+  if (type === 'weapon') return ['mainhand', 'offhand'];
+  if (type === 'shield' || subtype === 'shield') return ['offhand', 'mainhand'];
+  if (/ring/.test(label)) return ['ring1', 'ring2'];
+  if (/amulet|necklace|torc|pendant/.test(label)) return ['neck'];
+  if (/cloak|mantle|cape/.test(label)) return ['back'];
+  if (/boot|shoe|foot/.test(label)) return ['feet'];
+  if (/glove|gauntlet/.test(label)) return ['hands'];
+  if (/bracer|wrist|vambrace/.test(label)) return ['wrist'];
+  if (/belt|girdle/.test(label)) return ['waist'];
+  if (/helmet|helm|headband|circlet/.test(label)) return ['head'];
+  if (/shoulder|pauldron/.test(label)) return ['shoulders'];
+  if (/armor|breastplate|plate|chainmail|leather/.test(label) || type === 'armor') return ['body'];
+  return ['body'];
+}
+
+/** Pick the first candidate slot that is free (or already holds this item). */
+export function equipmentSlotForItem(item: any, occupied: Record<string, any> = {}) {
+  const candidates = equipmentSlotsForItem(item);
+  if (!candidates.length) return null;
+  const id = String(item?.id ?? '');
+  return candidates.find((slot) => !occupied[slot] || String(occupied[slot]) === id) ?? candidates[0];
+}
+
 export type AttunementState = 'none' | 'required' | 'attuned';
 
 export function attunementState(item: any): AttunementState {

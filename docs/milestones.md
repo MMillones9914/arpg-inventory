@@ -94,6 +94,7 @@ Leyenda de estado: 🔲 To do · 🔄 In progress · ✅ Done
 - [x] Grid de ancho fijo: 10 columnas siempre, filas según capacidad; ancho del panel estabilizado para que nada se oculte (0.8.2)
 - [x] Scroll vertical del contenido y eliminación del encabezado "Inventario" para grids altos (0.8.3)
 - [x] Sincronización real con dnd5e: mover un objeto a un contenedor escribe `system.container` y evita duplicados entre zonas (0.8.4)
+- [x] Equipamiento sincronizado: `system.equipped` se refleja en los slots y los objetos equipados salen del inventario (0.8.5)
 
 ## M9 — Public API & extensibility (0.9.0) 🔲
 - [ ] API pública documentada
