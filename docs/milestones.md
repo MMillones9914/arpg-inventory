@@ -80,6 +80,7 @@ Leyenda de estado: 🔲 To do · 🔄 In progress · ✅ Done
 - [x] Accesibilidad: aria-label, foco visible y navegación por teclado (0.7.0)
 - [x] Placeholders con icons core de Foundry para slots, armas y zonas; `legs` sustituido por `wrist`/`waist` (0.7.1)
 - [x] Disponibilidad de zonas por contenedor poseído, icono `main` a color y placeholders de armas a pantalla completa (0.7.2)
+- [x] Pestañas inactivas visibles con alerta, icono del contenedor y backpack por tipo `container` (0.7.3)
 
 ## M8 — Multiplayer, permissions & sync (0.8.0) 🔲
 - [ ] Permisos GM/Jugador

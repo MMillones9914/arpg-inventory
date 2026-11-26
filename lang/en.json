@@ -40,6 +40,8 @@
       "AllRarities": "All rarities",
       "AllZones": "All zones",
       "ZoneMain": "Main",
+      "NoContainer": "No container",
+      "NeedContainer": "You need a container to use {name}",
       "Results": "Results",
       "CloseHelp": "Close shortcuts"
     },

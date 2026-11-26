@@ -10,6 +10,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - (next milestone in progress)
 
+## [0.7.3] - 2026-11-26
+
+### Added
+- `findContainerItem()` en `src/data/containers.ts`: el icono de la pestaña del contenedor usa la imagen del ítem que el actor lleva (misma imagen que el container). 2 tests nuevos (total 39).
+- Claves `ARPGINV.App.NoContainer` y `ARPGINV.App.NeedContainer` en `lang/en.json` para la alerta de zona sin contenedor.
+
+### Changed
+- Cualquier ítem de tipo `container` habilita la zona `backpack`, sin depender del nombre; los ítems con nombre `quiver`/`carcaj` siguen habilitando solo `quiver`.
+- Las pestañas de contenedores inexistentes ya no se ocultan: se muestran con su placeholder grisáreo, borde discontinuo y `aria-disabled`, para que se vea que esa zona existe.
+- Al pulsar, usar el atajo o soltar un ítem en una pestaña sin contenedor, se muestra una alerta (`ui.notifications.warn`) indicando que se necesita un contenedor; la zona sigue sin ser destino válido.
+- La pestaña de contenedor disponible muestra la imagen del ítem contenedor; la inexistente muestra el icono core de Foundry atenuado.
+
 ## [0.7.2] - 2026-11-26
 
 ### Added

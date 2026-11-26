@@ -25,7 +25,10 @@ import {
   type ItemFilters
 } from '../data/ux';
 import { slotPlaceholder, zonePlaceholder } from '../data/placeholders';
-import { availableContainers, isContainerAvailable } from '../data/containers';
+import {
+  findContainerItem,
+  isContainerAvailable
+} from '../data/containers';
 import { playInventorySound } from '../utils/sound';
 import { pointToCell } from '../engine/grid-geometry';
 import {
@@ -131,15 +134,44 @@ export class InventoryApp extends foundry.applications.api.ApplicationV2 {
     return `arpginv-theme--${['light', 'dark', 'highContrast'].includes(theme) ? theme : 'light'}`;
   }
 
-  /** Only the main grid plus containers actually owned by the actor are usable. */
+  /**
+   * Every configured zone is exposed so empty placeholders stay visible, but
+   * only zones backed by an actor item are marked available.
+   */
   _zoneDefs(inv: any = getActorInventory(this.actor)) {
     if (!inv) return [];
     const items = [...(this.actor?.items ?? [])];
-    return [
-      { id: 'main', name: this._localize('ARPGINV.App.ZoneMain', 'Main'), zone: inv },
-      ...availableContainers(inv.containers, items)
-        .map((c: any) => ({ id: c.id, name: c.name, zone: c }))
-    ];
+    const defs = [{
+      id: 'main',
+      name: this._localize('ARPGINV.App.ZoneMain', 'Main'),
+      zone: inv,
+      available: true,
+      icon: zonePlaceholder('main')
+    }];
+    for (const container of inv.containers ?? []) {
+      const item = findContainerItem(container, items);
+      defs.push({
+        id: container.id,
+        name: container.name,
+        zone: container,
+        available: !!item,
+        icon: item?.img || zonePlaceholder(container.id)
+      });
+    }
+    return defs;
+  }
+
+  _availableZoneDefs(inv?: any) {
+    return this._zoneDefs(inv).filter((zone) => zone.available);
+  }
+
+  _warnUnavailableContainer(zone: any) {
+    const template = this._localize(
+      'ARPGINV.App.NeedContainer',
+      'Necesitas un contenedor para usar {name}'
+    );
+    ui.notifications?.warn?.(template.replace('{name}', zone?.name ?? ''));
+    playInventorySound('invalid');
   }
 
   /** Fill one of the compact info spaces beside a weapon slot. */
@@ -210,7 +242,7 @@ export class InventoryApp extends foundry.applications.api.ApplicationV2 {
   async _autoPlaceAll(inv: any) {
     if (!this.editable) return;
     const items = [...(this.actor?.items ?? [])];
-    const zones = this._zoneDefs(inv).map((def) => ({ id: def.id, zone: def.zone }));
+    const zones = this._availableZoneDefs(inv).map((def) => ({ id: def.id, zone: def.zone }));
     const states = new Map<string, any>();
     for (const z of zones) states.set(z.id, this._buildEngineState(z.zone));
 
@@ -374,7 +406,7 @@ export class InventoryApp extends foundry.applications.api.ApplicationV2 {
     const zoneSelect = makeSelect(
       'arpginv-filter-zone',
       this._localize('ARPGINV.App.AllZones', 'All zones'),
-      this._zoneDefs().map((zone) => ({ value: zone.id, label: zone.name })),
+      this._availableZoneDefs().map((zone) => ({ value: zone.id, label: zone.name })),
       this.activeZone,
       (next) => this._switchZone(next || 'main')
     );
@@ -432,7 +464,12 @@ export class InventoryApp extends foundry.applications.api.ApplicationV2 {
   }
 
   _switchZone(zoneId: string) {
-    if (!this._zoneDefs().some((zone) => zone.id === zoneId)) return;
+    const def = this._zoneDefs().find((zone) => zone.id === zoneId);
+    if (!def) return;
+    if (!def.available) {
+      this._warnUnavailableContainer(def);
+      return;
+    }
     this.activeZone = zoneId;
     this.render(true);
   }
@@ -524,7 +561,7 @@ export class InventoryApp extends foundry.applications.api.ApplicationV2 {
     const inv = getActorInventory(this.actor);
     await this._autoPlaceAll(inv);
     const zoneDefs = this._zoneDefs(inv);
-    if (!zoneDefs.some((def) => def.id === this.activeZone)) this.activeZone = 'main';
+    if (!zoneDefs.some((def) => def.id === this.activeZone && def.available)) this.activeZone = 'main';
     const zone = getInventoryZone(inv, this.activeZone) ?? inv;
 
     // Weight bar (all carried items, strength/manual capacity).
@@ -646,21 +683,20 @@ export class InventoryApp extends foundry.applications.api.ApplicationV2 {
     for (const def of zoneDefs) {
       const btn = document.createElement('button');
       btn.type = 'button';
-      btn.className = 'arpginv-tab arpginv-tab--available';
+      btn.className = `arpginv-tab ${def.available ? 'arpginv-tab--available' : 'arpginv-tab--inactive'}`;
       if (def.id === this.activeZone) btn.classList.add('active');
       btn.dataset.zone = def.id;
-      btn.title = def.name;
-      btn.setAttribute('aria-label', def.name);
+      const noContainer = this._localize('ARPGINV.App.NoContainer', 'Sin contenedor');
+      btn.title = def.available ? def.name : `${def.name} (${noContainer})`;
+      btn.setAttribute('aria-label', btn.title);
+      btn.setAttribute('aria-disabled', String(!def.available));
       const icon = document.createElement('img');
       icon.className = 'arpginv-tab__icon';
-      icon.src = zonePlaceholder(def.id);
+      icon.src = def.icon;
       icon.alt = '';
       icon.setAttribute('aria-hidden', 'true');
       btn.appendChild(icon);
-      btn.addEventListener('click', () => {
-        this.activeZone = def.id;
-        this.render(true);
-      });
+      btn.addEventListener('click', () => this._switchZone(def.id));
       btn.addEventListener('dragover', (ev) => {
         ev.preventDefault();
         ev.stopPropagation();
@@ -831,7 +867,12 @@ export class InventoryApp extends foundry.applications.api.ApplicationV2 {
 
   async _placeDraggedInZone(zoneId: string, x: number, y: number) {
     if (!this.editable) return false;
-    if (!this._zoneDefs().some((zone) => zone.id === zoneId)) return false;
+    const def = this._zoneDefs().find((zone) => zone.id === zoneId);
+    if (!def) return false;
+    if (!def.available) {
+      this._warnUnavailableContainer(def);
+      return false;
+    }
     const draggedId = this.dragItemId;
     if (!draggedId) return false;
     const item = this.actor?.items?.get?.(draggedId);
@@ -895,7 +936,12 @@ export class InventoryApp extends foundry.applications.api.ApplicationV2 {
   /** Move an item to the first free cell of a zone (drop on tab, Enter key). */
   async _moveItemToZone(itemId: string, zoneId: string) {
     if (!this.editable) return false;
-    if (!this._zoneDefs().some((zone) => zone.id === zoneId)) return false;
+    const def = this._zoneDefs().find((zone) => zone.id === zoneId);
+    if (!def) return false;
+    if (!def.available) {
+      this._warnUnavailableContainer(def);
+      return false;
+    }
     const item = this.actor?.items?.get?.(itemId);
     if (!item) return false;
 

@@ -432,6 +432,17 @@
   opacity: 0.9;
 }
 
+.arpginv-tab--inactive {
+  border-style: dashed;
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.arpginv-tab--inactive .arpginv-tab__icon {
+  filter: grayscale(1) brightness(1.05);
+  opacity: 0.4;
+}
+
 .arpginv-tab.active {
   border-color: #4caf50;
   box-shadow: inset 0 -2px 0 #4caf50;

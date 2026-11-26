@@ -1,6 +1,6 @@
 # AGENT.md — Guía del agente de desarrollo
 
-> Documento vivo. Define arquitectura, convenciones y reglas de trabajo del módulo **ARPG Inventory** para Foundry VTT v14. Versión del documento: **0.7.2**.
+> Documento vivo. Define arquitectura, convenciones y reglas de trabajo del módulo **ARPG Inventory** para Foundry VTT v14. Versión del documento: **0.7.3**.
 
 ---
 
@@ -90,7 +90,8 @@ tests/{data,engine}/*.test.ts   # incluye dnd5e.test.ts y ux.test.ts
 - Mutar flags del inventario está permitido únicamente al GM (`canEditInventory`); otros usuarios ven la app en solo lectura.
 - Lógica de UX no dependiente de Foundry va en `src/data/ux.ts` (puro, testeable); los icons de placeholders en `src/data/placeholders.ts`; las reglas de contenedores disponibles en `src/data/containers.ts`; el sonido opcional en `src/utils/sound.ts`.
 - Un placeholder solo se renderiza cuando el slot/arma/zona está vacío; todos usan el mismo filtro grisáreo y opacidad para quedar como fondo. La excepción son las pestañas de zona disponibles (icono a color) y las armas (placeholder a pantalla completa).
-- `backpack` y `quiver` solo están disponibles si el actor posee el ítem contenedor; si no, se ocultan y sus ítems se reubican en una zona válida.
+- `backpack` se habilita con cualquier ítem de tipo `container`; `quiver` por nombre (`quiver`/`carcaj`). Si no hay contenedor, la pestaña sigue visible pero inactiva (grisárea, borde discontinuo, `aria-disabled`) y avisa con `ui.notifications.warn` al intentar usarla; sus ítems se reubican en una zona válida.
+- La pestaña de un contenedor disponible usa la imagen del ítem contenedor del actor; si no existe, usa el icono core atenuado.
 - Los temas son variables CSS en `.arpg-inventory` con clases `arpginv-theme--light|dark|highContrast`; la app añade la clase activa a la raíz.
 - El tooltip propio vive en `document.body`; se oculta al salir del objetivo y se elimina al cerrar la app.
 - Layout de la app: flex horizontal; `.window-content` sin padding y raíz con padding 7px arriba/izquierda y 5px abajo/derecha. El resto de separaciones usan `--arpginv-space` (5px). Equipo 9:16 a la izquierda con `actor.img` de fondo, inventario a la derecha con espacios de armas encima del grid; panel con ancho fijo igual al grid principal; ventana 710×620.
@@ -160,4 +161,4 @@ Un item está en **una sola zona**; `removeItemFromInventory` lo saca de todas a
 
 ---
 
-_Última actualización: 0.7.2 (placeholders de armas a pantalla completa, iconos de zona a color y disponibilidad por contenedor)._
+_Última actualización: 0.7.3 (backpack por tipo `container`, pestañas inactivas visibles con alerta e icono del contenedor)._
