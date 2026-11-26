@@ -10,6 +10,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - (next milestone in progress)
 
+## [0.8.13] - 2026-11-26
+
+### Added
+- Double-clicking any item (grid or equipment slot) now opens that item's real Foundry sheet.
+
+### Changed
+- Item hover tooltips now show only name, rarity (with its matching colour), item type, equipped state when applicable, and quantity. Damage, uses, weight, properties and other details were removed from the tooltip.
+
 ## [0.8.12] - 2026-11-26
 
 ### Added

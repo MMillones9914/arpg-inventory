@@ -69,12 +69,21 @@ describe('UX helpers (M7)', () => {
     expect(filterOptions([longsword, arrows], 'rarity')).toEqual(['common', 'rare']);
   });
 
-  it('builds a rich tooltip with 5e data', () => {
-    const lines = tooltipLines(longsword);
-    expect(lines).toContainEqual({ label: 'Damage', value: '1d8+3' });
-    expect(lines).toContainEqual({ label: 'Attack', value: '+5' });
-    expect(lines).toContainEqual({ label: 'Attunement', value: 'required' });
-    expect(lines).toContainEqual({ label: 'Properties', value: 'versatile' });
+  it('builds a minimal tooltip with identity, type, equipment state and quantity', () => {
+    expect(tooltipLines(longsword)).toEqual([
+      { label: 'Nombre', value: 'Espada Larga' },
+      { label: 'Rareza', value: 'rare', rarity: 'rare' },
+      { label: 'Tipo', value: 'weapon' },
+      { label: 'Cantidad', value: '1' }
+    ]);
+    expect(tooltipLines({ name: 'Poción', type: 'consumable', system: { quantity: 3, equipped: false } }))
+      .toEqual([
+        { label: 'Nombre', value: 'Poción' },
+        { label: 'Rareza', value: 'common', rarity: 'common' },
+        { label: 'Tipo', value: 'consumable' },
+        { label: 'Cantidad', value: '3' },
+        { label: 'Equipado', value: 'No' }
+      ]);
     expect(tooltipLines(null)).toEqual([]);
   });
 

@@ -1,6 +1,6 @@
 // Pure UX helpers for M7. No Foundry globals, safe to unit-test.
 
-import { attunementState, dnd5eItemType, usesLabel, weaponSummary } from './dnd5e';
+import { dnd5eItemType } from './dnd5e';
 
 export interface ItemFilters {
   query: string;
@@ -58,30 +58,23 @@ export function filterOptions(items: any[], key: 'type' | 'rarity'): string[] {
 export interface TooltipLine {
   label: string;
   value: string;
+  /** Optional rarity key so the value can use the matching colour. */
+  rarity?: string;
 }
 
-/** Compact rich tooltip content shared by grid items and equipment slots. */
+/** Minimal tooltip: identity, type, equipment state and quantity only. */
 export function tooltipLines(item: any): TooltipLine[] {
   if (!item) return [];
-  const lines: TooltipLine[] = [
-    { label: 'Name', value: String(item.name ?? '') },
-    { label: 'Type', value: itemType(item) },
-    { label: 'Rarity', value: itemRarity(item) },
-    { label: 'Weight', value: `${itemWeight(item).toFixed(1)} lb` }
-  ];
+  const rarity = itemRarity(item);
   const quantity = Number(item?.system?.quantity ?? 1);
-  if (quantity > 1) lines.push({ label: 'Qty', value: String(quantity) });
-  const uses = usesLabel(item);
-  if (uses) lines.push({ label: 'Uses', value: uses });
-  const attunement = attunementState(item);
-  if (attunement !== 'none') lines.push({ label: 'Attunement', value: attunement });
-
-  const summary = weaponSummary(item);
-  if (summary?.damage) lines.push({ label: 'Damage', value: summary.damage });
-  if (summary?.attack) lines.push({ label: 'Attack', value: summary.attack });
-  if (summary?.range) lines.push({ label: 'Range', value: summary.range });
-  if (summary?.properties?.length) {
-    lines.push({ label: 'Properties', value: summary.properties.join(', ') });
+  const lines: TooltipLine[] = [
+    { label: 'Nombre', value: String(item.name ?? '') },
+    { label: 'Rareza', value: rarity, rarity },
+    { label: 'Tipo', value: itemType(item) },
+    { label: 'Cantidad', value: String(Number.isFinite(quantity) ? quantity : 1) }
+  ];
+  if (item?.system?.equipped !== undefined) {
+    lines.push({ label: 'Equipado', value: item.system.equipped === true ? 'Sí' : 'No' });
   }
   return lines;
 }

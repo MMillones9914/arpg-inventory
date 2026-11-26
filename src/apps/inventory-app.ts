@@ -38,6 +38,7 @@ import { containerPlaceholder, slotPlaceholder, zonePlaceholder } from '../data/
 import { isContainerItem } from '../data/containers';
 import { isInventoryItem } from '../data/inventory-items';
 import { playInventorySound } from '../utils/sound';
+import { warn } from '../utils/logger';
 import { pointToCell } from '../engine/grid-geometry';
 import {
   createGridState,
@@ -769,6 +770,7 @@ export class InventoryApp extends foundry.applications.api.ApplicationV2 {
       label.textContent = line.label;
       const value = document.createElement('span');
       value.textContent = line.value;
+      if (line.rarity) value.className = `arpginv-tooltip__rarity arpginv-tooltip__rarity--${line.rarity}`;
       row.append(label, value);
       return row;
     }));
@@ -782,6 +784,19 @@ export class InventoryApp extends foundry.applications.api.ApplicationV2 {
 
   _hideTooltip() {
     this._tooltipEl?.classList.remove('visible');
+  }
+
+  /** Double-click opens the real Foundry item sheet. */
+  async _openItemSheet(itemId?: string) {
+    if (!itemId) return;
+    const item = this.actor?.items?.get?.(itemId);
+    if (!item) return;
+    this._hideTooltip();
+    try {
+      item.sheet?.render?.(true);
+    } catch (e) {
+      warn('Could not open item sheet', e);
+    }
   }
 
   _switchZone(zoneId: string) {
@@ -1235,6 +1250,15 @@ export class InventoryApp extends foundry.applications.api.ApplicationV2 {
       if (target) this._showTooltip(target);
     });
     root.addEventListener('focusout', () => this._hideTooltip());
+    root.addEventListener('dblclick', (ev) => {
+      const source = ev.target as HTMLElement | null;
+      if (source?.closest('.arpginv-slot__hands-toggle')) return;
+      const target = source?.closest<HTMLElement>('[data-item-id]');
+      if (!target || !root.contains(target)) return;
+      ev.preventDefault();
+      ev.stopPropagation();
+      void this._openItemSheet(target.dataset.itemId);
+    });
 
     this._registerUiKeyHandler();
     this._applyFilters(root);

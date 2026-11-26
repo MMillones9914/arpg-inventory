@@ -755,6 +755,13 @@
   letter-spacing: 0.4px;
 }
 
+.arpginv-tooltip__rarity--common { color: #d0d0d0; }
+.arpginv-tooltip__rarity--uncommon { color: #6fdd7a; }
+.arpginv-tooltip__rarity--rare { color: #64b5f6; }
+.arpginv-tooltip__rarity--very-rare { color: #ce93d8; }
+.arpginv-tooltip__rarity--legendary { color: #ffb74d; }
+.arpginv-tooltip__rarity--artifact { color: #ef6b63; }
+
 .arpginv-item.arpginv-filtered-out,
 .arpginv-slot.arpginv-filtered-out {
   opacity: 0.18;

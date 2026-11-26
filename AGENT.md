@@ -1,6 +1,6 @@
 # AGENT.md — Guía del agente de desarrollo
 
-> Documento vivo. Define arquitectura, convenciones y reglas de trabajo del módulo **ARPG Inventory** para Foundry VTT v14. Versión del documento: **0.8.12**.
+> Documento vivo. Define arquitectura, convenciones y reglas de trabajo del módulo **ARPG Inventory** para Foundry VTT v14. Versión del documento: **0.8.13**.
 
 ---
 
@@ -98,7 +98,7 @@ tests/{data,engine}/*.test.ts   # incluye dnd5e.test.ts y ux.test.ts
 - La pestaña de un contenedor disponible usa la imagen del ítem contenedor del actor; si no existe, usa el icono core atenuado.
 - Cada ítem contenedor crea su propia zona (id = item id) con rejilla cuadrada exacta: 4 lb equivalen a 1 celda y `capacity.count` cuenta como celdas. El setting `maxContainers` limita el número de zonas; mínimo 1.
 - Los temas son variables CSS en `.arpg-inventory` con clases `arpginv-theme--light|dark|highContrast`; la app añade la clase activa a la raíz.
-- El tooltip propio vive en `document.body`; se oculta al salir del objetivo y se elimina al cerrar la app.
+- El tooltip propio vive en `document.body`; se oculta al salir del objetivo y se elimina al cerrar la app. Solo muestra nombre, rareza (coloreada), tipo de objeto, estado `Equipado` cuando el campo existe y cantidad. El doble clic sobre cualquier objeto (grid o slot de equipo) abre su ficha real de Foundry con `item.sheet.render(true)`; el botón de manos se excluye de ese doble clic.
 - Layout de la app: flex horizontal; `.window-content` sin padding y raíz con padding 7px arriba/izquierda y 5px abajo/derecha. El resto de separaciones usan `--arpginv-space` (5px). Equipo 9:16 a la izquierda con `actor.img` de fondo, inventario a la derecha con espacios de armas encima del grid; panel con ancho fijo igual al grid principal; ventana 710×620.
 
 ---
@@ -176,4 +176,4 @@ Permisos: el GM edita cualquier actor; un jugador solo edita los actores que pos
 
 ---
 
-_Última actualización: 0.8.12 (sin ataque, daño con modificadores del actor y listas limpias)._
+_Última actualización: 0.8.13 (tooltip mínimo y doble clic para abrir la ficha de Foundry)._
