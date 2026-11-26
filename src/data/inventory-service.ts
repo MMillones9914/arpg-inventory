@@ -3,6 +3,7 @@ import {
   normalizeActorInventory,
   normalizeCapacity,
   normalizePlacement,
+  capacityFromWeight,
   defaultItemGrid,
   defaultItemStackMax,
   DEFAULT_CONTAINERS
@@ -13,6 +14,7 @@ import { containerKindMatches, isContainerItem, normalizedContainerLimit } from 
 import { inventoryItemIds, isInventoryItem } from './inventory-items';
 import { canEditInventory } from './permissions';
 import { applyRevision, isStaleWrite, type InventoryWriteResult } from './inventory-sync';
+import { canPlace, createGridState, findFirstAvailable, placeItem } from '../engine/grid-engine';
 
 function settingsDefaults() {
   try {
@@ -41,6 +43,38 @@ function normalizeZonePlacements(actor: any, zone: any, settings: any) {
     );
   }
   return zone;
+}
+
+/** Keep placements valid after a zone grid was resized by a weight change. */
+function reflowZonePlacements(actor: any, zone: any) {
+  const cols = zone.capacity.cols;
+  const rows = zone.capacity.rows;
+  let state = createGridState(cols, rows);
+  const placements: Record<string, any> = {};
+  for (const [id, raw] of Object.entries(zone.placements ?? {})) {
+    if (!raw) continue;
+    const placement = raw as any;
+    const item = actor?.items?.get?.(id);
+    const grid = item ? getItemGrid(item) : { w: placement.w, h: placement.h, rotatable: false };
+    const token = {
+      id,
+      grid,
+      stack: placement.stack ?? (item ? getItemStack(item) : { current: 1, max: 1 }),
+      stackKey: placement.stackKey ?? item?.name ?? id
+    };
+    let next: any = null;
+    if (placement.w <= cols && placement.h <= rows
+      && canPlace(state, grid, placement.x, placement.y, placement.rotated)) {
+      next = placeItem(state, token, placement.x, placement.y, placement.rotated);
+    } else {
+      const spot = findFirstAvailable(state, grid, placement.rotated);
+      if (spot) next = placeItem(state, token, spot.x, spot.y, placement.rotated);
+    }
+    if (!next) continue; // No room: the app will try to auto-place it elsewhere.
+    state = next;
+    placements[id] = next.placements[id];
+  }
+  zone.placements = placements;
 }
 
 /**
@@ -78,7 +112,7 @@ export function syncDynamicContainers(actor: any, inv: any, settings: any = {}) 
   for (const fallback of DEFAULT_CONTAINERS) {
     if (placeholders.some((c: any) => c.id === fallback.id) || dynamicIds.has(fallback.id)) continue;
     if (items.some((item) => dynamicIds.has(String(item.id)) && containerKindMatches(fallback, item))) continue;
-    placeholders.push({ ...fallback, available: false, itemId: null });
+    placeholders.push({ ...fallback, available: false, itemId: null, placements: {} });
   }
   placeholders.sort((a: any, b: any) => {
     const order = (c: any) => {
@@ -111,14 +145,19 @@ export function getActorInventory(actor: any) {
   inv.capacity = normalizeCapacity(inv.capacity, settings);
 
   // Strength-based capacity: dnd5e encumbrance max, then STR x 15 lb.
+  // Re-derive the grid so 4 lb always equals one available space.
   if (inv.capacity.mode === 'strength') {
     const max = strengthCapacity(actor);
-    if (max !== null) inv.capacity.maxWeight = max;
+    if (max !== null) inv.capacity = capacityFromWeight(max, inv.capacity);
   }
 
   syncDynamicContainers(actor, inv, settings);
   normalizeZonePlacements(actor, inv, settings);
   for (const container of inv.containers) normalizeZonePlacements(actor, container, settings);
+  reflowZonePlacements(actor, inv);
+  for (const container of inv.containers) {
+    if (container.available !== false) reflowZonePlacements(actor, container);
+  }
   return inv;
 }
 

@@ -47,6 +47,12 @@ export function squareGrid(spaces: number): { cols: number; rows: number } {
   return { cols, rows };
 }
 
+/** How many 4 lb spaces a declared carry weight provides. */
+export function spacesFromWeight(maxWeight: any): number {
+  const pounds = finitePositive(maxWeight);
+  return pounds === null ? 0 : Math.floor(pounds / POUNDS_PER_SPACE);
+}
+
 /** A count container holds one stack of its contents, sized for that item. */
 export function countSlot(item: any): { cols: number; rows: number } {
   const text = `${item?.name ?? ''} ${item?.system?.description?.value ?? ''}`.toLocaleLowerCase();

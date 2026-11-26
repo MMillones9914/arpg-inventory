@@ -1,6 +1,8 @@
 // Pure data model for the ARPG Inventory.
 // No Foundry globals. Safe to unit-test.
 
+import { spacesFromWeight, squareGrid } from './container-capacity';
+
 export const INVENTORY_SCHEMA_VERSION = 2;
 
 const DEFAULT_CAPACITY = {
@@ -72,12 +74,33 @@ function clampInt(value: any, min: number, max: number): number {
 export function normalizeCapacity(raw: any = {}, settings: any = {}) {
   const source = raw && typeof raw === 'object' ? raw : {};
   const mode = source.mode ?? settings.defaultCapacityMode ?? DEFAULT_CAPACITY.mode;
+  const maxWeight = Math.max(0, finiteNumber(source.maxWeight ?? settings.defaultMaxWeight, DEFAULT_CAPACITY.maxWeight));
+  const spaces = spacesFromWeight(maxWeight);
+  // One cell per 4 lb: the declared carry weight always defines the grid.
+  // Saved cols/rows are only a fallback when no weight was declared.
+  const grid = spaces > 0
+    ? squareGrid(spaces)
+    : {
+        cols: positiveInt(source.cols ?? settings.defaultCols, DEFAULT_CAPACITY.cols),
+        rows: positiveInt(source.rows ?? settings.defaultRows, DEFAULT_CAPACITY.rows)
+      };
   return {
     mode: mode === 'strength' ? 'strength' : 'manual',
-    cols: positiveInt(source.cols ?? settings.defaultCols, DEFAULT_CAPACITY.cols),
-    rows: positiveInt(source.rows ?? settings.defaultRows, DEFAULT_CAPACITY.rows),
-    maxWeight: Math.max(0, finiteNumber(source.maxWeight ?? settings.defaultMaxWeight, DEFAULT_CAPACITY.maxWeight))
+    cols: grid.cols,
+    rows: grid.rows,
+    maxWeight,
+    spaces: spaces > 0 ? spaces : grid.cols * grid.rows
   };
+}
+
+/** Rebuild a capacity after the actor's carry weight changed. */
+export function capacityFromWeight(maxWeight: number, fallback: any = {}) {
+  return normalizeCapacity({
+    mode: fallback.mode ?? 'manual',
+    maxWeight,
+    cols: fallback.cols,
+    rows: fallback.rows
+  });
 }
 
 export function defaultCapacity(settings: any = {}) {

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { syncDynamicContainers } from '../../src/data/inventory-service';
+import { getActorInventory, syncDynamicContainers } from '../../src/data/inventory-service';
 import { createEmptyInventory } from '../../src/data/grid-model';
 
 const backpack = {
@@ -44,6 +44,39 @@ describe('dynamic container zones', () => {
     syncDynamicContainers({ items }, inv, { maxContainers: 5 });
     const containers = inv.containers as any[];
     expect(containers.map((c) => c.id)).toEqual(['quiver-item', 'bag-item', 'skin-item']);
+  });
+
+  it('sizes the main grid from carry weight at 4 lb per cell', () => {
+    const actor: any = {
+      getFlag: () => ({
+        capacity: { mode: 'strength', maxWeight: 100 },
+        placements: {}, equipment: {}, containers: []
+      }),
+      items: [],
+      system: { abilities: { str: { value: 20 } } }
+    };
+    const inv: any = getActorInventory(actor);
+    expect(inv.capacity.maxWeight).toBe(300);
+    expect(inv.capacity.spaces).toBe(75);
+    expect(inv.capacity.cols * inv.capacity.rows).toBe(75);
+  });
+
+  it('reflows placements that no longer fit the weight-derived grid', () => {
+    const sword = { id: 'sword', name: 'Sword', type: 'weapon', system: {}, getFlag: () => null };
+    const actor: any = {
+      getFlag: () => ({
+        capacity: { mode: 'manual', maxWeight: 40, cols: 10, rows: 6 },
+        placements: { sword: { x: 9, y: 5, w: 2, h: 1, rotated: false, stack: { current: 1, max: 1 } } },
+        equipment: {}, containers: []
+      }),
+      items: [sword]
+    };
+    actor.items.get = (id: string) => actor.items.find((item: any) => item.id === id);
+    const inv: any = getActorInventory(actor);
+    expect(inv.capacity.cols).toBe(5);
+    expect(inv.capacity.rows).toBe(2);
+    expect(inv.placements.sword).toMatchObject({ x: 3, y: 1, w: 2, h: 1 });
+    expect(inv.placements.sword.x + inv.placements.sword.w).toBeLessThanOrEqual(inv.capacity.cols);
   });
 
   it('drops zones when the container item disappears', () => {

@@ -10,6 +10,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - (next milestone in progress)
 
+## [0.8.1] - 2026-11-26
+
+### Fixed
+- The main inventory grid is now derived from carry weight at 4 lb per space in every capacity mode: a 300 lb actor gets 75 cells (15×5), not the old fixed 10×6 grid. `defaultCols`/`defaultRows` remain only as a fallback when no weight is declared.
+- Strength updates re-derive the grid, and placements outside a resized grid are clamped and reflowed to valid cells instead of overlapping.
+- Default container placeholders always initialize an empty `placements` map.
+
 ## [0.8.0] - 2026-11-26
 
 ### Added

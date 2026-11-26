@@ -90,6 +90,7 @@ Leyenda de estado: 🔲 To do · 🔄 In progress · ✅ Done
 - [x] Permisos GM/Jugador: el GM edita cualquier actor, el jugador solo los suyos; observadores en solo lectura (0.8.0)
 - [x] Sync sin race conditions: revisión monótona en cada escritura (`revision`/`updatedBy`/`updatedAt`) y hooks que solo normalizan desde el cliente que hizo el cambio (0.8.0)
 - [x] Manejo de conflictos: escritura rezagada se rechaza con aviso y se recarga la versión ganadora (0.8.0)
+- [x] Corrección de peso: el grid principal se deriva de la capacidad de carga a 4 lb/celda (300 lb → 75 espacios), con reflow de colocaciones (0.8.1)
 
 ## M9 — Public API & extensibility (0.9.0) 🔲
 - [ ] API pública documentada

@@ -12,16 +12,16 @@
         "Hint": "How many carried containers get their own inventory zone. Minimum 1."
       },
       "DefaultCols": {
-        "Name": "Default columns",
-        "Hint": "Default number of grid columns for new inventories."
+        "Name": "Fallback columns",
+        "Hint": "Used only when no carry weight is declared; otherwise the grid comes from weight / 4 lb."
       },
       "DefaultRows": {
-        "Name": "Default rows",
-        "Hint": "Default number of grid rows for new inventories."
+        "Name": "Fallback rows",
+        "Hint": "Used only when no carry weight is declared; otherwise the grid comes from weight / 4 lb."
       },
       "DefaultMaxWeight": {
         "Name": "Default max weight",
-        "Hint": "Default maximum carry weight for new inventories."
+        "Hint": "Carry capacity in lb. Each 4 lb is one space, so 300 lb gives 75 spaces."
       },
       "Theme": {
         "Name": "Inventory theme",

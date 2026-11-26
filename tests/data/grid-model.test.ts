@@ -19,7 +19,8 @@ describe('grid-model', () => {
     const inv = createEmptyInventory({ defaultCols: 5, defaultRows: 4 });
     expect(inv.version).toBe(2);
     expect(inv.capacity.cols).toBe(5);
-    expect(inv.capacity.rows).toBe(4);
+    expect(inv.capacity.rows).toBe(5);
+    expect(inv.capacity.spaces).toBe(25);
     expect(inv.placements).toEqual({});
     expect(Object.keys(inv.equipment)).toEqual(EQUIPMENT_SLOTS.map((s) => s.id));
     expect(EQUIPMENT_SLOTS).toHaveLength(14);
@@ -31,7 +32,7 @@ describe('grid-model', () => {
     expect(ids).toContain('wrist');
     expect(ids).toContain('waist');
     expect(inv.containers).toHaveLength(2);
-    expect(inv.containers[0].capacity.cols).toBe(6);
+    expect(inv.containers[0].capacity.cols).toBe(5);
   });
 
   it('migrates v0 with items map', () => {
@@ -81,8 +82,21 @@ describe('grid-model', () => {
   });
 
   it('normalizes capacity values saved as strings', () => {
+    // 250 lb / 4 = 62 spaces -> closest factor pair is 31x2.
     expect(normalizeCapacity({ mode: 'strength', cols: '8', rows: '4', maxWeight: '250' }))
-      .toEqual({ mode: 'strength', cols: 8, rows: 4, maxWeight: 250 });
+      .toEqual({ mode: 'strength', cols: 31, rows: 2, maxWeight: 250, spaces: 62 });
+  });
+
+  it('derives one cell per 4 lb of carry weight', () => {
+    expect(normalizeCapacity({ mode: 'strength', maxWeight: 300 })).toMatchObject({
+      cols: 15, rows: 5, maxWeight: 300, spaces: 75
+    });
+    expect(normalizeCapacity({ mode: 'manual', maxWeight: 40 })).toMatchObject({
+      cols: 5, rows: 2, spaces: 10
+    });
+    expect(normalizeCapacity({ maxWeight: 0, cols: 4, rows: 3 })).toMatchObject({
+      cols: 4, rows: 3, spaces: 12
+    });
   });
 
   it('finds and removes items from any zone', () => {
